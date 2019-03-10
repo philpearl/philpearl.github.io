@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Json - EnTitled</title>
+    <link>https://philpearl.github.io/categories/json/</link>
+    <description>Recent content in Json on EnTitled</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate>
+    
+        <atom:link href="https://philpearl.github.io/categories/json/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>JSON and embedding</title>
+      <link>https://philpearl.github.io/post/json_embed/</link>
+      <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/json_embed/</guid>
+      <description>Prefer composition over inheritance, but with JSON both of them can get in the sea.</description>
+    </item>
+  </channel>
+</rss>

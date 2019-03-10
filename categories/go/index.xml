@@ -6,17 +6,24 @@
     <description>Recent content in Go on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 10 Mar 2019 15:10:27 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate>
     
         <atom:link href="https://philpearl.github.io/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>JSON and embedding</title>
+      <link>https://philpearl.github.io/post/json_embed/</link>
+      <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/json_embed/</guid>
+      <description>Prefer composition over inheritance, but with JSON both of them can get in the sea.</description>
+    </item><item>
       <title>The why of Go strings</title>
       <link>https://philpearl.github.io/post/why_of_go_strings/</link>
       <pubDate>Sun, 10 Mar 2019 15:10:27 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/why_of_go_strings/</guid>
-      <description>A story about strings that might even be true</description>
+      <description>A story about strings that might even be true.</description>
     </item><item>
       <title>Further Dangers of Large Heaps in Go</title>
       <link>https://philpearl.github.io/post/danger_large_heap/</link>

@@ -16,7 +16,7 @@
       <pubDate>Sun, 10 Mar 2019 15:10:27 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/why_of_go_strings/</guid>
-      <description>A story about strings that might even be true</description>
+      <description>A story about strings that might even be true.</description>
     </item><item>
       <title>Further Dangers of Large Heaps in Go</title>
       <link>https://philpearl.github.io/post/danger_large_heap/</link>
