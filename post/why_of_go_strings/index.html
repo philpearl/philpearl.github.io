@@ -22,7 +22,7 @@
     </button>
     <ul id="menu" class="hamburger-menu-overlay">
       <li><a href="https://philpearl.github.io/" class="hamburger-menu-overlay-link">Home</a></li>
-      <li><a href="https://philpearl.github.io/categories/go" class="hamburger-menu-overlay-link">Go</a></li><li><a href="https://philpearl.github.io/categories/programming" class="hamburger-menu-overlay-link">Programming</a></li>
+      <li><a href="https://philpearl.github.io/categories/benchmark" class="hamburger-menu-overlay-link">Benchmark</a></li><li><a href="https://philpearl.github.io/categories/go" class="hamburger-menu-overlay-link">Go</a></li><li><a href="https://philpearl.github.io/categories/linux" class="hamburger-menu-overlay-link">Linux</a></li><li><a href="https://philpearl.github.io/categories/memoryleak" class="hamburger-menu-overlay-link">Memoryleak</a></li><li><a href="https://philpearl.github.io/categories/performance" class="hamburger-menu-overlay-link">Performance</a></li><li><a href="https://philpearl.github.io/categories/programming" class="hamburger-menu-overlay-link">Programming</a></li>
     </ul>
   </div>
 </nav>
@@ -36,7 +36,7 @@
         <picture class="post-figure">
             
             <source srcset="https://philpearl.github.io/post/strings.jpeg">
-          <img src="https://philpearl.github.io/post/strings.jpeg" alt="">
+          <img src="https://philpearl.github.io/post/strings.jpeg" alt="a ball of wool">
         </picture>
         
         
@@ -77,6 +77,28 @@
       
     </main>
     <nav class="end-nav side-padding">
+      
+      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
+  href="https://philpearl.github.io/post/danger_large_heap/" class="card blog-card" rel="bookmark" >
+    
+    <div class="card-img-container">
+      <p class="card-img-overlay">Next Article</p>
+      <picture>
+        
+        <source srcset="https://philpearl.github.io/post/garbage.jpeg">
+        <img src="https://philpearl.github.io/post/garbage.jpeg" class="card-img" alt="3 recycling bins">
+      </picture>
+    </div>
+    
+  <article class="card-body">
+    <h2 class="card-title">Further Dangers of Large Heaps in Go</h2>
+    <p class="card-text">Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
+    <div class="card-subtext muted-text">
+      <p>Posted <time datetime="2018-11-15 1115:00">Nov 15, 2018</time></p>
+      <p>#go #programming #performance #memoryleak </p>
+    </div>
+  </article>
+</a>
       
       <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
   href="https://philpearl.github.io/" class="card home-card" style="background-image: url( https://philpearl.github.io/img/grey-cloud.jpg )" rel="bookmark" >

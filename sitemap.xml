@@ -8,7 +8,29 @@
   </url>
   
   <url>
+    <loc>https://philpearl.github.io/post/danger_large_heap/</loc>
+    <lastmod>2018-11-15T19:57:02+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/bytes_buffer_revisted/</loc>
+    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/go_scratch_vm/</loc>
+    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/benchmark/</loc>
+    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://philpearl.github.io/categories/</loc>
+    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -21,6 +43,24 @@
   <url>
     <loc>https://philpearl.github.io/categories/go/</loc>
     <lastmod>2019-03-10T15:10:27+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/linux/</loc>
+    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/memoryleak/</loc>
+    <lastmod>2018-11-15T19:57:02+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/performance/</loc>
+    <lastmod>2018-11-15T19:57:02+00:00</lastmod>
     <priority>0</priority>
   </url>
   

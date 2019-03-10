@@ -17,6 +17,27 @@
       
       <guid>https://philpearl.github.io/post/why_of_go_strings/</guid>
       <description>A story about strings that might even be true</description>
+    </item><item>
+      <title>Further Dangers of Large Heaps in Go</title>
+      <link>https://philpearl.github.io/post/danger_large_heap/</link>
+      <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
+      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</description>
+    </item><item>
+      <title>bytes.Buffer revisited.</title>
+      <link>https://philpearl.github.io/post/bytes_buffer_revisted/</link>
+      <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bytes_buffer_revisted/</guid>
+      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </description>
+    </item><item>
+      <title>Go in a scratch VM</title>
+      <link>https://philpearl.github.io/post/go_scratch_vm/</link>
+      <pubDate>Mon, 04 Jun 2018 20:19:41 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/go_scratch_vm/</guid>
+      <description>distributionless linux.</description>
     </item>
   </channel>
 </rss>

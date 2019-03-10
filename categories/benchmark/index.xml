@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Benchmark - EnTitled</title>
+    <link>https://philpearl.github.io/categories/benchmark/</link>
+    <description>Recent content in Benchmark on EnTitled</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Sun, 02 Sep 2018 20:15:18 +0000</lastBuildDate>
+    
+        <atom:link href="https://philpearl.github.io/categories/benchmark/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>bytes.Buffer revisited.</title>
+      <link>https://philpearl.github.io/post/bytes_buffer_revisted/</link>
+      <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bytes_buffer_revisted/</guid>
+      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Memoryleak - EnTitled</title>
+    <link>https://philpearl.github.io/categories/memoryleak/</link>
+    <description>Recent content in Memoryleak on EnTitled</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Thu, 15 Nov 2018 19:57:02 +0000</lastBuildDate>
+    
+        <atom:link href="https://philpearl.github.io/categories/memoryleak/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Further Dangers of Large Heaps in Go</title>
+      <link>https://philpearl.github.io/post/danger_large_heap/</link>
+      <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
+      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</description>
+    </item>
+  </channel>
+</rss>
