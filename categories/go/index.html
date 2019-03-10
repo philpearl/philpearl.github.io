@@ -1,147 +1,81 @@
 <!DOCTYPE html>
-<html lang="en-gb" dir="ltr">
-  <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Go &middot; EnTitled</title>
-  <meta name="description" content="" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://philpearl.github.io/css/main.min.css" />
-  <link rel="alternate" type="application/rss+xml" href="https://philpearl.github.io/categories/go/index.xml" title="EnTitled" />
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="//gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.54.0" />
+
   
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go &middot; EnTitled</title>
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="https://philpearl.github.io/categories/go/index.xml" rel="alternate" type="application/rss+xml" title="EnTitled" />
+
+  
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/"><h1>EnTitled</h1></a>
+      <p class="lead">
+       hello everyone 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2019. All rights reserved. </p>
+  </div>
+</aside>
+
+    <main class="content container">
+    <ul class="posts">
+<li>
+    <span><a href="https://philpearl.github.io/post/json_embed/">JSON and embedding</a> <time class="pull-right post-list" datetime="2019-03-10T20:49:37Z">Sun, Mar 10, 2019</time></span>
+  </li><li>
+    <span><a href="https://philpearl.github.io/post/why_of_go_strings/">The why of Go strings</a> <time class="pull-right post-list" datetime="2019-03-10T15:10:27Z">Sun, Mar 10, 2019</time></span>
+  </li><li>
+    <span><a href="https://philpearl.github.io/post/danger_large_heap/">Further Dangers of Large Heaps in Go</a> <time class="pull-right post-list" datetime="2018-11-15T19:57:02Z">Thu, Nov 15, 2018</time></span>
+  </li><li>
+    <span><a href="https://philpearl.github.io/post/bytes_buffer_revisted/">bytes.Buffer revisited.</a> <time class="pull-right post-list" datetime="2018-09-02T20:15:18Z">Sun, Sep 2, 2018</time></span>
+  </li><li>
+    <span><a href="https://philpearl.github.io/post/go_scratch_vm/">Go in a scratch VM</a> <time class="pull-right post-list" datetime="2018-06-04T20:19:41Z">Mon, Jun 4, 2018</time></span>
+  </li>
+</ul>
+    </main>
+
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
 	ga('create', 'UA-64013694-2', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-  
-</head>
-  <body class="list-body">
-    <nav class="nav-bar side-padding">
-  <h1 class="nav-header"><a href="https://philpearl.github.io/" class="nav-text">EnTitled</a></h1>
-  <div class="hamburger-menu">
-    <button onclick="hamburgerMenuPressed.call(this)" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="Menu">
-      <span></span>
-      <span></span>
-    </button>
-    <ul id="menu" class="hamburger-menu-overlay">
-      <li><a href="https://philpearl.github.io/" class="hamburger-menu-overlay-link">Home</a></li>
-      <li><a href="https://philpearl.github.io/categories/benchmark" class="hamburger-menu-overlay-link">Benchmark</a></li><li><a href="https://philpearl.github.io/categories/go" class="hamburger-menu-overlay-link">Go</a></li><li><a href="https://philpearl.github.io/categories/json" class="hamburger-menu-overlay-link">Json</a></li><li><a href="https://philpearl.github.io/categories/linux" class="hamburger-menu-overlay-link">Linux</a></li><li><a href="https://philpearl.github.io/categories/memoryleak" class="hamburger-menu-overlay-link">Memoryleak</a></li><li><a href="https://philpearl.github.io/categories/performance" class="hamburger-menu-overlay-link">Performance</a></li><li><a href="https://philpearl.github.io/categories/programming" class="hamburger-menu-overlay-link">Programming</a></li>
-    </ul>
-  </div>
-</nav>
-    <main class="card-container side-gutter">
-      <header class="list-header">
-        <p class="list-header-subtext"></p>
-        <h1 class="list-header-title">Go</h1>
-      </header>
-      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/json_embed/" class="card blog-card" rel="bookmark" >
-    <div class="card-img-container">
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/post/sea.jpg">
-        <img src="https://philpearl.github.io/post/sea.jpg" class="card-img" alt="The sea">
-      </picture>
-    </div>
-  <article class="card-body">
-    <h2 class="card-title">JSON and embedding</h2>
-    <p class="card-text">Prefer composition over inheritance, but with JSON both of them can get in the sea.</p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2019-03-10">Mar 10, 2019</time></p>
-      <p>#go #json </p>
-    </div>
-  </article>
-</a><a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/why_of_go_strings/" class="card blog-card" rel="bookmark" >
-    <div class="card-img-container">
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/post/strings.jpeg">
-        <img src="https://philpearl.github.io/post/strings.jpeg" class="card-img" alt="a ball of wool">
-      </picture>
-    </div>
-  <article class="card-body">
-    <h2 class="card-title">The why of Go strings</h2>
-    <p class="card-text">A story about strings that might even be true.</p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2019-03-10">Mar 10, 2019</time></p>
-      <p>#go #programming </p>
-    </div>
-  </article>
-</a><a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/danger_large_heap/" class="card blog-card" rel="bookmark" >
-    <div class="card-img-container">
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/post/garbage.jpeg">
-        <img src="https://philpearl.github.io/post/garbage.jpeg" class="card-img" alt="3 recycling bins">
-      </picture>
-    </div>
-  <article class="card-body">
-    <h2 class="card-title">Further Dangers of Large Heaps in Go</h2>
-    <p class="card-text">Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2018-11-15">Nov 15, 2018</time></p>
-      <p>#go #programming #performance #memoryleak </p>
-    </div>
-  </article>
-</a><a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/bytes_buffer_revisted/" class="card blog-card" rel="bookmark" >
-    <div class="card-img-container">
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/">
-        <img src="https://philpearl.github.io/" class="card-img" alt="">
-      </picture>
-    </div>
-  <article class="card-body">
-    <h2 class="card-title">bytes.Buffer revisited.</h2>
-    <p class="card-text">Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2018-09-02">Sep 2, 2018</time></p>
-      <p>#go #programming #performance #benchmark </p>
-    </div>
-  </article>
-</a><a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/go_scratch_vm/" class="card blog-card" rel="bookmark" >
-    <div class="card-img-container">
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/post/scratch_banner.jpeg">
-        <img src="https://philpearl.github.io/post/scratch_banner.jpeg" class="card-img" alt="We don&#39;t need a distribution">
-      </picture>
-    </div>
-  <article class="card-body">
-    <h2 class="card-title">Go in a scratch VM</h2>
-    <p class="card-text">distributionless linux.</p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2018-06-04">Jun 4, 2018</time></p>
-      <p>#linux #go </p>
-    </div>
-  </article>
-</a>
-    </main>
-    <footer>
-    
-</footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-<script src="https://philpearl.github.io/js/core.js"></script>
-<script>
-  hljs.initHighlightingOnLoad();
-</script>
   </body>
 </html>

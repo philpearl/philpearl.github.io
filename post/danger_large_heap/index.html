@@ -1,58 +1,67 @@
 <!DOCTYPE html>
-<html lang="en-gb" dir="ltr">
-  <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Further Dangers of Large Heaps in Go &middot; EnTitled</title>
-  <meta name="description" content="Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache." />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://philpearl.github.io/css/main.min.css" />
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="//gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.54.0" />
+
   
-<script type="application/javascript">
-var doNotTrack = false;
-if (!doNotTrack) {
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-	ga('create', 'UA-64013694-2', 'auto');
-	
-	ga('send', 'pageview');
-}
-</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Further Dangers of Large Heaps in Go &middot; EnTitled</title>
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="EnTitled" />
 
   
 </head>
-  <body class="single-body">
-    <nav class="nav-bar side-padding">
-  <h1 class="nav-header"><a href="https://philpearl.github.io/" class="nav-text">EnTitled</a></h1>
-  <div class="hamburger-menu">
-    <button onclick="hamburgerMenuPressed.call(this)" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="Menu">
-      <span></span>
-      <span></span>
-    </button>
-    <ul id="menu" class="hamburger-menu-overlay">
-      <li><a href="https://philpearl.github.io/" class="hamburger-menu-overlay-link">Home</a></li>
-      <li><a href="https://philpearl.github.io/categories/benchmark" class="hamburger-menu-overlay-link">Benchmark</a></li><li><a href="https://philpearl.github.io/categories/go" class="hamburger-menu-overlay-link">Go</a></li><li><a href="https://philpearl.github.io/categories/json" class="hamburger-menu-overlay-link">Json</a></li><li><a href="https://philpearl.github.io/categories/linux" class="hamburger-menu-overlay-link">Linux</a></li><li><a href="https://philpearl.github.io/categories/memoryleak" class="hamburger-menu-overlay-link">Memoryleak</a></li><li><a href="https://philpearl.github.io/categories/performance" class="hamburger-menu-overlay-link">Performance</a></li><li><a href="https://philpearl.github.io/categories/programming" class="hamburger-menu-overlay-link">Programming</a></li>
-    </ul>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/"><h1>EnTitled</h1></a>
+      <p class="lead">
+       hello everyone 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2019. All rights reserved. </p>
   </div>
-</nav>
-    <main class="content side-text-padding">
-      <article class="post dropcase">
-        <header class="post-header">
-        	<h1 class="post-title">Further Dangers of Large Heaps in Go</h1>
-          <p class="post-date">Posted <time datetime="2018-11-15">Nov 15, 2018</time></p>
-        </header>
-        
-        <picture class="post-figure">
-            
-            <source srcset="https://philpearl.github.io/post/garbage.jpeg">
-          <img src="https://philpearl.github.io/post/garbage.jpeg" alt="3 recycling bins">
-        </picture>
-        
-        <p>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  
+  <picture class="post-figure">
+    <source srcset="https://philpearl.github.io/post/garbage.jpeg">
+    <img src="https://philpearl.github.io/post/garbage.jpeg" alt="3 recycling bins">
+  </picture>
+  
+
+  <h1>Further Dangers of Large Heaps in Go</h1>
+
+  <time datetime=2018-11-15T19:57:02Z class="post-date">Thu, Nov 15, 2018</time>
+  <p>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
 
 <p>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re <a href="https://ravelin.workable.com/">hiring</a>! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</p>
 
@@ -87,130 +96,104 @@ if (!doNotTrack) {
 <p>So, long rambling GC whinge-fest over. Let’s see just how bad this can get with some proper directed whinging. For your amusement and edification I’ve built a reproduction scenario that quickly shows the problem on my 2015 MBP with 16 GB of RAM.</p>
 
 <p>First it allocates an array of 1.5 billion 8-byte pointers. So about 12GB of RAM. Then it uses up all available CPU by running a bunch of workers that loop creating arrays of 1 million 8-byte pointers (about 8 MB) &amp; burning a little CPU with a factorial calculation (just for laughs). Ideally the memory in-use wouldn’t grow much: the loops would spin a few times allocating memory, then the GC would trigger and free it again, then the loops would spin &amp; allocate some more, etc. The huge 12GB allocation would just loom at one side being memory.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;os&#34;</span>
-	<span style="color:#e6db74">&#34;runtime&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;os&#34;</span>
+	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
+	<span style="color:#f1fa8c">&#34;sync&#34;</span>
 )
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#75715e">// A huge allocation to give the GC work to do
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">lotsOf</span> <span style="color:#f92672">:=</span> make([]<span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">15e8</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Background GC work generated&#34;</span>)
-	<span style="color:#75715e">// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">GC</span>()
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	<span style="color:#6272a4">// A huge allocation to give the GC work to do
+</span><span style="color:#6272a4"></span>	lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
+	<span style="color:#6272a4">// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
+</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">GC</span>()
 
-	<span style="color:#75715e">// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
-	<span style="color:#a6e22e">numWorkers</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">NumCPU</span>()
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">numWorkers</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
-		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-			<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-			<span style="color:#a6e22e">work</span>()
+	<span style="color:#6272a4">// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
+</span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">var</span> wg sync.WaitGroup
+	numWorkers <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">NumCPU</span>()
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; numWorkers; i<span style="color:#ff79c6">++</span> {
+		wg.<span style="color:#50fa7b">Add</span>(<span style="color:#bd93f9">1</span>)
+		<span style="color:#ff79c6">go</span> <span style="color:#8be9fd;font-style:italic">func</span>() {
+			<span style="color:#ff79c6">defer</span> wg.<span style="color:#50fa7b">Done</span>()
+			<span style="color:#50fa7b">work</span>()
 		}()
 	}
 
-	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+	wg.<span style="color:#50fa7b">Wait</span>()
 
-	<span style="color:#75715e">// Make sure that this memory isn&#39;t optimised away
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">KeepAlive</span>(<span style="color:#a6e22e">lotsOf</span>)
+	<span style="color:#6272a4">// Make sure that this memory isn&#39;t optimised away
+</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">KeepAlive</span>(lotsOf)
 }
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">work</span>() {
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">work</span> <span style="color:#f92672">:=</span> make([]<span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">1e6</span>)
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">f</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">factorial</span>(<span style="color:#ae81ff">20</span>); <span style="color:#a6e22e">f</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2432902008176640000</span> {
-			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">f</span>)
-			<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">work</span>() {
+	<span style="color:#ff79c6">for</span> {
+		work <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e6</span>)
+		<span style="color:#ff79c6">if</span> f <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">factorial</span>(<span style="color:#bd93f9">20</span>); f <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">2432902008176640000</span> {
+			fmt.<span style="color:#50fa7b">Println</span>(f)
+			os.<span style="color:#50fa7b">Exit</span>(<span style="color:#bd93f9">1</span>)
 		}
-		<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">KeepAlive</span>(<span style="color:#a6e22e">work</span>)
+		runtime.<span style="color:#50fa7b">KeepAlive</span>(work)
 	}
 }
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">factorial</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span> {
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">factorial</span>(n <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">int</span> {
+	<span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">1</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>
 	}
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">factorial</span>(<span style="color:#a6e22e">n</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+	<span style="color:#ff79c6">return</span> n <span style="color:#ff79c6">*</span> <span style="color:#50fa7b">factorial</span>(n<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)
 }</code></pre></div>
 <p>But that’s not what happens. Memory use grows and grows, and in not much more than a minute the process is killed by the OS when the memory runs out. Here’s what we see if we enable GC trace debug output.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">GODEBUG<span style="color:#f92672">=</span>gctrace<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ./gcbacklog
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#8be9fd;font-style:italic">GODEBUG</span><span style="color:#ff79c6">=</span><span style="color:#8be9fd;font-style:italic">gctrace</span><span style="color:#ff79c6">=</span><span style="color:#bd93f9">1</span> ./gcbacklog
 Background GC work generated
-gc <span style="color:#ae81ff">1</span> @0.804s <span style="color:#ae81ff">21</span>%: <span style="color:#ae81ff">0</span>.012+4528+0.17 ms clock, <span style="color:#ae81ff">0</span>.099+1.4/9054/27147+1.4 ms cpu, 
-<span style="color:#ae81ff">11444</span>-&gt;11444-&gt;11444 MB, <span style="color:#ae81ff">11445</span> MB goal, <span style="color:#ae81ff">8</span> P <span style="color:#f92672">(</span>forced<span style="color:#f92672">)</span>
+gc <span style="color:#bd93f9">1</span> @0.804s <span style="color:#bd93f9">21</span>%: <span style="color:#bd93f9">0</span>.012+4528+0.17 ms clock, <span style="color:#bd93f9">0</span>.099+1.4/9054/27147+1.4 ms cpu, 
+<span style="color:#bd93f9">11444</span>-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">11445</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
 
-gc <span style="color:#ae81ff">2</span> @5.333s <span style="color:#ae81ff">23</span>%: <span style="color:#ae81ff">0</span>.012+6358+0.086 ms clock, <span style="color:#ae81ff">0</span>.099+0/12716/38112+0.68 ms cpu, 
-<span style="color:#ae81ff">11444</span>-&gt;11444-&gt;11444 MB, <span style="color:#ae81ff">22888</span> MB goal, <span style="color:#ae81ff">8</span> P <span style="color:#f92672">(</span>forced<span style="color:#f92672">)</span>
+gc <span style="color:#bd93f9">2</span> @5.333s <span style="color:#bd93f9">23</span>%: <span style="color:#bd93f9">0</span>.012+6358+0.086 ms clock, <span style="color:#bd93f9">0</span>.099+0/12716/38112+0.68 ms cpu, 
+<span style="color:#bd93f9">11444</span>-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
 
-gc <span style="color:#ae81ff">3</span> @11.764s <span style="color:#ae81ff">31</span>%: <span style="color:#ae81ff">20</span>+53853+1.4 ms clock, <span style="color:#ae81ff">167</span>+37787/107690/0+11 ms cpu, 
-<span style="color:#ae81ff">11505</span>-&gt;728829-&gt;728783 MB, <span style="color:#ae81ff">22888</span> MB goal, <span style="color:#ae81ff">8</span> P
+gc <span style="color:#bd93f9">3</span> @11.764s <span style="color:#bd93f9">31</span>%: <span style="color:#bd93f9">20</span>+53853+1.4 ms clock, <span style="color:#bd93f9">167</span>+37787/107690/0+11 ms cpu, 
+<span style="color:#bd93f9">11505</span>-&gt;728829-&gt;728783 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-gc <span style="color:#ae81ff">4</span> @65.676s <span style="color:#ae81ff">40</span>%: <span style="color:#ae81ff">69</span>+10843+0.036 ms clock, <span style="color:#ae81ff">555</span>+61294/21670/23+0.29 ms cpu, 
-<span style="color:#ae81ff">728844</span>-&gt;752155-&gt;34785 MB, <span style="color:#ae81ff">1457567</span> MB goal, <span style="color:#ae81ff">8</span> P
+gc <span style="color:#bd93f9">4</span> @65.676s <span style="color:#bd93f9">40</span>%: <span style="color:#bd93f9">69</span>+10843+0.036 ms clock, <span style="color:#bd93f9">555</span>+61294/21670/23+0.29 ms cpu, 
+<span style="color:#bd93f9">728844</span>-&gt;752155-&gt;34785 MB, <span style="color:#bd93f9">1457567</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-Killed: <span style="color:#ae81ff">9</span></code></pre></div>
+Killed: <span style="color:#bd93f9">9</span></code></pre></div>
 <p>The format of this output is described <a href="https://golang.org/pkg/runtime/#hdr-Environment_Variables">here</a>. Once the initial array is allocated the process is using 21% of the available CPU for GC, and this rises to 40% before it is killed. The GC memory size target is quickly 22 GB (twice our initial allocation), but this rises to an insane 1.4 TB as things spiral out of control.</p>
 
 <p>Now, if we change that initial allocation from 1.5 billion 8-byte pointers to 1.5 billion 8-byte integers things change completely. We use just as much memory, but it doesn’t contain pointers. The GC target hits 22 GB, but the GC kicks in more frequently and uses less overall CPU, and importantly the target doesn’t grow.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Note no *! This now contains no pointers
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">lotsOf</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">15e8</span>)
-<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Background GC work generated&#34;</span>)</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6272a4">// Note no *! This now contains no pointers
+</span><span style="color:#6272a4"></span>lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)</code></pre></div>
 <p>Here are the numbers after the 62nd round of GC, 95 seconds after the program starts. The target is still bobbling around 22 GB and there’s effectively zero CPU used for GC. Things are stable and it could run forever.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gc <span style="color:#ae81ff">61</span> @93.824s <span style="color:#ae81ff">0</span>%: <span style="color:#ae81ff">4</span>.0+4.5+0.075 ms clock, <span style="color:#ae81ff">32</span>+8.9/8.6/4.0+0.60 ms cpu, 
-<span style="color:#ae81ff">22412</span>-&gt;22412-&gt;11474 MB, <span style="color:#ae81ff">22980</span> MB goal, <span style="color:#ae81ff">8</span> P
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gc <span style="color:#bd93f9">61</span> @93.824s <span style="color:#bd93f9">0</span>%: <span style="color:#bd93f9">4</span>.0+4.5+0.075 ms clock, <span style="color:#bd93f9">32</span>+8.9/8.6/4.0+0.60 ms cpu, 
+<span style="color:#bd93f9">22412</span>-&gt;22412-&gt;11474 MB, <span style="color:#bd93f9">22980</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-gc <span style="color:#ae81ff">62</span> @95.290s <span style="color:#ae81ff">0</span>%: <span style="color:#ae81ff">14</span>+4.0+0.085 ms clock, <span style="color:#ae81ff">115</span>+4.3/0.39/0+0.68 ms cpu, 
-<span style="color:#ae81ff">22382</span>-&gt;22382-&gt;11451 MB, <span style="color:#ae81ff">22949</span> MB goal, <span style="color:#ae81ff">8</span> P</code></pre></div>
+gc <span style="color:#bd93f9">62</span> @95.290s <span style="color:#bd93f9">0</span>%: <span style="color:#bd93f9">14</span>+4.0+0.085 ms clock, <span style="color:#bd93f9">115</span>+4.3/0.39/0+0.68 ms cpu, 
+<span style="color:#bd93f9">22382</span>-&gt;22382-&gt;11451 MB, <span style="color:#bd93f9">22949</span> MB goal, <span style="color:#bd93f9">8</span> P</code></pre></div>
 <p>So what are the lessons to learn here? If you are using Go for data-processing then you either can’t have any long-term large heap allocations or you must ensure that they don’t contain any pointers. And this means no strings, no slices, no time.Time (it contains a pointer to a locale), no nothing with a hidden pointer in it. I hope to follow up with some blog posts about tricks I’ve used to do that.</p>
 
 <p>(Thanks to the fabulous people in the #performance channel on Gophers slack for some help along the way. There’s some great stuff in that channel if you can find the time to dip in)</p>
 
-      </article>
-      
+</div>
+
+
     </main>
-    <nav class="end-nav side-padding">
-      
-      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/post/bytes_buffer_revisted/" class="card blog-card" rel="bookmark" >
+
     
-    <div class="card-img-container">
-      <p class="card-img-overlay">Next Article</p>
-      <picture>
-        
-        <source srcset="https://philpearl.github.io/">
-        <img src="https://philpearl.github.io/" class="card-img" alt="">
-      </picture>
-    </div>
-    
-  <article class="card-body">
-    <h2 class="card-title">bytes.Buffer revisited.</h2>
-    <p class="card-text">Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </p>
-    <div class="card-subtext muted-text">
-      <p>Posted <time datetime="2018-09-02 92:00">Sep 2, 2018</time></p>
-      <p>#go #programming #performance #benchmark </p>
-    </div>
-  </article>
-</a>
-      
-      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/" class="card home-card" style="background-image: url( https://philpearl.github.io/img/grey-cloud.jpg )" rel="bookmark" >
-  Home
-</a>
-    </nav>
-    <footer>
-    
-</footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-<script src="https://philpearl.github.io/js/core.js"></script>
-<script>
-  hljs.initHighlightingOnLoad();
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-64013694-2', 'auto');
+	
+	ga('send', 'pageview');
+}
 </script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
   </body>
 </html>

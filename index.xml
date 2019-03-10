@@ -8,7 +8,8 @@
     <language>en-gb</language>
     <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate>
     
-        <atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>JSON and embedding</title>
@@ -16,35 +17,50 @@
       <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/json_embed/</guid>
-      <description>Prefer composition over inheritance, but with JSON both of them can get in the sea.</description>
-    </item><item>
+      <description>Did everyone else already know this? Why didn&amp;rsquo;t you tell me? I got very confused the other day with some apparently simple JSON encoding. Here&amp;rsquo;s a simplified version, showing marshalling a struct with an embedded struct inside it.
+package main import ( &amp;#34;encoding/json&amp;#34; &amp;#34;fmt&amp;#34; ) type Inner struct { InnerField string `json:&amp;#34;inner_field&amp;#34;` } type Outer struct { Inner OuterField string `json:&amp;#34;outer_field&amp;#34;` } func main() { val := Outer{ Inner: Inner { InnerField: &amp;#34;inner&amp;#34;, }, OuterField: &amp;#34;outer&amp;#34;, } data, err := json.</description>
+    </item>
+    
+    <item>
       <title>The why of Go strings</title>
       <link>https://philpearl.github.io/post/why_of_go_strings/</link>
       <pubDate>Sun, 10 Mar 2019 15:10:27 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/why_of_go_strings/</guid>
-      <description>A story about strings that might even be true.</description>
-    </item><item>
+      <description>Regular readers of my blog will all be aware that in Go a string is in fact a struct with a pointer to an area of memory containing the byte content of the string and an integer Len that tells you how many bytes make up the string.
+Ever wondered why? Probably not, as it seems “obvious” that you need both the length of the string and the bytes of the string to make a string.</description>
+    </item>
+    
+    <item>
       <title>Further Dangers of Large Heaps in Go</title>
       <link>https://philpearl.github.io/post/danger_large_heap/</link>
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
-      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</description>
-    </item><item>
+      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.
+The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re hiring! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes.</description>
+    </item>
+    
+    <item>
       <title>bytes.Buffer revisited.</title>
       <link>https://philpearl.github.io/post/bytes_buffer_revisted/</link>
       <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/bytes_buffer_revisted/</guid>
-      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </description>
-    </item><item>
+      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years?
+Here are the benchmarks taken from the original post.
+BenchmarkCopyKey-8 114 ns/op 31 B/op 1 allocs/op BenchmarkSimpleKey-8 141 ns/op 31 B/op 1 allocs/op BenchmarkSimpleMultilineKey-8 256 ns/op 63 B/op 4 allocs/op BenchmarkSprintfKey-8 392 ns/op 79 B/op 4 allocs/op BenchmarkJoinKey-8 156 ns/op 63 B/op 2 allocs/op BenchmarkBufferKey-8 268 ns/op 175 B/op 3 allocs/op BenchmarkSimpleBufferKey-8 265 ns/op 143 B/op 2 allocs/op  If we run the same benchmarks with the latest version of Go — 1.</description>
+    </item>
+    
+    <item>
       <title>Go in a scratch VM</title>
       <link>https://philpearl.github.io/post/go_scratch_vm/</link>
       <pubDate>Mon, 04 Jun 2018 20:19:41 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/go_scratch_vm/</guid>
-      <description>distributionless linux.</description>
+      <description>Many of us know that you can run Go binaries in “scratch” containers. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.
+But what about VMs? Normally you start from Ubuntu, or Alpine or whatever and then you install your stuff on top.</description>
     </item>
+    
   </channel>
 </rss>

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Programming - EnTitled</title>
+    <title>Programming on EnTitled</title>
     <link>https://philpearl.github.io/categories/programming/</link>
     <description>Recent content in Programming on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <lastBuildDate>Sun, 10 Mar 2019 15:10:27 +0000</lastBuildDate>
     
-        <atom:link href="https://philpearl.github.io/categories/programming/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://philpearl.github.io/categories/programming/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>The why of Go strings</title>
@@ -16,21 +17,30 @@
       <pubDate>Sun, 10 Mar 2019 15:10:27 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/why_of_go_strings/</guid>
-      <description>A story about strings that might even be true.</description>
-    </item><item>
+      <description>Regular readers of my blog will all be aware that in Go a string is in fact a struct with a pointer to an area of memory containing the byte content of the string and an integer Len that tells you how many bytes make up the string.
+Ever wondered why? Probably not, as it seems “obvious” that you need both the length of the string and the bytes of the string to make a string.</description>
+    </item>
+    
+    <item>
       <title>Further Dangers of Large Heaps in Go</title>
       <link>https://philpearl.github.io/post/danger_large_heap/</link>
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
-      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</description>
-    </item><item>
+      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.
+The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re hiring! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes.</description>
+    </item>
+    
+    <item>
       <title>bytes.Buffer revisited.</title>
       <link>https://philpearl.github.io/post/bytes_buffer_revisted/</link>
       <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/bytes_buffer_revisted/</guid>
-      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years? </description>
+      <description>Two years ago I wrote a post about building up strings with bytes.Buffer. I wondered what’s changed over the past two years?
+Here are the benchmarks taken from the original post.
+BenchmarkCopyKey-8 114 ns/op 31 B/op 1 allocs/op BenchmarkSimpleKey-8 141 ns/op 31 B/op 1 allocs/op BenchmarkSimpleMultilineKey-8 256 ns/op 63 B/op 4 allocs/op BenchmarkSprintfKey-8 392 ns/op 79 B/op 4 allocs/op BenchmarkJoinKey-8 156 ns/op 63 B/op 2 allocs/op BenchmarkBufferKey-8 268 ns/op 175 B/op 3 allocs/op BenchmarkSimpleBufferKey-8 265 ns/op 143 B/op 2 allocs/op  If we run the same benchmarks with the latest version of Go — 1.</description>
     </item>
+    
   </channel>
 </rss>

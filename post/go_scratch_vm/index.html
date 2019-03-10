@@ -1,58 +1,67 @@
 <!DOCTYPE html>
-<html lang="en-gb" dir="ltr">
-  <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Go in a scratch VM &middot; EnTitled</title>
-  <meta name="description" content="distributionless linux." />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://philpearl.github.io/css/main.min.css" />
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="//gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.54.0" />
+
   
-<script type="application/javascript">
-var doNotTrack = false;
-if (!doNotTrack) {
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-	ga('create', 'UA-64013694-2', 'auto');
-	
-	ga('send', 'pageview');
-}
-</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go in a scratch VM &middot; EnTitled</title>
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="EnTitled" />
 
   
 </head>
-  <body class="single-body">
-    <nav class="nav-bar side-padding">
-  <h1 class="nav-header"><a href="https://philpearl.github.io/" class="nav-text">EnTitled</a></h1>
-  <div class="hamburger-menu">
-    <button onclick="hamburgerMenuPressed.call(this)" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="Menu">
-      <span></span>
-      <span></span>
-    </button>
-    <ul id="menu" class="hamburger-menu-overlay">
-      <li><a href="https://philpearl.github.io/" class="hamburger-menu-overlay-link">Home</a></li>
-      <li><a href="https://philpearl.github.io/categories/benchmark" class="hamburger-menu-overlay-link">Benchmark</a></li><li><a href="https://philpearl.github.io/categories/go" class="hamburger-menu-overlay-link">Go</a></li><li><a href="https://philpearl.github.io/categories/json" class="hamburger-menu-overlay-link">Json</a></li><li><a href="https://philpearl.github.io/categories/linux" class="hamburger-menu-overlay-link">Linux</a></li><li><a href="https://philpearl.github.io/categories/memoryleak" class="hamburger-menu-overlay-link">Memoryleak</a></li><li><a href="https://philpearl.github.io/categories/performance" class="hamburger-menu-overlay-link">Performance</a></li><li><a href="https://philpearl.github.io/categories/programming" class="hamburger-menu-overlay-link">Programming</a></li>
-    </ul>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/"><h1>EnTitled</h1></a>
+      <p class="lead">
+       hello everyone 
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2019. All rights reserved. </p>
   </div>
-</nav>
-    <main class="content side-text-padding">
-      <article class="post dropcase">
-        <header class="post-header">
-        	<h1 class="post-title">Go in a scratch VM</h1>
-          <p class="post-date">Posted <time datetime="2018-06-04">Jun 4, 2018</time></p>
-        </header>
-        
-        <picture class="post-figure">
-            
-            <source srcset="https://philpearl.github.io/post/scratch_banner.jpeg">
-          <img src="https://philpearl.github.io/post/scratch_banner.jpeg" alt="We don&#39;t need a distribution">
-        </picture>
-        
-        
+</aside>
+
+    <main class="content container">
+    <div class="post">
+  
+  <picture class="post-figure">
+    <source srcset="https://philpearl.github.io/post/scratch_banner.jpeg">
+    <img src="https://philpearl.github.io/post/scratch_banner.jpeg" alt="We don&#39;t need a distribution">
+  </picture>
+  
+
+  <h1>Go in a scratch VM</h1>
+
+  <time datetime=2018-06-04T20:19:41Z class="post-date">Mon, Jun 4, 2018</time>
+  
 
 <p>Many of us know that you can run <a href="https://syslog.ravelin.com/a-container-image-in-60-lines-of-go-336533395c09">Go binaries in “scratch” containers</a>. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.</p>
 
@@ -73,7 +82,7 @@ if (!doNotTrack) {
 <p>I’m going to start with the simplest linux distribution I can find, replace <code>/sbin/init</code> with my Go binary, then try to work out what else I need to do to get a running system.</p>
 
 <p>Vagrant gives me a very convenient way to do this. This Vagrant file is all I need to configure a local VM.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vagrant" data-lang="vagrant">Vagrant.configure(&#34;2&#34;) do |config|
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vagrant" data-lang="vagrant">Vagrant.configure(&#34;2&#34;) do |config|
   config.vm.box = &#34;alpine/alpine64&#34;
   config.vm.network &#34;forwarded_port&#34;, guest: 80, host: 8080, host_ip: &#34;127.0.0.1&#34;
 end</code></pre></div>
@@ -86,18 +95,18 @@ end</code></pre></div>
 <h2 id="attempt-1-hello-world">Attempt 1: Hello World</h2>
 
 <p>This is our first attempt at a new world of distribution-less linux. A simple “hello world” program that I’ll build as a statically-linked binary. The program repeatedly sleeps rather than exiting, as the kernel will panic if process 1 exits.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;time&#34;</span>
 )
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Hello World!\n&#34;</span>)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;Hello World!\n&#34;</span>)
 
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+	<span style="color:#ff79c6">for</span> {
+		time.<span style="color:#50fa7b">Sleep</span>(time.Second)
 	}
 }</code></pre></div>
 <p>I can build a linux version of this on my Mac using <code>GOOS=linux go build</code>. Since I’ve called my directory scratchmachine the output binary is called <code>scratchmachine</code>. I then do <code>vagrant up</code> followed by <code>vagrant ssh</code> and suddenly I’m in the Alpine VM, with my Mac directory mounted as <code>/vagrant</code>. I then run <code>sudo cp /vagrant/scratchmachine /sbin/init</code> to replace the init binary, followed by <code>sudo reboot</code> to restart the machine.</p>
@@ -132,65 +141,65 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p>This netdevice interface is extremely weird. To use it you open any old internet socket, then commands to the kernel using the <code>SYS_IOCTL</code> syscall referencing the socket (IOCTL stands for input/output control).</p>
 
 <p>Luckily there’s support for making the syscalls and for some of the structures I needed in <code>golang.org/x/sys/unix</code>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">socketAddrRequest</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">name</span> [<span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">IFNAMSIZ</span>]<span style="color:#66d9ef">byte</span>
-	<span style="color:#a6e22e">addr</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">RawSockaddrInet4</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> socketAddrRequest <span style="color:#8be9fd;font-style:italic">struct</span> {
+	name [unix.IFNAMSIZ]<span style="color:#8be9fd">byte</span>
+	addr unix.RawSockaddrInet4
 }
 
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">socketFlagsRequest</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">name</span>  [<span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">IFNAMSIZ</span>]<span style="color:#66d9ef">byte</span>
-	<span style="color:#a6e22e">flags</span> <span style="color:#66d9ef">uint16</span>
-	<span style="color:#a6e22e">pad</span>   [<span style="color:#ae81ff">22</span>]<span style="color:#66d9ef">byte</span>
+<span style="color:#8be9fd;font-style:italic">type</span> socketFlagsRequest <span style="color:#8be9fd;font-style:italic">struct</span> {
+	name  [unix.IFNAMSIZ]<span style="color:#8be9fd">byte</span>
+	flags <span style="color:#8be9fd">uint16</span>
+	pad   [<span style="color:#bd93f9">22</span>]<span style="color:#8be9fd">byte</span>
 }
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">configureEthernet</span>() <span style="color:#66d9ef">error</span> {
-	<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">Socket</span>(<span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">AF_INET</span>, <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SOCK_DGRAM</span>, <span style="color:#ae81ff">0</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;could not open control socket&#34;</span>)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">configureEthernet</span>() <span style="color:#8be9fd">error</span> {
+	fd, err <span style="color:#ff79c6">:=</span> unix.<span style="color:#50fa7b">Socket</span>(unix.AF_INET, unix.SOCK_DGRAM, <span style="color:#bd93f9">0</span>)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;could not open control socket&#34;</span>)
 	}
 
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">Close</span>(<span style="color:#a6e22e">fd</span>)
+	<span style="color:#ff79c6">defer</span> unix.<span style="color:#50fa7b">Close</span>(fd)
 
-	<span style="color:#75715e">// We want to associate an IP address with eth0, then set flags to
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// activate it
-</span><span style="color:#75715e"></span>
-	<span style="color:#a6e22e">sa</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">socketAddrRequest</span>{}
-	copy(<span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">name</span>[:], <span style="color:#e6db74">&#34;eth0&#34;</span>)
-	<span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">addr</span>.<span style="color:#a6e22e">Family</span> = <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">AF_INET</span>
-	copy(<span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">addr</span>.<span style="color:#a6e22e">Addr</span>[:], []<span style="color:#66d9ef">byte</span>{<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">15</span>})
+	<span style="color:#6272a4">// We want to associate an IP address with eth0, then set flags to
+</span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// activate it
+</span><span style="color:#6272a4"></span>
+	sa <span style="color:#ff79c6">:=</span> socketAddrRequest{}
+	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.name[:], <span style="color:#f1fa8c">&#34;eth0&#34;</span>)
+	sa.addr.Family = unix.AF_INET
+	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.addr.Addr[:], []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">10</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">2</span>, <span style="color:#bd93f9">15</span>})
 
-	<span style="color:#75715e">// Set address
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioctl</span>(<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SIOCSIFADDR</span>, uintptr(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sa</span>))); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed setting address for eth0&#34;</span>)
+	<span style="color:#6272a4">// Set address
+</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFADDR, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sa))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed setting address for eth0&#34;</span>)
 	}
 
-	<span style="color:#75715e">// Set netmask
-</span><span style="color:#75715e"></span>	copy(<span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">addr</span>.<span style="color:#a6e22e">Addr</span>[:], []<span style="color:#66d9ef">byte</span>{<span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">0</span>})
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioctl</span>(<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SIOCSIFNETMASK</span>, uintptr(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sa</span>))); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed setting netmask for eth0&#34;</span>)
+	<span style="color:#6272a4">// Set netmask
+</span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.addr.Addr[:], []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">0</span>})
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFNETMASK, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sa))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed setting netmask for eth0&#34;</span>)
 	}
 
-	<span style="color:#75715e">// Get flags
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">sf</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">socketFlagsRequest</span>{}
-	<span style="color:#a6e22e">sf</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">name</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioctl</span>(<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SIOCGIFFLAGS</span>, uintptr(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sf</span>))); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed getting flags for eth0&#34;</span>)
+	<span style="color:#6272a4">// Get flags
+</span><span style="color:#6272a4"></span>	sf <span style="color:#ff79c6">:=</span> socketFlagsRequest{}
+	sf.name = sa.name
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCGIFFLAGS, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sf))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed getting flags for eth0&#34;</span>)
 	}
 
-	<span style="color:#a6e22e">sf</span>.<span style="color:#a6e22e">flags</span> <span style="color:#f92672">|=</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">IFF_UP</span> | <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">IFF_RUNNING</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioctl</span>(<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SIOCSIFFLAGS</span>, uintptr(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sf</span>))); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed getting flags for eth0&#34;</span>)
+	sf.flags <span style="color:#ff79c6">|=</span> unix.IFF_UP | unix.IFF_RUNNING
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFFLAGS, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sf))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed getting flags for eth0&#34;</span>)
 	}
 
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 }
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ioctl</span>(<span style="color:#a6e22e">fd</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">data</span> <span style="color:#66d9ef">uintptr</span>) <span style="color:#66d9ef">error</span> {
-	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">errno</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">Syscall</span>(<span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SYS_IOCTL</span>, uintptr(<span style="color:#a6e22e">fd</span>), <span style="color:#a6e22e">code</span>, <span style="color:#a6e22e">data</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">errno</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errno</span>
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">ioctl</span>(fd <span style="color:#8be9fd">int</span>, code, data <span style="color:#8be9fd">uintptr</span>) <span style="color:#8be9fd">error</span> {
+	_, _, errno <span style="color:#ff79c6">:=</span> unix.<span style="color:#50fa7b">Syscall</span>(unix.SYS_IOCTL, <span style="color:#8be9fd;font-style:italic">uintptr</span>(fd), code, data)
+	<span style="color:#ff79c6">if</span> errno <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span> {
+		<span style="color:#ff79c6">return</span> errno
 	}
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 }</code></pre></div>
 <p><img src="/post/scratch1.png" alt="Not so easy this time" /></p>
 
@@ -205,8 +214,8 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p><img src="/post/scratch3.png" alt="/etc/runlevels has boot and sysinit subdirectories" /></p>
 
 <p>And it turns out <code>/etc/runlevels</code> exists and has subdirectories <code>sysinit</code> and <code>boot</code>, each with a bunch of scripts that get run to start the system. I try deleting scripts and rebooting to see what’s crucial for setting up ethernet. Cutting a long story short, the interesting file is <code>/etc/runlevels/sysinit/hwdrivers</code>. This is a quite short script that boils down to the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">find /sys -name modalias -type f -print0 | xargs -0 sort -u <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>| xargs modprobe -b -a</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">find /sys -name modalias -type f -print0 | xargs -0 sort -u <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>| xargs modprobe -b -a</code></pre></div>
 <p>This is looking for files under <code>/sys</code> and passing them to <code>modprobe</code>. <code>man modprobe</code> tells us</p>
 
 <blockquote>
@@ -222,50 +231,50 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p>Looking for clues, I found some source code for <code>modprobe</code> <a href="https://github.com/vadmium/module-init-tools/blob/master/modprobe.c">here</a>. This shows <code>modprobe</code> reading the bytes of a driver binary, then calling <code>init_module</code>, which turns out to be another <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">syscall</a>. The <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">man page</a> says there’s a newer version called <code>finit_module</code>. So, obviously, I go with the f’ing one.</p>
 
 <p>The <code>modprobe</code> code also contains another hint. It looks for modules under <code>/lib/modules</code>. A quick <code>find /lib/modules -print | grep e1000</code> shows us the driver we want is <code>/lib/modules/4.9.73–0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko</code>. This is the driver I want to load. All I need to do is open this file and pass the file descriptor to the <code>finit_module</code> syscall.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">fakeString</span> [<span style="color:#ae81ff">3</span>]<span style="color:#66d9ef">byte</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> fakeString [<span style="color:#bd93f9">3</span>]<span style="color:#8be9fd">byte</span>
 
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">addDriverModule</span>() <span style="color:#66d9ef">error</span> {
-	<span style="color:#75715e">// We need a file descriptor for our file
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">driverPath</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;/lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko&#34;</span>
-	<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">driverPath</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;open of driver file failed&#34;</span>)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">addDriverModule</span>() <span style="color:#8be9fd">error</span> {
+	<span style="color:#6272a4">// We need a file descriptor for our file
+</span><span style="color:#6272a4"></span>	driverPath <span style="color:#ff79c6">:=</span> <span style="color:#f1fa8c">&#34;/lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko&#34;</span>
+	f, err <span style="color:#ff79c6">:=</span> os.<span style="color:#50fa7b">Open</span>(driverPath)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;open of driver file failed&#34;</span>)
 	}
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Close</span>()
-	<span style="color:#a6e22e">fd</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Fd</span>()
+	<span style="color:#ff79c6">defer</span> f.<span style="color:#50fa7b">Close</span>()
+	fd <span style="color:#ff79c6">:=</span> f.<span style="color:#50fa7b">Fd</span>()
 
-	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">errno</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">Syscall</span>(<span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">SYS_FINIT_MODULE</span>, <span style="color:#a6e22e">fd</span>, uintptr(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">fakeString</span>)), <span style="color:#ae81ff">0</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">errno</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">errno</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">unix</span>.<span style="color:#a6e22e">EEXIST</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">errno</span>, <span style="color:#e6db74">&#34;init module failed&#34;</span>)
+	_, _, errno <span style="color:#ff79c6">:=</span> unix.<span style="color:#50fa7b">Syscall</span>(unix.SYS_FINIT_MODULE, fd, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>fakeString)), <span style="color:#bd93f9">0</span>)
+	<span style="color:#ff79c6">if</span> errno <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">&amp;&amp;</span> errno <span style="color:#ff79c6">!=</span> unix.EEXIST {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(errno, <span style="color:#f1fa8c">&#34;init module failed&#34;</span>)
 	}
 
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 }</code></pre></div>
 <h2 id="putting-it-all-together">Putting it all together</h2>
 
 <p>Ever optimistic, I add some code to start an HTTP server after the code to load the ethernet driver and configure the interface. This is what the code looks like now:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">run</span>() <span style="color:#66d9ef">error</span> {
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Hello World!\n&#34;</span>)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">run</span>() <span style="color:#8be9fd">error</span> {
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;Hello World!\n&#34;</span>)
 
-	<span style="color:#75715e">// Before we can configure ethernet we need to load hardware drivers
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">addDriverModule</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed to add driver&#34;</span>)
+	<span style="color:#6272a4">// Before we can configure ethernet we need to load hardware drivers
+</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">addDriverModule</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed to add driver&#34;</span>)
 	}
 
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">configureEthernet</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed to configure ethernet&#34;</span>)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">configureEthernet</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed to configure ethernet&#34;</span>)
 	}
 
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Ethernet configured\n&#34;</span>)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;Ethernet configured\n&#34;</span>)
 
-	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:80&#34;</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Hello from Scratch Machine!\n&#34;</span>)
+	http.<span style="color:#50fa7b">ListenAndServe</span>(<span style="color:#f1fa8c">&#34;:80&#34;</span>, http.<span style="color:#50fa7b">HandlerFunc</span>(<span style="color:#8be9fd;font-style:italic">func</span>(w http.ResponseWriter, r <span style="color:#ff79c6">*</span>http.Request) {
+		fmt.<span style="color:#50fa7b">Fprintf</span>(w, <span style="color:#f1fa8c">&#34;Hello from Scratch Machine!\n&#34;</span>)
 	}))
 
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 }</code></pre></div>
 <p>I rebuild, copy the binary over <code>/sbin/init</code> and reboot. And wait a minute. And then…</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ curl localhost:8080
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ curl localhost:8080
 Hello from Scratch Machine!</code></pre></div>
 <p>It works!</p>
 
@@ -304,47 +313,47 @@ Hello from Scratch Machine!</code></pre></div>
 <h2 id="building-the-initramfs">Building the initramfs</h2>
 
 <p>The “initial RAM file system” is just a gzipped cpio archive with the files I need. I can build it as follows. All these commands are run inside the alpine virtual machine.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># build our initial RAM file system</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># build our initial RAM file system</span>
 mkdir -p ramfs
 cp /vagrant/scratchmachine ramfs/init
 cp /lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko ramfs/e1000.ko
-<span style="color:#75715e"># Make our own initramfs, with just our binary</span>
-pushd ramfs
-cat <span style="color:#e6db74">&lt;&lt;EOF | cpio -o -H newc | gzip &gt; initramfs.gz
-</span><span style="color:#e6db74">init
-</span><span style="color:#e6db74">e1000.ko
-</span><span style="color:#e6db74">EOF</span>
+<span style="color:#6272a4"># Make our own initramfs, with just our binary</span>
+<span style="color:#8be9fd;font-style:italic">pushd</span> ramfs
+cat <span style="color:#f1fa8c">&lt;&lt;EOF | cpio -o -H newc | gzip &gt; initramfs.gz
+</span><span style="color:#f1fa8c">init
+</span><span style="color:#f1fa8c">e1000.ko
+</span><span style="color:#f1fa8c">EOF</span>
 popd</code></pre></div>
 <h2 id="building-the-iso">Building the ISO</h2>
 
 <p>To build the ISO I again just need to build a directory containing the files I need in my alpine VM and run a command.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir cdroot
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir cdroot
 mkdir cdroot/dev
 mkdir cdroot/kernel
-<span style="color:#75715e"># Copy the kernel from alpine</span>
+<span style="color:#6272a4"># Copy the kernel from alpine</span>
 cp /boot/vmlinuz-virthardened cdroot/kernel
-<span style="color:#75715e"># Copy the initramfs.gz file just created</span>
+<span style="color:#6272a4"># Copy the initramfs.gz file just created</span>
 cp ramfs/initramfs.gz cdroot
-<span style="color:#75715e"># Copy in the ISOLINUX bootloader</span>
+<span style="color:#6272a4"># Copy in the ISOLINUX bootloader</span>
 mkdir -p cdroot/isolinux
 cp /usr/share/syslinux/isolinux.bin cdroot/isolinux
 cp /usr/share/syslinux/ldlinux.c32 cdroot/isolinux
-<span style="color:#75715e"># Create the ISOLINUX config file</span>
-cat <span style="color:#e6db74">&lt;&lt;EOF &gt; cdroot/isolinux/isolinux.cfg
-</span><span style="color:#e6db74">DEFAULT linux
-</span><span style="color:#e6db74">SERIAL 0 115200
-</span><span style="color:#e6db74">SAY Now booting the kernel from ISOLINUX...
-</span><span style="color:#e6db74">LABEL linux
-</span><span style="color:#e6db74">KERNEL /kernel/vmlinuz-virthardened
-</span><span style="color:#e6db74">INITRD /initramfs.gz
-</span><span style="color:#e6db74">APPEND root=/dev/ram0 ro console=tty0 console=ttyS0,115200
-</span><span style="color:#e6db74">EOF</span></code></pre></div>
+<span style="color:#6272a4"># Create the ISOLINUX config file</span>
+cat <span style="color:#f1fa8c">&lt;&lt;EOF &gt; cdroot/isolinux/isolinux.cfg
+</span><span style="color:#f1fa8c">DEFAULT linux
+</span><span style="color:#f1fa8c">SERIAL 0 115200
+</span><span style="color:#f1fa8c">SAY Now booting the kernel from ISOLINUX...
+</span><span style="color:#f1fa8c">LABEL linux
+</span><span style="color:#f1fa8c">KERNEL /kernel/vmlinuz-virthardened
+</span><span style="color:#f1fa8c">INITRD /initramfs.gz
+</span><span style="color:#f1fa8c">APPEND root=/dev/ram0 ro console=tty0 console=ttyS0,115200
+</span><span style="color:#f1fa8c">EOF</span></code></pre></div>
 <p>Finally we can build the iso.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkisofs -o /vagrant/output.iso <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>  -cache-inodes -J -l <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>  -b isolinux/isolinux.bin -c isolinux/boot.cat <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>  -no-emul-boot -boot-load-size <span style="color:#ae81ff">4</span> -boot-info-table <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>  cdroot/</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkisofs -o /vagrant/output.iso <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>  -cache-inodes -J -l <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>  -b isolinux/isolinux.bin -c isolinux/boot.cat <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>  -no-emul-boot -boot-load-size <span style="color:#bd93f9">4</span> -boot-info-table <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>  cdroot/</code></pre></div>
 <h2 id="results">Results</h2>
 
 <p>My Go program is 6,749,734 bytes. My ISO boot image is 7,114,752 bytes, which compares well with the ~38 MB for the alpine VM iso. It takes about 24s to boot under VirtualBox on my laptop (which I think is far too slow!). I suspect it is not vulnerable to many known linux security issues as it contains zero standard user-space components.</p>
@@ -365,26 +374,22 @@ cat <span style="color:#e6db74">&lt;&lt;EOF &gt; cdroot/isolinux/isolinux.cfg
 <li><a href="https://katacontainers.io/">Kata Containers</a></li>
 </ul>
 
-      </article>
-      
+</div>
+
+
     </main>
-    <nav class="end-nav side-padding">
-      
-      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
-  href="https://philpearl.github.io/" class="card home-card" style="background-image: url( https://philpearl.github.io/img/grey-cloud.jpg )" rel="bookmark" >
-  Home
-</a>
-    </nav>
-    <footer>
+
     
-</footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-<script src="https://philpearl.github.io/js/core.js"></script>
-<script>
-  hljs.initHighlightingOnLoad();
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-64013694-2', 'auto');
+	
+	ga('send', 'pageview');
+}
 </script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
   </body>
 </html>
