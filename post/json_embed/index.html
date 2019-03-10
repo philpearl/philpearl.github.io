@@ -59,8 +59,13 @@
   
 
   <h1>JSON and embedding</h1>
+  
+  <p class="lead">Prefer composition over inheritance, but with JSON both of them can get in the sea.</p>
+  
 
   <time datetime=2019-03-10T20:49:37Z class="post-date">Sun, Mar 10, 2019</time>
+
+
   <p>Did everyone else already know this? Why didn&rsquo;t you tell me? I got very confused the other day with some apparently simple JSON encoding. Here&rsquo;s a simplified version, showing marshalling a struct with an <a href="https://golang.org/doc/effective_go.html#embedding">embedded struct</a> inside it.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 

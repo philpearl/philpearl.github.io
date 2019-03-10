@@ -17,8 +17,7 @@
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
-      <description>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.
-The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re hiring! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes.</description>
+      <description>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re hiring! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</description>
     </item>
     
   </channel>

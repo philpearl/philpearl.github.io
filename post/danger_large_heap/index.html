@@ -59,11 +59,14 @@
   
 
   <h1>Further Dangers of Large Heaps in Go</h1>
+  
+  <p class="lead">Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
+  
 
   <time datetime=2018-11-15T19:57:02Z class="post-date">Thu, Nov 15, 2018</time>
-  <p>Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
 
-<p>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re <a href="https://ravelin.workable.com/">hiring</a>! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</p>
+
+  <p>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re <a href="https://ravelin.workable.com/">hiring</a>! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</p>
 
 <p>I spotted that the go heap profiler has a marvellous <code>-base</code> option. This allows you to compare a heap profile with a baseline heap profile taken earlier. So I just needed two heap profiles and surely this would show me the cause of the leak.</p>
 
