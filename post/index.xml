@@ -61,5 +61,33 @@ BenchmarkCopyKey-8 114 ns/op 31 B/op 1 allocs/op BenchmarkSimpleKey-8 141 ns/op 
 But what about VMs? Normally you start from Ubuntu, or Alpine or whatever and then you install your stuff on top.</description>
     </item>
     
+    <item>
+      <title>A container image in 60* lines of Go</title>
+      <link>https://philpearl.github.io/post/container_60/</link>
+      <pubDate>Sun, 29 Apr 2018 22:05:50 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/container_60/</guid>
+      <description>At Ravelin we build Go binaries, package them into scratch Docker containers and upload them to Google Cloud Registry so we can use them in a GKE cluster. We develop on Mac laptops, so we use Docker for Mac for this. But building and pushing the container images is very slow, particularly if we want to build 44 at once. Given we just want to package up single binaries the process seemed a bit overblown and complicated.</description>
+    </item>
+    
+    <item>
+      <title>What’s all that memory for?</title>
+      <link>https://philpearl.github.io/post/memory_for/</link>
+      <pubDate>Tue, 17 Apr 2018 22:27:40 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/memory_for/</guid>
+      <description>If you actually want to use the memory on your computer with Go — really use it, with gigabytes of it allocated — then you may pay a big penalty for the Go garbage collector (GC). But there are things you can do about it.
+The Go GC checks what parts of the memory you have allocated are still in use. It does this by looking at all the memory for references to other pieces of memory.</description>
+    </item>
+    
+    <item>
+      <title>GC is bad and you should feel bad</title>
+      <link>https://philpearl.github.io/post/gc_bad/</link>
+      <pubDate>Wed, 24 Jan 2018 22:35:54 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/gc_bad/</guid>
+      <description>Some time ago I wrote about how I went to great lengths moving allocations off the Go heap into memory allocated directly from the OS in order to reduce the overhead of GC. This was in a new Graph Database I was developing at Ravelin to catch bad people more efficiently. At the time I wasn’t entirely certain that the GC CPU overhead was a terrible thing, but it was untidy and I didn’t want to risk putting the new code into production without getting rid of it.</description>
+    </item>
+    
   </channel>
 </rss>
