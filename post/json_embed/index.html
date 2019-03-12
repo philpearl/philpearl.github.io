@@ -53,10 +53,10 @@
     <main class="content container">
     <div class="post">
   
-  <picture class="post-figure">
-    <source srcset="https://philpearl.github.io/post/sea.jpg">
-    <img src="https://philpearl.github.io/post/sea.jpg" alt="The sea">
-  </picture>
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/sea.jpg" alt="A lovely picture of the sea">
+    <figcaption>A lovely picture of the sea</figcaption>
+  </figure>
   
 
   <h1>JSON and embedding</h1>
@@ -134,7 +134,7 @@
   <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
   <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
 }</code></pre></div>
-<p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug.</p>
+<p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug - but perhaps just another hint that embedding and JSON don&rsquo;t mix.</p>
 
 </div>
 
