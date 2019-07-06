@@ -1,0 +1,90 @@
+---
+title: "How things get too slow"
+date: 2019-04-25T00:00:00Z
+description: ""
+categories: ["go", "programming"]
+featuredImage: "/post/strings.jpeg"
+featuredImageDescription: "a ball of wool"
+---
+It got too slow. How can that happen?
+
+1. Number of work items has increased to the point where things are queued waiting for CPU or a lock.
+2. Something work items call out to has become slower.
+3. Some proportion of the work items take longer because they need more work - perhaps then leading to queuing issues as in 1.
+4. Something mysterious has happened.
+5. You just broke the code so it does more work.
+
+## Mysterious things
+We should probably assume mysterious things are very unlikely until we've excluded other things. Candidates for mysterious things include the following.
+
+- We're now using so much RAM that we're having cache-misses much more often
+- Or we're even seeing some effects of running on NUMA.
+- GCP have applied a mitigation for something like SPECTRE and this has slowed our machines
+- A small change to code has an unexpected consequence. Possibilities include
+  - additional allocations
+  - compiler has stopped using a crucial optimisation
+  - stack usage increased over a boundary so stack growth is getting triggered.
+
+You should probably discount all of these except the possibility that you just broke it with a code change.
+
+## Things we wait for
+Do we call out to a database or another service? Hopefully we have metrics on these to see if we're calling them more often or if the calls are taking longer.
+
+What about disks? Are we hitting a bottle-neck on disk accesses? Again, on modern platforms metrics for these are available.
+
+## Work items increase
+Perhaps the number of work items has increased to the point where they appear slower because of queuing effects. We can determine this by measuring the uncontended performance (if possible). 
+
+In our case we have plenty of CPU, but hold a big lock while we're processing data. If we have metrics inside the locks as well as outside we should be able to compare the two. If queuing is the problem the performance outside the lock should be much worse than the performance inside the lock.
+
+Getting too slow because the amount of work is now too much is the horror scenario. If you can't scale out horizontally and you're already doing the best you can per single processor there's not much you can do.
+
+## More slow work items
+Perhaps through the nature of the change in data over time the proportion of work items that plainly require more work to complete has increased, or the work required in the extreme cases has increased.
+
+If this is the case perhaps we can implement something that handles these cases differently, or take a pragmatic decision to take a short-cut that gives a less accurate answer in these cases.
+
+We can tell if this is happening by measuring uncontended performance, and picking out slower examples. We can then examine these examples to see if they are always slow and if we can understand why.
+
+## Mitigations
+Do less work.
+- if you're using a generic method to achieve something, try building a bespoke version for the hot path
+- look at stopping earlier in the slow cases. Perhaps the result will still be good enough?
+- do the algorithms you use work well in the extreme cases? Can you use something different in those cases?
+
+
+## Evidence
+
+### Count vs Count-BFS
+Count does not spike at all server-side. Count-BFS does. This can't be due to contention or we'd see some contention for Count. Therefore the server-side Count-BFS spikes are because sometimes there's just more work to do.
+
+Similarly any server-side spikes for AddEntity cannot be because of contention.
+
+### AddEntity
+Have something tracking performance of Add inside the locks. See longer times of ~0.5ms reasonably regularly. These don't appear to correspond to anything (some very small networks) - so presumably some kind of scheduling related slowdown. But nothing that explains larger spikes
+
+Have an "outer" handler timer thing. This is sometimes a little slower than the inner, but not enough to explain the timings seen in clients.
+
+See some spikes in addEntity metrics. These aren't explained by timings inside the locks, nor by contention outside the locks as count timings would surely show some effect too. Perhaps lots of adds per addEntity? Or really slow unmarshalling? It can't be disk as that's done within the locks and max I've seen is ~1ms
+
+
+So, actions:
+
+- (later) reduce the amount of work we do for count-bfs. Perhaps limit search by the client configured depth
+- not sure what to do for addEntity. Can we look at unmarshalling? Perhaps build bespoke requests from entity-storage?? Any similar issue for count/countbfs?
+- big area for potentially tractable improvement is the client-server flow where we're regularly losing 100s of ms. Seems to be on new connections. Seems to be server-side. Perhaps can just have more connections in pool. Still does not make much sense.
+
+
+rpc_handler_hist_bucket{service="unionfind-service"}
+
+
+le="0.01"	13268258
+le="0.1"	13282107
+le="0.4"	13282793
+le="0.6"	13282877	
+le="1"		13283055	271
+le="5"		13283326
+le="+Inf"	13283326
+
+#### tests
+Tested loading up deliveroo data and tracking slowest adds. Slowest ones were nothing special - suspect this must be down to GC. Will potentially get large GCs when loading from file.

@@ -6,10 +6,20 @@
     <description>Recent content in Posts on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 06 Jul 2019 15:31:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go interfaces, but at what cost?</title>
+      <link>https://philpearl.github.io/post/interface_at_what_cost/</link>
+      <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/interface_at_what_cost/</guid>
+      <description>There&amp;rsquo;s a cost associated with using interfaces. What is that cost? Let&amp;rsquo;s try and work out some of it.
+Let&amp;rsquo;s start with the basic overhead of calling a method via an interface. We&amp;rsquo;ll define a very simple interface with a single method and a very simple implementation. We&amp;rsquo;ll also mark the method so it isn&amp;rsquo;t inlined by the compiler. We do this so that the call to get isn&amp;rsquo;t completely removed in the direct case.</description>
+    </item>
     
     <item>
       <title>JSON and embedding</title>

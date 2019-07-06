@@ -1,0 +1,114 @@
+Too Slow
+I hope it's not too slow
+29 Apr 2019
+Tags: graph, performance
+
+Phil
+Performance Sufferer, Ravelin
+phil.pearl@ravelin.com
+@philpearl
+
+* What happened
+
+- since Nov 2018, client response time for adding entities to UF has been regularly above 400ms for the 99.xth percentile
+- not visible in the server-side metrics that I normally look at
+- server metrics were genuine 99th percentile. Client is max of several 99th percentiles, so is in fact 99.xth
+
+* What I'm afraid of
+
+- UF is essentially single-threaded per client at its heart
+- Eventually with increasing load or decreased per-request performance this will become unstuck
+- This happens way before `response time * number of responses` fills up the available time
+- When that happens there will be little we can do.
+
+* The good news
+
+count-bfs and addEntity are often slower than I'd like, but better metrics show they're not so bad.
+
+Little sign of contention 
+
+- count call is pretty much always < 10ms. 
+- surely this would be hit by lock contention too?
+
+Within the lock addEntity seems to be < ~1ms
+
+- no crazy-slow addEntity cases
+- presumably the slowest cases are due to slow flush to disk?
+
+* The bad news
+
+Really a lot of client times are > 400ms
+
+At another level, there's strong indications of contention
+
+- problem load related - stops for a while around 8am
+- graphs sometimes show big spikes in number of goroutines
+- profile shows contention on mutex
+
+* Wierd shit
+
+- client response times are way bigger than server response times according to metrics
+- network traces seem to show the slowness at the server
+- server metrics don't show slowness
+- doesn't include first level of unmarshalling/marshalling
+
+ooooh. Could the contention be go-routines queued waiting to run on a CPU? We do have a lot of CPUs... and CPU usage never looks high
+
+* Plan
+
+- add another metric for the whole handler.
+- might be difficult to compare as it will cover all endpoints
+- grab some network captures again, just to double-check
+- at some point give up trying to understand and just look at making things faster
+
+* count-bfs actions
+
+Slightly faster (14%) implementation by building a specific BFS for count-bfs.
+
+Should be able to remove calls to count once all clients have a hops-to-fraud configured. These are always fast, but reducing work is good.
+
+Spend some time looking at whether we can make looking at high-degree nodes quicker. Seems unlikely there's much gold here.
+
+Scope for making count-bfs less work. 
+
+- currently always look until depth 30 so that ML features are consistent.
+- suspect little value in searching to this depth
+- but need to negotiate with detection
+- can we reduce this without changing models?
+
+* addEntity actions
+
+Reduce JSON sent to UF
+
+- pick out interesting fields in entity-storage
+- have seen some huge bodies
+
+Could try splitting file writes into a separate per-client lock. 
+
+- writes would still be protected and completed before response returns
+- would not block reads
+
+Perhaps splitting between machines would give more file write bandwidth.
+
+- So perhaps look for evidence that disk write bandwidth is a bottleneck
+- There is none: we peak at 8 IOPS & 403kBps
+
+* hello!
+
+- start-up time is now ~20 minutes!
+- makes having just two machines feel dangerous
+- three machines (or more) would spread the query load
+
+* longer term
+
+Graphs are getting bogged down
+
+- old device IDs
+- large-scale ATO
+- need some kind of plan to prune data in the graph
+- this is really hard.
+
+Remove Unionfind
+
+- not much gain, but would reduce memory usage and remove some processing
+- may still need an on-line implementation for graph display
