@@ -6,10 +6,21 @@
     <description>Recent content in Posts on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 06 Jul 2019 15:31:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 13 Jul 2019 20:49:37 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Why is JSON slow</title>
+      <link>https://philpearl.github.io/post/json_why_slow/</link>
+      <pubDate>Sat, 13 Jul 2019 20:49:37 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/json_why_slow/</guid>
+      <description>Why is the Go standard package JSON slow? Is it slow? What does it mean to be slow?
+One definition of slow is whether it is slower than the alternatives for JSON encoding. I&amp;rsquo;ll pick easyjson as that&amp;rsquo;s something I&amp;rsquo;ve been using at work. We&amp;rsquo;ll build a little JSON, then write some benchmarks to compare unmarshalling it between standard encoding/json and easyjson.
+First benchmark. encoding/json takes more than twice as long as easyjson and requires more allocations.</description>
+    </item>
     
     <item>
       <title>Go interfaces, but at what cost?</title>
