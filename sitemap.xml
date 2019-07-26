@@ -3,11 +3,6 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://philpearl.github.io/post/json_why_slow/</loc>
-    <lastmod>2019-07-13T20:49:37+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://philpearl.github.io/post/interface_at_what_cost/</loc>
     <lastmod>2019-07-06T15:31:00+00:00</lastmod>
   </url>
@@ -66,19 +61,19 @@
   
   <url>
     <loc>https://philpearl.github.io/</loc>
-    <lastmod>2019-07-13T20:49:37+00:00</lastmod>
+    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/categories/go/</loc>
-    <lastmod>2019-07-13T20:49:37+00:00</lastmod>
+    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/categories/json/</loc>
-    <lastmod>2019-07-13T20:49:37+00:00</lastmod>
+    <lastmod>2019-03-10T20:49:37+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -102,7 +97,7 @@
   
   <url>
     <loc>https://philpearl.github.io/post/</loc>
-    <lastmod>2019-07-13T20:49:37+00:00</lastmod>
+    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
