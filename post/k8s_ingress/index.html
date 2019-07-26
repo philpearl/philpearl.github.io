@@ -90,7 +90,7 @@
 <li>The pod&rsquo;s endpoint is removed from the service or load-balancer. New traffic no longer flows to the pod.</li>
 <li>The pod&rsquo;s pre-stop hook is invoked, or the pod receives a SIGTERM.</li>
 <li>The pod &lsquo;gracefully shuts down&rsquo;. It stops listening for new connections.</li>
-<li>The graceful shutdown completes, and the pod exits when all its existing connections eventually become idle or terminate.</li>
+<li>The graceful shutdown completes, and the pod exits, when all its existing connections eventually become idle or terminate.</li>
 </ol>
 
 <p>Unfortunately this just isn&rsquo;t how it works.</p>
