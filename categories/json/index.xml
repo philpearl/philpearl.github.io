@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Json on EnTitled</title>
+    <title>json on EnTitled</title>
     <link>https://philpearl.github.io/categories/json/</link>
-    <description>Recent content in Json on EnTitled</description>
+    <description>Recent content in json on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Go on EnTitled</title>
+    <title>go on EnTitled</title>
     <link>https://philpearl.github.io/categories/go/</link>
-    <description>Recent content in Go on EnTitled</description>
+    <description>Recent content in go on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <lastBuildDate>Sat, 06 Jul 2019 15:31:00 +0000</lastBuildDate>

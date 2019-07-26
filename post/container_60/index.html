@@ -3,7 +3,7 @@
 <head>
   <link href="//gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.0" />
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,23 +99,25 @@
 <li>Get the sha256 digest of the JSON.</li>
 <li>Upload the JSON to the repo as a blob. The image config blob is named after its digest.</li>
 <li>Build the manifest JSON. This references the layer &amp; image config via their digests.</li>
-<li>Upload the manifest to the repo. The URL for the manifest includes the image name and tag. If you want multiple tags just upload the manifest again with a different URL.</li>
-</ol>
+
+<li><p>Upload the manifest to the repo. The URL for the manifest includes the image name and tag. If you want multiple tags just upload the manifest again with a different URL.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;architecture&#34;</span>: <span style="color:#f1fa8c">&#34;amd64&#34;</span>,
-  <span style="color:#ff79c6">&#34;os&#34;</span>: <span style="color:#f1fa8c">&#34;linux&#34;</span>,
-  <span style="color:#ff79c6">&#34;config&#34;</span>: {
-    <span style="color:#ff79c6">&#34;Entrypoint&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;/app&#34;</span>
-    ]
-  },
-  <span style="color:#ff79c6">&#34;rootfs&#34;</span>: {
-    <span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;layers&#34;</span>,
-    <span style="color:#ff79c6">&#34;diff_ids&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&#34;</span>
-    ]
-  }
-}</code></pre></div>
+<span style="color:#ff79c6">&#34;architecture&#34;</span>: <span style="color:#f1fa8c">&#34;amd64&#34;</span>,
+<span style="color:#ff79c6">&#34;os&#34;</span>: <span style="color:#f1fa8c">&#34;linux&#34;</span>,
+<span style="color:#ff79c6">&#34;config&#34;</span>: {
+<span style="color:#ff79c6">&#34;Entrypoint&#34;</span>: [
+  <span style="color:#f1fa8c">&#34;/app&#34;</span>
+]
+},
+<span style="color:#ff79c6">&#34;rootfs&#34;</span>: {
+<span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;layers&#34;</span>,
+<span style="color:#ff79c6">&#34;diff_ids&#34;</span>: [
+  <span style="color:#f1fa8c">&#34;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&#34;</span>
+]
+}
+}</code></pre></div></li>
+</ol>
+
 <p>A very simple image config</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
   <span style="color:#ff79c6">&#34;schemaVersion&#34;</span>: <span style="color:#bd93f9">2</span>,

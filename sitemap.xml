@@ -3,13 +3,66 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://philpearl.github.io/categories/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/k8s_ingress/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/devops/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/kubernetes/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://philpearl.github.io/post/interface_at_what_cost/</loc>
     <lastmod>2019-07-06T15:31:00+00:00</lastmod>
   </url>
   
   <url>
+    <loc>https://philpearl.github.io/categories/go/</loc>
+    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/programming/</loc>
+    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://philpearl.github.io/post/json_embed/</loc>
     <lastmod>2019-03-10T20:49:37+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/json/</loc>
+    <lastmod>2019-03-10T20:49:37+00:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -20,67 +73,6 @@
   <url>
     <loc>https://philpearl.github.io/post/danger_large_heap/</loc>
     <lastmod>2018-11-15T19:57:02+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/post/bytes_buffer_revisted/</loc>
-    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/post/go_scratch_vm/</loc>
-    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/post/container_60/</loc>
-    <lastmod>2018-04-29T22:05:50+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/post/memory_for/</loc>
-    <lastmod>2018-04-17T22:27:40+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/post/gc_bad/</loc>
-    <lastmod>2018-01-24T22:35:54+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/benchmark/</loc>
-    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/</loc>
-    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/</loc>
-    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/go/</loc>
-    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/json/</loc>
-    <lastmod>2019-03-10T20:49:37+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/linux/</loc>
-    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -96,15 +88,40 @@
   </url>
   
   <url>
-    <loc>https://philpearl.github.io/post/</loc>
-    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
+    <loc>https://philpearl.github.io/categories/benchmark/</loc>
+    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://philpearl.github.io/categories/programming/</loc>
-    <lastmod>2019-07-06T15:31:00+00:00</lastmod>
+    <loc>https://philpearl.github.io/post/bytes_buffer_revisted/</loc>
+    <lastmod>2018-09-02T20:15:18+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/go_scratch_vm/</loc>
+    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/linux/</loc>
+    <lastmod>2018-06-04T20:19:41+00:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/container_60/</loc>
+    <lastmod>2018-04-29T22:05:50+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/memory_for/</loc>
+    <lastmod>2018-04-17T22:27:40+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/gc_bad/</loc>
+    <lastmod>2018-01-24T22:35:54+00:00</lastmod>
   </url>
   
   <url>

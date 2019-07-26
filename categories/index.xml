@@ -6,22 +6,31 @@
     <description>Recent content in Categories on EnTitled</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 02 Sep 2018 20:15:18 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 26 Jul 2019 18:07:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Benchmark</title>
-      <link>https://philpearl.github.io/categories/benchmark/</link>
-      <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
+      <title>devops</title>
+      <link>https://philpearl.github.io/categories/devops/</link>
+      <pubDate>Fri, 26 Jul 2019 18:07:00 +0000</pubDate>
       
-      <guid>https://philpearl.github.io/categories/benchmark/</guid>
+      <guid>https://philpearl.github.io/categories/devops/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Go</title>
+      <title>kubernetes</title>
+      <link>https://philpearl.github.io/categories/kubernetes/</link>
+      <pubDate>Fri, 26 Jul 2019 18:07:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go</title>
       <link>https://philpearl.github.io/categories/go/</link>
       <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
       
@@ -30,7 +39,16 @@
     </item>
     
     <item>
-      <title>Json</title>
+      <title>programming</title>
+      <link>https://philpearl.github.io/categories/programming/</link>
+      <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>json</title>
       <link>https://philpearl.github.io/categories/json/</link>
       <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
       
@@ -39,16 +57,7 @@
     </item>
     
     <item>
-      <title>Linux</title>
-      <link>https://philpearl.github.io/categories/linux/</link>
-      <pubDate>Mon, 04 Jun 2018 20:19:41 +0000</pubDate>
-      
-      <guid>https://philpearl.github.io/categories/linux/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Memoryleak</title>
+      <title>memoryleak</title>
       <link>https://philpearl.github.io/categories/memoryleak/</link>
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
@@ -57,7 +66,7 @@
     </item>
     
     <item>
-      <title>Performance</title>
+      <title>performance</title>
       <link>https://philpearl.github.io/categories/performance/</link>
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
@@ -66,11 +75,20 @@
     </item>
     
     <item>
-      <title>Programming</title>
-      <link>https://philpearl.github.io/categories/programming/</link>
-      <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
+      <title>benchmark</title>
+      <link>https://philpearl.github.io/categories/benchmark/</link>
+      <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
       
-      <guid>https://philpearl.github.io/categories/programming/</guid>
+      <guid>https://philpearl.github.io/categories/benchmark/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>linux</title>
+      <link>https://philpearl.github.io/categories/linux/</link>
+      <pubDate>Mon, 04 Jun 2018 20:19:41 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/linux/</guid>
       <description></description>
     </item>
     
