@@ -1,15 +1,51 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on EnTitled</title>
+    <title>Categories on Phil Pearl&#39;s Blog</title>
     <link>https://philpearl.github.io/categories/</link>
-    <description>Recent content in Categories on EnTitled</description>
+    <description>Recent content in Categories on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Fri, 26 Jul 2019 18:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 30 Aug 2019 15:30:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>benchmark</title>
+      <link>https://philpearl.github.io/categories/benchmark/</link>
+      <pubDate>Fri, 30 Aug 2019 15:30:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/benchmark/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go</title>
+      <link>https://philpearl.github.io/categories/go/</link>
+      <pubDate>Fri, 30 Aug 2019 15:30:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/go/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>performance</title>
+      <link>https://philpearl.github.io/categories/performance/</link>
+      <pubDate>Fri, 30 Aug 2019 15:30:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/performance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>programming</title>
+      <link>https://philpearl.github.io/categories/programming/</link>
+      <pubDate>Fri, 30 Aug 2019 15:30:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/categories/programming/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>devops</title>
@@ -30,24 +66,6 @@
     </item>
     
     <item>
-      <title>go</title>
-      <link>https://philpearl.github.io/categories/go/</link>
-      <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
-      
-      <guid>https://philpearl.github.io/categories/go/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>programming</title>
-      <link>https://philpearl.github.io/categories/programming/</link>
-      <pubDate>Sat, 06 Jul 2019 15:31:00 +0000</pubDate>
-      
-      <guid>https://philpearl.github.io/categories/programming/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>json</title>
       <link>https://philpearl.github.io/categories/json/</link>
       <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
@@ -62,24 +80,6 @@
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       
       <guid>https://philpearl.github.io/categories/memoryleak/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>performance</title>
-      <link>https://philpearl.github.io/categories/performance/</link>
-      <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
-      
-      <guid>https://philpearl.github.io/categories/performance/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>benchmark</title>
-      <link>https://philpearl.github.io/categories/benchmark/</link>
-      <pubDate>Sun, 02 Sep 2018 20:15:18 +0000</pubDate>
-      
-      <guid>https://philpearl.github.io/categories/benchmark/</guid>
       <description></description>
     </item>
     

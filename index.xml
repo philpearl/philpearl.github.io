@@ -1,15 +1,35 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>EnTitled</title>
+    <title>Phil Pearl&#39;s Blog</title>
     <link>https://philpearl.github.io/</link>
-    <description>Recent content on EnTitled</description>
+    <description>Recent content on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Fri, 26 Jul 2019 18:07:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 30 Aug 2019 15:30:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Bad Go: pointer returns</title>
+      <link>https://philpearl.github.io/post/bad_go_pointer_returns/</link>
+      <pubDate>Fri, 30 Aug 2019 15:30:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bad_go_pointer_returns/</guid>
+      <description>As an old C programmer I struggle with this one: it feels completely normal for functions to return pointers to structs. But I&amp;rsquo;ve a feeling this is bad Go, and that we&amp;rsquo;re normally better off returning struct values. I&amp;rsquo;m going to see if I can prove that returning struct values is just plain better, and that returning pointers is bad Go.
+I&amp;rsquo;m going to define a struct that I can vary in size easily.</description>
+    </item>
+    
+    <item>
+      <title>Bad Go: slices of pointers</title>
+      <link>https://philpearl.github.io/post/bad_go_slice_of_pointers/</link>
+      <pubDate>Fri, 30 Aug 2019 09:25:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bad_go_slice_of_pointers/</guid>
+      <description>This is the first of what may be a series of blog posts on uses of Go that I&amp;rsquo;ve found frustrating. They&amp;rsquo;re mostly minor things that could just be better without being more complicated. I&amp;rsquo;m going to try to not only explain why they are bad but also demonstrate it.
+First up is slices of pointers. Things like []*MyStruct. Unless you need to express that certain indices in the slice are nil, then this is just wasteful and []MyStruct is better in almost all circumstances.</description>
+    </item>
     
     <item>
       <title>Kubernetes&#39; dirty endpoint secret and Ingress</title>
