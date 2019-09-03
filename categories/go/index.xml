@@ -6,10 +6,21 @@
     <description>Recent content in go on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Fri, 30 Aug 2019 15:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 01 Sep 2019 09:25:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Bad Go: frivolous Sprintf</title>
+      <link>https://philpearl.github.io/post/bad_go_sprintf/</link>
+      <pubDate>Sun, 01 Sep 2019 09:25:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bad_go_sprintf/</guid>
+      <description>This is the 3rd in a series of posts about Bad Go - a clickbaity title for posts about Go that I&amp;rsquo;ve found frustrating because it could just be that little bit better. Better in my mind is often more performant with less impact on GC without being more complex or harder to read.
+The first two posts are about slices of pointers and pointer returns from functions
+This one is about reaching for fmt.</description>
+    </item>
     
     <item>
       <title>Bad Go: pointer returns</title>
