@@ -6,10 +6,20 @@
     <description>Recent content in benchmark on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Thu, 05 Sep 2019 09:25:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 20 Sep 2019 09:25:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/categories/benchmark/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Bad Go: guessing</title>
+      <link>https://philpearl.github.io/post/bad_go_guessing/</link>
+      <pubDate>Fri, 20 Sep 2019 09:25:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/bad_go_guessing/</guid>
+      <description>This is the 5th in a series of posts about Bad Go - a clickbaity title for posts about Go code that I&amp;rsquo;ve found frustrating because it could just be that little bit better. Better in my mind means more performant with less impact on GC, without being more complex or harder to read.
+In this post I&amp;rsquo;ll rant about a problem I&amp;rsquo;ve seen in a number of blog posts.</description>
+    </item>
     
     <item>
       <title>Bad Go: not sizing slices</title>

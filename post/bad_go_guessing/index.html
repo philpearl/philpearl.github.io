@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="//gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.56.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Bad Go: guessing &middot; Phil Pearl&#39;s Blog</title>
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Phil Pearl&#39;s Blog" />
+
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2019. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/guessing.jpg" alt="">
+    <figcaption></figcaption>
+  </figure>
+  
+
+  <h1>Bad Go: guessing</h1>
+  
+  <p class="lead">Just write a benchmark</p>
+  
+
+  <time datetime=2019-09-20T09:25:00Z class="post-date">Fri, Sep 20, 2019</time>
+
+
+  
+
+<p>This is the 5th in a series of posts about Bad Go - a clickbaity title for posts about Go code that I&rsquo;ve found frustrating because it could just be that little bit better. Better in my mind means more performant with less impact on GC, without being more complex or harder to read.</p>
+
+<p>In this post I&rsquo;ll rant about a problem I&rsquo;ve seen in a number of blog posts. I&rsquo;ve seen it more in blog posts than in actual code, but I&rsquo;m sure people do this with real coding too. They just don&rsquo;t shout about it.</p>
+
+<p>The problem is guessing about performance. This is not good Go. Go has testing and benchmarking built in. Good Go includes benchmarks to prove that performance related changes actually improve things. If you make a performance change and don&rsquo;t have a benchmark that indicates it&rsquo;s an improvement, that&rsquo;s bad Go.</p>
+
+<h2 id="bad-blog">Bad Blog</h2>
+
+<p>Let&rsquo;s write a bad blog post. We&rsquo;ll write a merge sort, then write another one that we&rsquo;ll claim is better with no proof! We&rsquo;ll claim it&rsquo;s better because it runs in parallel.</p>
+
+<p>Here&rsquo;s our initial merge sort. It takes a slice of integers, splits it in half then calls itself to sort each half. It then merges the two sorted halves together into a final sorted list.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">mergeSort</span>(in []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">int</span> {
+	<span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">len</span>(in) <span style="color:#ff79c6">&lt;=</span> <span style="color:#bd93f9">1</span> {
+		<span style="color:#ff79c6">return</span> in
+	}
+	mid <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">len</span>(in) <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">2</span>
+	sorted1 <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">mergeSort</span>(in[:mid])
+	sorted2 <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">mergeSort</span>(in[mid:])
+	<span style="color:#ff79c6">return</span> <span style="color:#50fa7b">merge</span>(sorted1, sorted2)
+}
+
+<span style="color:#6272a4">// merge zips two sorted slices together
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">merge</span>(in1, in2 []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">int</span> {
+	size1, size2 <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">len</span>(in1), <span style="color:#8be9fd;font-style:italic">len</span>(in2)
+	out <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, size1<span style="color:#ff79c6">+</span>size2)
+
+	<span style="color:#8be9fd;font-style:italic">var</span> idx1, idx2, index <span style="color:#8be9fd">int</span>
+	<span style="color:#ff79c6">for</span> idx1 &lt; size1 <span style="color:#ff79c6">&amp;&amp;</span> idx2 &lt; size2 {
+		<span style="color:#ff79c6">if</span> in1[idx1] &lt; in2[idx2] {
+			out[index] = in1[idx1]
+			idx1<span style="color:#ff79c6">++</span>
+		} <span style="color:#ff79c6">else</span> {
+			out[index] = in2[idx2]
+			idx2<span style="color:#ff79c6">++</span>
+		}
+		index<span style="color:#ff79c6">++</span>
+	}
+	<span style="color:#ff79c6">for</span> idx1 &lt; size1 {
+		out[index] = in1[idx1]
+		idx1<span style="color:#ff79c6">++</span>
+		index<span style="color:#ff79c6">++</span>
+	}
+	<span style="color:#ff79c6">for</span> idx2 &lt; size2 {
+		out[index] = in2[idx2]
+		idx2<span style="color:#ff79c6">++</span>
+		index<span style="color:#ff79c6">++</span>
+	}
+	<span style="color:#ff79c6">return</span> out
+}</code></pre></div>
+<p>The code breaks the problem down into smaller and smaller problems, until at the bottom it&rsquo;s sorting a list of length 1. Then it combines pairs of those length-1 solutions together by zipping together the two sorted lists, then zipping together pairs of larger sorted lists, then pairs of even larger sorted lists until it eventually zips together the sorted versions of the initial split and comes up with a final sorted answer.</p>
+
+<p>Let&rsquo;s start with a quick test to see if it actually sorts the []int.  We&rsquo;ll sort a short list of integers and check the result is as we expected.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">TestSort</span>(t <span style="color:#ff79c6">*</span>testing.T) {
+	vals <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">int</span>{
+		<span style="color:#bd93f9">7</span>, <span style="color:#bd93f9">3</span>, <span style="color:#bd93f9">2</span>, <span style="color:#bd93f9">293</span>, <span style="color:#bd93f9">1</span>, <span style="color:#bd93f9">34</span>, <span style="color:#bd93f9">4</span>, <span style="color:#bd93f9">99</span>,
+	}
+
+	sorted <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">mergeSort</span>(vals)
+	assert.<span style="color:#50fa7b">Equal</span>(t, []<span style="color:#8be9fd">int</span>{<span style="color:#bd93f9">1</span>, <span style="color:#bd93f9">2</span>, <span style="color:#bd93f9">3</span>, <span style="color:#bd93f9">4</span>, <span style="color:#bd93f9">7</span>, <span style="color:#bd93f9">34</span>, <span style="color:#bd93f9">99</span>, <span style="color:#bd93f9">293</span>}, sorted)
+}</code></pre></div>
+<p>It passes! Our code can at least sort this one list.</p>
+
+<h2 id="so-parallel">So parallel!</h2>
+
+<p>We want a parallel version. Since the algorithm splits the initial list in two, the obvious thing to do is to sort those two halves in parallel. Then when we split each of those halves and sort them we&rsquo;ll do each of those further halves in parallel too, and so on right down until we have length 1 lists that don&rsquo;t need sorting.</p>
+
+<p>As we&rsquo;re sorting each half of our slice on a separate goroutine, we&rsquo;ll pass back the sorted data in a channel. Then our merge step will take two sorted streams of ints from incoming channels and produce a merged stream in another output channel.  Each layer in the process will take two sorted channels from the layer below and merge them into a further sorted channel.</p>
+
+<p>Here&rsquo;s our code for the parallel version.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">mergeSort2</span>(in []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">int</span> {
+	ch <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">chan</span> <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd;font-style:italic">len</span>(in))
+	<span style="color:#50fa7b">mergeSortCh</span>(in, ch)
+
+	out <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">0</span>, <span style="color:#8be9fd;font-style:italic">len</span>(in))
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> ch {
+		out = <span style="color:#8be9fd;font-style:italic">append</span>(out, i)
+	}
+	<span style="color:#ff79c6">return</span> out
+}
+
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">mergeSortCh</span>(in []<span style="color:#8be9fd">int</span>, sorted <span style="color:#8be9fd;font-style:italic">chan</span> <span style="color:#8be9fd">int</span>) {
+	<span style="color:#ff79c6">defer</span> <span style="color:#8be9fd;font-style:italic">close</span>(sorted)
+	<span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">len</span>(in) <span style="color:#ff79c6">&lt;=</span> <span style="color:#bd93f9">1</span> {
+		<span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">len</span>(in) <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">1</span> {
+			sorted <span style="color:#ff79c6">&lt;-</span> in[<span style="color:#bd93f9">0</span>]
+		}
+		<span style="color:#ff79c6">return</span>
+	}
+	mid <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">len</span>(in) <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">2</span>
+	sorted1 <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">chan</span> <span style="color:#8be9fd">int</span>, mid)
+	sorted2 <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">chan</span> <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd;font-style:italic">len</span>(in)<span style="color:#ff79c6">-</span>mid)
+
+	<span style="color:#6272a4">// Sort each half concurrently
+</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">go</span> <span style="color:#50fa7b">mergeSortCh</span>(in[:mid], sorted1)
+	<span style="color:#ff79c6">go</span> <span style="color:#50fa7b">mergeSortCh</span>(in[mid:], sorted2)
+
+	<span style="color:#6272a4">// Merge the channels
+</span><span style="color:#6272a4"></span>	<span style="color:#50fa7b">mergeCh</span>(sorted1, sorted2, sorted)
+}
+
+<span style="color:#6272a4">// mergeCh takes two sorted channels of ints in1, in2 and outputs a sorted stream of ints into out
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">mergeCh</span>(in1, in2, out <span style="color:#8be9fd;font-style:italic">chan</span> <span style="color:#8be9fd">int</span>) {
+	i1, ok1 <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&lt;-</span>in1
+	i2, ok2 <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&lt;-</span>in2
+	<span style="color:#ff79c6">for</span> ok1 <span style="color:#ff79c6">&amp;&amp;</span> ok2 {
+		<span style="color:#ff79c6">if</span> i1 &lt; i2 {
+			out <span style="color:#ff79c6">&lt;-</span> i1
+			i1, ok1 = <span style="color:#ff79c6">&lt;-</span>in1
+		} <span style="color:#ff79c6">else</span> {
+			out <span style="color:#ff79c6">&lt;-</span> i2
+			i2, ok2 = <span style="color:#ff79c6">&lt;-</span>in2
+		}
+	}
+	<span style="color:#ff79c6">for</span> ok1 {
+		out <span style="color:#ff79c6">&lt;-</span> i1
+		i1, ok1 = <span style="color:#ff79c6">&lt;-</span>in1
+	}
+	<span style="color:#ff79c6">for</span> ok2 {
+		out <span style="color:#ff79c6">&lt;-</span> i2
+		i2, ok2 = <span style="color:#ff79c6">&lt;-</span>in2
+	}
+}</code></pre></div>
+<p>Nearly all our sorting and merging can take place on goroutines so we must be able to make good use of all our processors. My laptop has 4 cores with hyperthreading so this version will be 4 to 8 times faster.</p>
+
+<p>You believe me don&rsquo;t you?</p>
+
+<h2 id="i-need-proof">I need proof</h2>
+
+<p>OK, OK, let&rsquo;s stop our imaginary bad blog post and go back to my normal entirely immitable style. Of course we&rsquo;re going to write a benchmark!</p>
+
+<p>Regular readers know a benchmark is just a special kind of Go test that runs the code in question N times. The benchmarking framework takes care of deciding on N and doing all the measuring.  For our benchmark we&rsquo;ll take a random permutation of the ints from 0 to 999, and sort it. We&rsquo;ll sort it both with the standard library <code>sort.Ints</code> and our initial <code>mergeSort</code> and the new parallel <code>mergeSort2</code>.</p>
+
+<p>One tricky point is that <code>sort.Int</code> sorts the <code>[]int</code> in place, so to make sure we actually perform the sort for each iteration of the benchmark we need to copy our unsorted slice each time. We&rsquo;ll do this for both the standard library sort and the two merge sorts so we&rsquo;re comparing like with like.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSort</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	vals <span style="color:#ff79c6">:=</span> rand.<span style="color:#50fa7b">Perm</span>(<span style="color:#bd93f9">1000</span>)
+	toSort <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd;font-style:italic">len</span>(vals))
+
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;std&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+			<span style="color:#8be9fd;font-style:italic">copy</span>(toSort, vals)
+			sort.<span style="color:#50fa7b">Ints</span>(toSort)
+		}
+	})
+
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;merge&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+			<span style="color:#8be9fd;font-style:italic">copy</span>(toSort, vals)
+			<span style="color:#50fa7b">mergeSort</span>(toSort)
+		}
+	})
+
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;merge2&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+			<span style="color:#8be9fd;font-style:italic">copy</span>(toSort, vals)
+			<span style="color:#50fa7b">mergeSort2</span>(toSort)
+		}
+	})
+}</code></pre></div>
+<p>Here are our results. Our first merge sort isn&rsquo;t too bad - a little faster than the standard library sort, but with loads of allocations. The parallel sort is pretty bad. Sorting takes over 6 times longer and there are twice as many allocations as even the merge sort.</p>
+
+<pre><code>std-8    10000   105966 ns/op      32 B/op     1 allocs/op
+merge-8  12502    95599 ns/op   81536 B/op   999 allocs/op
+merge2-8  1761   664894 ns/op  299926 B/op  2011 allocs/op
+</code></pre>
+
+<p>So why doesn&rsquo;t adding goroutines and channels make this faster? Well, for one thing every single int is pushed onto a channel, and <a href="https://medium.com/@philpearl/channel-direct-send-9e2899ab2ee3">last time I measured it</a> that would take ~90ns to transmit something on a channel. With 1000 ints to sort that&rsquo;s already 90,000ns before we&rsquo;ve started to sort. And <a href="https://syslog.ravelin.com/goroutine-shoot-out-e47585bebc1f">starting a goroutine</a> takes ~350ns, and with this algorithm we start nearly 2000 of them to sort 1000 ints, so that&rsquo;s 700,000ns. So we&rsquo;ve already burned 790,000ns of CPU before we&rsquo;ve done anything useful. We do spread this work across processors, but this isn&rsquo;t a sensible approach. Channels and goroutines are great, but they&rsquo;re not magic.</p>
+
+<h2 id="bonus-round">Bonus round</h2>
+
+<p>If we&rsquo;d never measured anything we&rsquo;d never have known whether this version was faster or slower. And we&rsquo;d never have seen that the first version of our merge does quite so many allocations. Perhaps removing those allocations would be a better first step if we want to improve things?</p>
+
+<p>How could we do that? Well, if you stare hard at this algorithm you&rsquo;ll eventually spot that it splits the original slice into pairs of ints and orders those, then takes pairs of pairs and zips them together so it has several sequences of 4 ordered ints, then takes pairs of those, etc, etc. Awkward to do in place, but we could do it with two slices of ints, zipping ordered pairs of slices from one slice into the other slice, then swapping over.</p>
+
+<p>Here&rsquo;s our code. It looks very different from the original merge sort, but if you think about it long enough you&rsquo;ll realise that from the data point of view it&rsquo;s doing exactly the same thing. We&rsquo;ve basically just unrolled the recursive function calls so we can track where the data&rsquo;s going better.</p>
+
+<p>Our two slices of ints are <code>current</code> and <code>next</code>, and we keep swapping between them. <code>stride</code> controls the size of the ordered lists we&rsquo;re zipping together, starting with 1 then doubling each time.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">merge3</span>(in []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">int</span> {
+	ll <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">len</span>(in)
+	<span style="color:#ff79c6">if</span> ll <span style="color:#ff79c6">&lt;=</span> <span style="color:#bd93f9">1</span> {
+		<span style="color:#ff79c6">return</span> in
+	}
+
+	current <span style="color:#ff79c6">:=</span> in
+	next <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd;font-style:italic">len</span>(in))
+	stride <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">1</span>
+	<span style="color:#ff79c6">for</span> stride &lt; ll {
+		end <span style="color:#ff79c6">:=</span> ll <span style="color:#ff79c6">-</span> stride
+		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; end; {
+			<span style="color:#6272a4">// zip these two together
+</span><span style="color:#6272a4"></span>			idx1, end1 <span style="color:#ff79c6">:=</span> i, i<span style="color:#ff79c6">+</span>stride
+			idx2, end2 <span style="color:#ff79c6">:=</span> end1, i<span style="color:#ff79c6">+</span>stride<span style="color:#ff79c6">*</span><span style="color:#bd93f9">2</span>
+			<span style="color:#ff79c6">if</span> end2 &gt; ll {
+				end2 = ll
+			}
+
+			<span style="color:#ff79c6">for</span> idx1 &lt; end1 <span style="color:#ff79c6">&amp;&amp;</span> idx2 &lt; end2 {
+				<span style="color:#ff79c6">if</span> current[idx1] &lt; current[idx2] {
+					next[i] = current[idx1]
+					idx1<span style="color:#ff79c6">++</span>
+				} <span style="color:#ff79c6">else</span> {
+					next[i] = current[idx2]
+					idx2<span style="color:#ff79c6">++</span>
+				}
+				i<span style="color:#ff79c6">++</span>
+			}
+			<span style="color:#ff79c6">for</span> idx1 &lt; end1 {
+				next[i] = current[idx1]
+				idx1<span style="color:#ff79c6">++</span>
+				i<span style="color:#ff79c6">++</span>
+			}
+			<span style="color:#ff79c6">for</span> idx2 &lt; end2 {
+				next[i] = current[idx2]
+				idx2<span style="color:#ff79c6">++</span>
+				i<span style="color:#ff79c6">++</span>
+			}
+		}
+		stride <span style="color:#ff79c6">*=</span> <span style="color:#bd93f9">2</span>
+		current, next = next, current
+	}
+
+	<span style="color:#ff79c6">return</span> current
+}</code></pre></div>
+<p>If we feed this into our benchmark we&rsquo;ll see it does reasonably well. It takes about half as long as the standard library or our initial merge sort, and only makes one allocation.</p>
+
+<pre><code>std-8    10000   105966 ns/op      32 B/op     1 allocs/op
+merge-8  12502    95599 ns/op   81536 B/op   999 allocs/op
+merge2-8  1761   664894 ns/op  299926 B/op  2011 allocs/op
+merge3-8 23721    50860 ns/op	 8192 B/op     1 allocs/op
+</code></pre>
+
+<p>By running a benchmark we&rsquo;re able to spot a weakness in our original implementation: that it makes a large number of allocations. We have been able to guess at an improvement and been able to confirm the guess really does improve things. So please write benchmarks when you are doing performance work, and newsletter compilers, please don&rsquo;t include performance oriented blog posts that don&rsquo;t provide evidence for their suggestions.</p>
+
+<p>If you&rsquo;re still itching to parallelise a merge sort there are reasonable approaches that result in genuine improvements, and there are good blog posts describing how to do it. <a href="https://hackernoon.com/parallel-merge-sort-in-go-fe14c1bc006">This one</a> is pretty good!</p>
+
+<p>If you&rsquo;ve enjoyed this you might enjoy the previous posts in the series. The first two posts are about <a href="https://medium.com/@philpearl/bad-go-slices-of-pointers-ed3c06b8bb41?source=friends_link&amp;sk=9c07548c807cb13ab03a1ad48c047ec2">slices of pointers</a> and <a href="https://medium.com/@philpearl/bad-go-pointer-returns-340f2da8289?source=friends_link&amp;sk=792ed1bf8198e99c08323e3e09e9606d">pointer returns from functions</a>. The third is about <a href="https://medium.com/swlh/bad-go-frivolous-sprintf-2ad28fedf1a0?source=friends_link&amp;sk=3c66aec8cd54f0d727ae14ce111e03ae">frivolous use of fmt.Sprintf</a>. And the fourth tells you why you should <a href="https://medium.com/swlh/bad-go-not-sizing-slices-aed1b01cff83?source=friends_link&amp;sk=e87ad0f46ee0a9d6b1ed55e857ddcd80">size slices</a> where you can.</p>
+
+</div>
+
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-64013694-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+  </body>
+</html>
