@@ -27,7 +27,7 @@ func TestSort2(t *testing.T) {
 }
 
 func BenchmarkSort(b *testing.B) {
-	vals := rand.Perm(1000)
+	vals := rand.Perm(1000000)
 	toSort := make([]int, len(vals))
 
 	b.Run("std", func(b *testing.B) {
