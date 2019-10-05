@@ -12,12 +12,12 @@
     
     
     <item>
-      <title>Bad Go: Adventures with JSON marshaling</title>
+      <title>Bad Go: Adventures with JSON marshalling</title>
       <link>https://philpearl.github.io/post/badgo_json/</link>
       <pubDate>Sat, 05 Oct 2019 09:00:00 +0000</pubDate>
       
       <guid>https://philpearl.github.io/post/badgo_json/</guid>
-      <description>This is a story about encoding/json in the Go standard library. I&amp;rsquo;m not going to say this is bad Go. That would be heresy. But there is an aspect of marshaling that could be improved. Because it is in the standard library it isn&amp;rsquo;t bad Go, but if you followed the pattern in your own code then that would be a mistake. Outside of the standard library it would lose its magical aura, and it would be bad Go.</description>
+      <description>This is a story about encoding/json in the Go standard library. I&amp;rsquo;m not going to say this is bad Go. That would be heresy. But there is an aspect of marshalling that could be improved. Because it is in the standard library it isn&amp;rsquo;t bad Go, but if you followed the pattern in your own code then that would be a mistake. Outside of the standard library it would lose its magical aura, and it would be bad Go.</description>
     </item>
     
     <item>
