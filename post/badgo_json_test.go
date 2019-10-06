@@ -8,10 +8,29 @@ import (
 	"time"
 )
 
+type mystruct1 struct {
+	A int    `json:"a,omitempty"`
+	B string `json:"b,omitempty"`
+}
+
 type mystruct struct {
 	A int       `json:"a,omitempty"`
 	B string    `json:"b,omitempty"`
 	C time.Time `json:"c,omitempty"`
+}
+
+func BenchmarkJSONMarshal1(b *testing.B) {
+	b.ReportAllocs()
+	var data = mystruct1{
+		A: 42,
+		B: "42",
+	}
+	for i := 0; i < b.N; i++ {
+		_, err := json.Marshal(&data)
+		if err != nil {
+			b.Errorf("failed to marshal json. %s", err)
+		}
+	}
 }
 
 func BenchmarkJSONMarshal(b *testing.B) {

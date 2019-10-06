@@ -95,6 +95,9 @@
 		}
 	}
 }</code></pre></div>
+<pre><code>BenchmarkJSONMarshal-8   3627376    316 ns/op   32 B/op   1 allocs/op
+</code></pre>
+
 <p>If we run this we find there&rsquo;s just 1 allocation per marshalling attempt, which is the byte slice containing the marshalled data. It would be nice if we could re-use a slice for this, but one allocation is not too upsetting. And if we really want to we can use an <a href="https://golang.org/pkg/encoding/json/#Encoder">encoder</a> to avoid this.</p>
 
 <p>So what am I complaining about? Well, let&rsquo;s modify our struct a little to add a time.</p>
@@ -118,6 +121,9 @@
 		}
 	}
 }</code></pre></div>
+<pre><code>BenchmarkJSONMarshal-8    981222   1345 ns/op  208 B/op   4 allocs/op
+</code></pre>
+
 <p>Suddenly we&rsquo;re making 4 allocations per marshalling attempt! 3 additional allocations because we&rsquo;ve added a time. Why would that be? Well, one issue is that the json package does not natively understand time.Time, and marshals it via the Marshaler interface. time.Time implements <a href="https://golang.org/pkg/time/#Time.MarshalJSON">MarshalJSON</a>. This forces an additional allocation because the method is defined to return a <code>[]byte</code> with the marshalled time. There&rsquo;s no mechanism in the API to allow this custom marshaler to append it&rsquo;s data to the data marshalled so far. It needs to allocate a separate slice that it returns (thus forcing a heap allocation), and which the json library then appends to its output.</p>
 
 <p>That explains 1 additional allocation. Why are there 3? Well, we can benchmark Time.MarshalJSON to see what it is doing.</p>
@@ -132,6 +138,9 @@
 		}
 	}
 }</code></pre></div>
+<pre><code>BenchmarkTimeMarshal-8   3400222    378 ns/op   48 B/op   1 allocs/op
+</code></pre>
+
 <p>This only creates 1 allocation. So the other 2 must somehow come about within the json package itself, presumably as additional overhead joining up the results.</p>
 
 <p>If we run the benchmark under the profiler we discover the causes of the 4 allocations.</p>
