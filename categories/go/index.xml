@@ -6,10 +6,20 @@
     <description>Recent content in go on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 05 Oct 2019 09:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 15 Nov 2019 09:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Good Go: Contributing to encoding/json</title>
+      <link>https://philpearl.github.io/post/json_good/</link>
+      <pubDate>Fri, 15 Nov 2019 09:00:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/json_good/</guid>
+      <description>In my last post I whinged endlessly about encoding/json and in particular about the poor performance of anything with a custom marshaler. I decided to try to do something about it and I raised a proposal for a new marshaler interface.
+As I half expected I wasn&amp;rsquo;t immediately welcomed as the new Go Messiah and my proposal has been effectively rejected (stop press - actually rejected). There&amp;rsquo;s very little inclination amongst the Go maintainers to change any of the interfaces in the standard libraries, and for some reason changing encoding/json or encoding/xml is viewed with particular horror.</description>
+    </item>
     
     <item>
       <title>Bad Go: Adventures with JSON marshalling</title>
