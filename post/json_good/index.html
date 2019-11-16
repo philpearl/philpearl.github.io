@@ -102,7 +102,7 @@
 <pre><code>BenchmarkEncodeMarshaler-8	 8169886	130 ns/op	100 B/op	3 allocs/op
 </code></pre>
 
-<p>Next we run a profile to see where those allocations are. We run the benchmark again with memory profiling enabled, then start the profiling tool and select the alloc_objects index. This index counts every time an object is allocated over the run, so is useful for showing us where most of the allocations occur. The <code>-run ^$</code> on the test command is to ensure we don&rsquo;t run any tests which might pollute the profiling data.</p>
+<p>Next we run a profile to see where those allocations are. We run the benchmark again with memory profiling enabled, then start the profiling tool and select the alloc_objects index. This index counts every time an object is allocated over the run, so is useful for showing us where most of the allocations occur. The <code>-run ^$</code> on the test command is to ensure we don&rsquo;t run any tests which might pollute the profiling data. <code>^$</code> is a regular expression. <code>^</code> matches the beginning of the line and <code>$</code> matches the end, so <code>-run ^$</code> won&rsquo;t match any tests, so just our benchmark will run.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go <span style="color:#8be9fd;font-style:italic">test</span> -run ^$ -bench BenchmarkEncodeMarshaler -memprofile mem.prof
 go tool pprof json.test mem.prof 
 <span style="color:#ff79c6">(</span>pprof<span style="color:#ff79c6">)</span> <span style="color:#8be9fd;font-style:italic">sample_index</span><span style="color:#ff79c6">=</span>alloc_objects</code></pre></div>
@@ -140,7 +140,7 @@ ROUTINE ======================== encoding/json.compact in /Users/phil/Projects/g
 
 </code></pre>
 
-<p>So all the allocations here are creating the scan variable. This must escape to the heap and hence cause an allocation.</p>
+<p>So all the allocations here are creating the scan variable. This must escape to the heap and hence cause an allocation. (I&rsquo;m not going to go into the details of why it escapes - suffice it to say that some shit goes down)</p>
 
 <p>Why are we calling compact? The code below shows it is called after each call to a <code>MarshalJSON</code> method, and the comment implies it is there because the library doesn&rsquo;t trust marshalers to produce valid, maximally compact JSON. Whatever the reasoning, the call to <code>compact</code> will happen for every field in the JSON with a custom marshaler, and each will cause an allocation - so it&rsquo;s worth addressing.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	b, err <span style="color:#ff79c6">:=</span> m.<span style="color:#50fa7b">MarshalJSON</span>()
