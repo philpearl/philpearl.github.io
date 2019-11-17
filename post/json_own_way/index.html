@@ -249,15 +249,13 @@ EncodeMarshaler-8      5.00 ± 0%      0.00       -100.00%  (p=0.000 n=8+8)
 			b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>)
 		<span style="color:#ff79c6">default</span>:
 			<span style="color:#ff79c6">if</span> r &lt; <span style="color:#bd93f9">32</span> {
-				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;u&#39;</span>, <span style="color:#f1fa8c">&#39;0&#39;</span>, hex[r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">4</span>], hex[r<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xF</span>])
+				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;u&#39;</span>, <span style="color:#f1fa8c">&#39;0&#39;</span>, <span style="color:#f1fa8c">&#39;0&#39;</span>, hex[r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">4</span>], hex[r<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xF</span>])
 			} <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> r &lt; utf8.RuneSelf {
 				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#8be9fd;font-style:italic">byte</span>(r))
-			} <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> r &lt; <span style="color:#bd93f9">0x10ffff</span> {
+			} <span style="color:#ff79c6">else</span> {
 				<span style="color:#6272a4">// append in its natural form
 </span><span style="color:#6272a4"></span>				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, s.String[i:i<span style="color:#ff79c6">+</span>utf8.<span style="color:#50fa7b">RuneLen</span>(r)]<span style="color:#ff79c6">...</span>)
-			} <span style="color:#ff79c6">else</span> {
-				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;u&#39;</span>, hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">16</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">8</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">4</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[r<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xF</span>])
-			}
+			} 
 		}
 	}
 	b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>)
