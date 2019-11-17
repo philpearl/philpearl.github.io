@@ -1,0 +1,13 @@
+goos: darwin
+goarch: amd64
+pkg: github.com/philpearl/blog/content/post
+BenchmarkEncodeMarshaler-8   	 1571552	       865 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1584098	       753 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1579690	       751 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1590064	       754 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1592098	       749 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1594794	       750 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1575847	       749 ns/op	     496 B/op	      13 allocs/op
+BenchmarkEncodeMarshaler-8   	 1554916	       766 ns/op	     496 B/op	      13 allocs/op
+PASS
+ok  	github.com/philpearl/blog/content/post	15.862s

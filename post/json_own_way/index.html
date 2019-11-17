@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="//gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.56.0" />
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Rebel Go: Forking encoding/json &middot; Phil Pearl&#39;s Blog</title>
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="" rel="alternate" type="application/rss+xml" title="Phil Pearl&#39;s Blog" />
+
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2019. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/fork.jpg" alt="">
+    <figcaption></figcaption>
+  </figure>
+  
+
+  <h1>Rebel Go: Forking encoding/json</h1>
+  
+  <p class="lead">What happens when I&#39;m left alone for too long</p>
+  
+
+  <time datetime=2019-11-17T09:00:00Z class="post-date">Sun, Nov 17, 2019</time>
+
+
+  <p>So in my mind the <a href="https://github.com/golang/go/issues/34701">conversation</a> went a little like this.</p>
+
+<p><strong>Phil</strong>: I&rsquo;d like to make encoding/json better. I&rsquo;d like to save allocations when marshaling by adding a <a href="https://philpearl.github.io/post/badgo_json/">new interface</a> for custom marshalers.</p>
+
+<p><strong>World</strong>: Given that this can be explored in 3rd-party packages easily, this seems like a likely decline. Leaving open for a week for final comments.</p>
+
+<p><strong>Phil</strong>: Oh, interesting, what would a successful exploration look like?</p>
+
+<p><strong>World</strong>: One consequence of writing your own package is that you could use it and would not need the change in the standard library.</p>
+
+<p><strong>Phil</strong>: Did you just tell me to go <em>fork</em> myself?</p>
+
+<p><strong>World</strong>: <a href="http://b.z19r.com/post/did-you-just-tell-me-to-go-fuck-myself">I believe I did Bob</a>.</p>
+
+<p>I&rsquo;m really not sure I want to fork encoding/json. I&rsquo;m not even sure how I would fork part of a repo, or at least not in a way where I could easily merge upstream fixes. And I&rsquo;d be shocked if anyone would use it. It would likely be a sad and lonely orphan. Why create something with such a miserable fate?</p>
+
+<p>Why? Well, basically because it&rsquo;s Saturday, <a href="https://twitter.com/lizrice">@lizrice</a> has left for a conference and I don&rsquo;t have anything much else to do.</p>
+
+<p>I&rsquo;m not going to start with a fork. I&rsquo;ll just create a branch and show what the changes would involve, and what the improvements would be. As ever, I&rsquo;ll start with a benchmark.</p>
+
+<p>At <a href="https://www.ravelin.com">Ravelin</a> we pass around a lot of JSON, and that JSON includes fields that are <a href="https://golang.org/pkg/time/#Time.MarshalJSON"><code>time.Time</code></a>. We also made a decision many years ago to use <a href="https://github.com/guregu/null"><code>https://github.com/guregu/null</code></a> to express null values. Now, at this point none of those decisions look the best. If we started from scratch I&rsquo;m not sure I&rsquo;d use JSON, or ever use <code>time.Time</code> as the primary method of dealing with time, or use <code>https://github.com/guregu/null</code>, but at this point these decisions are very hard to reverse.</p>
+
+<p>So let&rsquo;s have a benchmark that reflects these decisions. We&rsquo;ll marshal a struct that has a few of these elements in. In reality at Ravelin our structs have many more fields than this, but a great many of the fields are  <code>null.*</code> and <code>time.Time</code> values.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkEncodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+
+	m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">struct</span> {
+		A null.Int
+		B time.Time
+		C time.Time
+		D null.String
+	}{
+		A: null.<span style="color:#50fa7b">IntFrom</span>(<span style="color:#bd93f9">42</span>),
+		B: time.<span style="color:#50fa7b">Now</span>(),
+		C: time.<span style="color:#50fa7b">Now</span>().<span style="color:#50fa7b">Add</span>(<span style="color:#ff79c6">-</span>time.Hour),
+		D: null.<span style="color:#50fa7b">StringFrom</span>(<span style="color:#f1fa8c">`hello`</span>),
+	}
+
+	b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+		enc <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">NewEncoder</span>(ioutil.Discard)
+
+		<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+			<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> enc.<span style="color:#50fa7b">Encode</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+				b.<span style="color:#50fa7b">Fatal</span>(<span style="color:#f1fa8c">&#34;Encode:&#34;</span>, err)
+			}
+		}
+	})
+}</code></pre></div>
+<p>If we run this benchmark with Go 1.13 and run the output through <a href="https://github.com/golang/perf/tree/master/cmd/benchstat">benchstat</a> we get the following. Yes, there are 13 allocations needed to marshal this little struct to JSON.</p>
+
+<pre><code>name               time/op
+EncodeMarshaler-8  753ns ± 2%
+
+name               alloc/op
+EncodeMarshaler-8   496B ± 0%
+
+name               allocs/op
+EncodeMarshaler-8   13.0 ± 0%
+</code></pre>
+
+<p>There are already some improvements scheduled for Go 1.14 that get this down to 5 allocations (some from me! <a href="https://philpearl.github.io/post/badgo_json/">post</a>, <a href="https://philpearl.github.io/post/json_good/">post</a>, <a href="https://go-review.googlesource.com/c/go/+/200864">contribution</a>, <a href="https://go-review.googlesource.com/c/go/+/203608">contribution</a>). But with a rough version of the proposed change we can get rid of the allocations altogether. Here&rsquo;s a comparison of the same benchmark at Go tip versus my branch with the changes.</p>
+
+<pre><code>name               old time/op    new time/op    delta
+EncodeMarshaler-8     626ns ± 3%     315ns ± 1%   -49.65%  (p=0.000 n=8+7)
+
+name               old alloc/op   new alloc/op   delta
+EncodeMarshaler-8      128B ± 0%        0B       -100.00%  (p=0.000 n=8+8)
+
+name               old allocs/op  new allocs/op  delta
+EncodeMarshaler-8      5.00 ± 0%      0.00       -100.00%  (p=0.000 n=8+8)
+</code></pre>
+
+<p>This is why I think this is a good idea. Running time is halved and all the allocations have gone. The changes are entirely back-compatible and have taken less than 3 hours so far (including writing this much of the blog post).</p>
+
+<p>So what are the changes? Well, we start by adding a new marshaler interface. The idea here is that the <code>MarshalAppendJSON</code> implementation doesn&rsquo;t need to allocate the <code>[]byte</code> it returns that contains the marshaled JSON. It can build its response by appending to the <code>in</code> slice that encoding/json passes to it. With the current <code>MarshalJSON</code> function that&rsquo;s not true so pretty much every call to a <code>MarshalJSON</code> method results in an allocation.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> MarshalAppender <span style="color:#8be9fd;font-style:italic">interface</span> {
+	<span style="color:#50fa7b">MarshalAppendJSON</span>(in []<span style="color:#8be9fd">byte</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>)
+}</code></pre></div>
+<p>Once we have the interface we add some code to identify when it is present for a type and assign the appropriate marshaling function. We need to make sure we use the new <code>MarshalAppender</code> interface in preference to <code>Marshaler</code> whenever it is present.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"> <span style="color:#8be9fd;font-style:italic">var</span> (
+	marshalerType       = reflect.<span style="color:#50fa7b">TypeOf</span>((<span style="color:#ff79c6">*</span>Marshaler)(<span style="color:#ff79c6">nil</span>)).<span style="color:#50fa7b">Elem</span>()
+	marshalAppenderType = reflect.<span style="color:#50fa7b">TypeOf</span>((<span style="color:#ff79c6">*</span>MarshalAppender)(<span style="color:#ff79c6">nil</span>)).<span style="color:#50fa7b">Elem</span>()
+	textMarshalerType   = reflect.<span style="color:#50fa7b">TypeOf</span>((<span style="color:#ff79c6">*</span>encoding.TextMarshaler)(<span style="color:#ff79c6">nil</span>)).<span style="color:#50fa7b">Elem</span>()
+)
+
+<span style="color:#6272a4">// newTypeEncoder constructs an encoderFunc for a type.
+</span><span style="color:#6272a4">// The returned encoder only checks CanAddr when allowAddr is true.
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newTypeEncoder</span>(t reflect.Type, allowAddr <span style="color:#8be9fd">bool</span>) encoderFunc {
+	<span style="color:#6272a4">// If we have a non-pointer value whose type implements
+</span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// Marshaler with a value receiver, then we&#39;re better off taking
+</span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// the address of the value - otherwise we end up with an
+</span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// allocation as we cast the value to an interface.
+</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> t.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr <span style="color:#ff79c6">&amp;&amp;</span> allowAddr <span style="color:#ff79c6">&amp;&amp;</span> reflect.<span style="color:#50fa7b">PtrTo</span>(t).<span style="color:#50fa7b">Implements</span>(marshalAppenderType) {
+		<span style="color:#ff79c6">return</span> <span style="color:#50fa7b">newCondAddrEncoder</span>(addrMarshalAppenderEncoder, <span style="color:#50fa7b">newTypeEncoder</span>(t, <span style="color:#ff79c6">false</span>))
+	}
+	<span style="color:#ff79c6">if</span> t.<span style="color:#50fa7b">Implements</span>(marshalAppenderType) {
+		<span style="color:#ff79c6">return</span> marshalAppenderEncoder
+	}
+
+	<span style="color:#ff79c6">if</span> t.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr <span style="color:#ff79c6">&amp;&amp;</span> allowAddr <span style="color:#ff79c6">&amp;&amp;</span> reflect.<span style="color:#50fa7b">PtrTo</span>(t).<span style="color:#50fa7b">Implements</span>(marshalerType) {
+		<span style="color:#ff79c6">return</span> <span style="color:#50fa7b">newCondAddrEncoder</span>(addrMarshalerEncoder, <span style="color:#50fa7b">newTypeEncoder</span>(t, <span style="color:#ff79c6">false</span>))
+	}</code></pre></div>
+<p>The final change to make the new interface work is to add some code to call the new method. This follows the pattern set for the existing <code>Marshaler</code>, except we assume <code>MarshalAppender</code> implementations produce valid, compact JSON. The current <code>Marshaler</code> does not assume this, so it calls the <code>compact</code> function on the output. <code>compact</code> validates and compacts the JSON returned from the <code>Marshaler</code>.</p>
+
+<p>I think the better choice is to trust library writers to create proper implementations. We do not need to check the output millions upon billions of times in live running applications. So my implementation below simply copies the result of <code>MarshalAppendJSON</code> into the encoder&rsquo;s buffer.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">marshalAppenderEncoder</span>(e <span style="color:#ff79c6">*</span>encodeState, v reflect.Value, opts encOpts) {
+	<span style="color:#ff79c6">if</span> v.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">==</span> reflect.Ptr <span style="color:#ff79c6">&amp;&amp;</span> v.<span style="color:#50fa7b">IsNil</span>() {
+		e.<span style="color:#50fa7b">WriteString</span>(<span style="color:#f1fa8c">&#34;null&#34;</span>)
+		<span style="color:#ff79c6">return</span>
+	}
+	m, ok <span style="color:#ff79c6">:=</span> v.<span style="color:#50fa7b">Interface</span>().(MarshalAppender)
+	<span style="color:#ff79c6">if</span> !ok {
+		e.<span style="color:#50fa7b">WriteString</span>(<span style="color:#f1fa8c">&#34;null&#34;</span>)
+		<span style="color:#ff79c6">return</span>
+	}
+	b, err <span style="color:#ff79c6">:=</span> m.<span style="color:#50fa7b">MarshalAppendJSON</span>(e.scratch[:<span style="color:#bd93f9">0</span>])
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		e.<span style="color:#8be9fd;font-style:italic">error</span>(<span style="color:#ff79c6">&amp;</span>MarshalerError{v.<span style="color:#50fa7b">Type</span>(), err, <span style="color:#f1fa8c">&#34;MarshalAppendJSON&#34;</span>})
+		<span style="color:#ff79c6">return</span>
+	}
+
+	<span style="color:#6272a4">// We trust implementers of MarshalAppender to generate valid, maximally compact JSON
+</span><span style="color:#6272a4"></span>	e.<span style="color:#50fa7b">Write</span>(b)
+}
+
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">addrMarshalAppenderEncoder</span>(e <span style="color:#ff79c6">*</span>encodeState, v reflect.Value, opts encOpts) {
+	va <span style="color:#ff79c6">:=</span> v.<span style="color:#50fa7b">Addr</span>()
+	<span style="color:#ff79c6">if</span> va.<span style="color:#50fa7b">IsNil</span>() {
+		e.<span style="color:#50fa7b">WriteString</span>(<span style="color:#f1fa8c">&#34;null&#34;</span>)
+		<span style="color:#ff79c6">return</span>
+	}
+	m <span style="color:#ff79c6">:=</span> va.<span style="color:#50fa7b">Interface</span>().(MarshalAppender)
+	b, err <span style="color:#ff79c6">:=</span> m.<span style="color:#50fa7b">MarshalAppendJSON</span>(e.scratch[:<span style="color:#bd93f9">0</span>])
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		e.<span style="color:#8be9fd;font-style:italic">error</span>(<span style="color:#ff79c6">&amp;</span>MarshalerError{v.<span style="color:#50fa7b">Type</span>(), err, <span style="color:#f1fa8c">&#34;MarshalAppendJSON&#34;</span>})
+		<span style="color:#ff79c6">return</span>
+	}
+
+	<span style="color:#6272a4">// We trust implementers of MarshalAppender to generate valid, maximally compact JSON
+</span><span style="color:#6272a4"></span>	e.<span style="color:#50fa7b">Write</span>(b)
+}</code></pre></div>
+<p>The next step to make this useful is to implement some custom marshalers. First we&rsquo;ll do <code>time.Time</code>. To me this one is very important - there must be a very large number of folk with <code>time.Time</code> in structs that get marshaled to JSON. The <code>time.AppendFormat</code> function makes this easy to implement.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6272a4">// MarshalAppendJSON implements the json.Marshaler interface.
+</span><span style="color:#6272a4">// The time is a quoted string in RFC 3339 format, with sub-second precision added if present.
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (t Time) <span style="color:#50fa7b">MarshalAppendJSON</span>(b []<span style="color:#8be9fd">byte</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
+	<span style="color:#ff79c6">if</span> y <span style="color:#ff79c6">:=</span> t.<span style="color:#50fa7b">Year</span>(); y &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> y <span style="color:#ff79c6">&gt;=</span> <span style="color:#bd93f9">10000</span> {
+		<span style="color:#6272a4">// RFC 3339 is clear that years are 4 digits exactly.
+</span><span style="color:#6272a4"></span>		<span style="color:#6272a4">// See golang.org/issue/4556#c15 for more discussion.
+</span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, errors.<span style="color:#50fa7b">New</span>(<span style="color:#f1fa8c">&#34;Time.MarshalAppendJSON: year outside of range [0,9999]&#34;</span>)
+	}
+
+	b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>)
+	b = t.<span style="color:#50fa7b">AppendFormat</span>(b, RFC3339Nano)
+	b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>)
+	<span style="color:#ff79c6">return</span> b, <span style="color:#ff79c6">nil</span>
+}</code></pre></div>
+<p>Finally for my benchmark I need to create <code>MarshalAppendJSON</code> methods for <code>Int</code> and <code>String</code> from the null package. The <code>Int</code> one is easy because of the <code>strconv.AppendInt</code> function.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (i Int) <span style="color:#50fa7b">MarshalAppendJSON</span>(b []<span style="color:#8be9fd">byte</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
+	<span style="color:#ff79c6">if</span> !i.Valid {
+		<span style="color:#ff79c6">return</span> nullLiteral, <span style="color:#ff79c6">nil</span>
+	}
+	<span style="color:#ff79c6">return</span> strconv.<span style="color:#50fa7b">AppendInt</span>(b, i.Int64, <span style="color:#bd93f9">10</span>), <span style="color:#ff79c6">nil</span>
+}</code></pre></div>
+<p>The <code>String</code> version is much more problematic. I need to JSON encode a string value. But if I just call <code>json.Marshal</code> to do this I don&rsquo;t get any performance improvements. Really I&rsquo;d need to add an efficient <code>EncodeString</code> method to encoding/json. But even without that at least the new interface makes it possible to put in the work and improve performance. Here I&rsquo;ve just followed the definition of a JSON string from <a href="http://json.org/">json.org</a> and implemented the encoding myself inline. And it might even be partially correct (it definitely isn&rsquo;t fully correct yet)! And at least it shows that it would be possible to easily implement an efficient <code>EncodeString</code> method.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (s String) <span style="color:#50fa7b">MarshalAppendJSON</span>(b []<span style="color:#8be9fd">byte</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
+	<span style="color:#ff79c6">if</span> !s.Valid {
+		<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">append</span>(b, nullLiteral<span style="color:#ff79c6">...</span>), <span style="color:#ff79c6">nil</span>
+	}
+	b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>)
+	<span style="color:#ff79c6">for</span> i, r <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> s.String {
+		<span style="color:#ff79c6">switch</span> r {
+		<span style="color:#ff79c6">case</span> <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>:
+			b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#8be9fd;font-style:italic">byte</span>(r))
+		<span style="color:#ff79c6">case</span> <span style="color:#f1fa8c">&#39;\n&#39;</span>:
+			b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;n&#39;</span>)
+		<span style="color:#ff79c6">case</span> <span style="color:#f1fa8c">&#39;\r&#39;</span>:
+			b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;r&#39;</span>)
+		<span style="color:#ff79c6">case</span> <span style="color:#f1fa8c">&#39;\t&#39;</span>:
+			b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>)
+		<span style="color:#ff79c6">default</span>:
+			<span style="color:#ff79c6">if</span> r &lt; <span style="color:#bd93f9">32</span> {
+				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;u&#39;</span>, <span style="color:#f1fa8c">&#39;0&#39;</span>, hex[r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">4</span>], hex[r<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xF</span>])
+			} <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> r &lt; utf8.RuneSelf {
+				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#8be9fd;font-style:italic">byte</span>(r))
+			} <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> r &lt; <span style="color:#bd93f9">0x10ffff</span> {
+				<span style="color:#6272a4">// append in its natural form
+</span><span style="color:#6272a4"></span>				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, s.String[i:i<span style="color:#ff79c6">+</span>utf8.<span style="color:#50fa7b">RuneLen</span>(r)]<span style="color:#ff79c6">...</span>)
+			} <span style="color:#ff79c6">else</span> {
+				b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;\\&#39;</span>, <span style="color:#f1fa8c">&#39;u&#39;</span>, hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">16</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">8</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[(r<span style="color:#ff79c6">&gt;&gt;</span><span style="color:#bd93f9">4</span>)<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xf</span>], hex[r<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">0xF</span>])
+			}
+		}
+	}
+	b = <span style="color:#8be9fd;font-style:italic">append</span>(b, <span style="color:#f1fa8c">&#39;&#34;&#39;</span>)
+	<span style="color:#ff79c6">return</span> b, <span style="color:#ff79c6">nil</span>
+}</code></pre></div>
+<p>That was all that was necessary to remove all allocations from this particular JSON marshaling benchmark. Hopefully I&rsquo;ve explained why this is a useful &amp; positive change to make. I think I&rsquo;ve also highlighted why it should be done in the standard library. It is only really useful if library writers implement <code>MarshalAppender</code>. And I think they&rsquo;ll only do that if <code>MarshalAppender</code> is part of the defacto JSON library. Certainly I can&rsquo;t imagine the <code>time</code> standard library package will be modified to implement a third-party JSON encoding method!</p>
+
+<p>Dear reader, you&rsquo;ve made it this far, but I have another task to ask of you. I want to know whether I should fork encoding/json to add <code>MarshalAppender</code>, and potentially make other changes that aren&rsquo;t going to be acceptable to the Go team. I don&rsquo;t really want to do it just for my own amusement. I only want to do it if people will actually use it. I don&rsquo;t have a voting system, but if this post becomes &ldquo;popular&rdquo; (and my standards for popularity are laughably low) then I might just do it. So if you&rsquo;d like me to make a fork mash that like/retweet/applaud/up-vote button on whatever thing you discovered this post on.</p>
+
+</div>
+
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-64013694-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+  </body>
+</html>
