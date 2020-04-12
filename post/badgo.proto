@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package badgo;
+
+import "google/protobuf/wrappers";
+
+message Message1 {
+    string name = 1;
+    uint32 age = 2;
+    google.protobuf.wrappers.BoolValue isDead = 3;
+}

@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="//gmpg.org/xfn/11" rel="profile">
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.56.0" />
+  <meta name="generator" content="Hugo 0.68.3" />
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Go in a scratch VM &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="distributionless linux." />
 
   
   <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
@@ -23,8 +24,6 @@
   <link rel="shortcut icon" href="/favicon.png">
 
   
-  <link href="" rel="alternate" type="application/rss+xml" title="Phil Pearl&#39;s Blog" />
-
   
 <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
@@ -48,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2019. All rights reserved.</p>
+    <p>&copy; 2016 - 2020. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -68,39 +67,24 @@
   <time datetime=2018-06-04T20:19:41Z class="post-date">Mon, Jun 4, 2018</time>
 
 
-  
-
-<p>Many of us know that you can run <a href="https://syslog.ravelin.com/a-container-image-in-60-lines-of-go-336533395c09">Go binaries in “scratch” containers</a>. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.</p>
-
+  <p>Many of us know that you can run <a href="https://syslog.ravelin.com/a-container-image-in-60-lines-of-go-336533395c09">Go binaries in “scratch” containers</a>. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.</p>
 <p>But what about VMs? Normally you start from Ubuntu, or Alpine or whatever and then you install your stuff on top. What would happen if you didn’t? Could you have a VM that’s just a linux kernel and your Go binary?</p>
-
 <p>I thought I’d find out.</p>
-
 <h2 id="getting-started">Getting started</h2>
-
 <p>When a <a href="https://en.wikipedia.org/wiki/Linux_startup_process">linux machine starts</a>, first some low-level magic happens to mount the root file system, and load and run the kernel. Once the kernel is ready it hands control to user-space by running <code>/sbin/init</code> as process ID 1. Everything else that happens on the machine then happens because <code>/sbin/init</code> makes it happen. Every other user-space process is started by <code>init</code> or by a process started by <code>init</code>. And the OS only keeps running while process 1 keeps running.</p>
-
 <p>If I replace <code>/sbin/init</code> with a static Go binary I’ve effectively replaced all the user-space components of the distribution.</p>
-
 <p>So, what happens if we replace <code>/sbin/init</code> with a statically linked Go binary that just prints “Hello World!” and then sleeps a lot?</p>
-
 <h2 id="we-need-a-playground">We need a playground</h2>
-
 <p>I’m going to start with the simplest linux distribution I can find, replace <code>/sbin/init</code> with my Go binary, then try to work out what else I need to do to get a running system.</p>
-
 <p>Vagrant gives me a very convenient way to do this. This Vagrant file is all I need to configure a local VM.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vagrant" data-lang="vagrant">Vagrant.configure(&#34;2&#34;) do |config|
-  config.vm.box = &#34;alpine/alpine64&#34;
-  config.vm.network &#34;forwarded_port&#34;, guest: 80, host: 8080, host_ip: &#34;127.0.0.1&#34;
-end</code></pre></div>
-<p>This gives me an easy-to-recycle local VM to play with. I can start it with <code>vagrant up</code>, and if things go wrong I can completely delete it with <code>vagrant destroy -f</code>.</p>
-
+<pre><code class="language-vagrant" data-lang="vagrant">Vagrant.configure(&quot;2&quot;) do |config|
+  config.vm.box = &quot;alpine/alpine64&quot;
+  config.vm.network &quot;forwarded_port&quot;, guest: 80, host: 8080, host_ip: &quot;127.0.0.1&quot;
+end
+</code></pre><p>This gives me an easy-to-recycle local VM to play with. I can start it with <code>vagrant up</code>, and if things go wrong I can completely delete it with <code>vagrant destroy -f</code>.</p>
 <p>I chose Alpine linux as my distribution as it has a reputation for being small &amp; simple, which hopefully will make it easier to understand.</p>
-
 <p>Once I start experimenting with this I expect lots of things will stop working, so I won’t be able to look at logs written to file or connect to the VM over a network. My debugging is likely to depend on getting access to the VM console. So I use VirtualBox to run my VM, as I know that will show me the console via the VirtualBox app.</p>
-
 <h2 id="attempt-1-hello-world">Attempt 1: Hello World</h2>
-
 <p>This is our first attempt at a new world of distribution-less linux. A simple “hello world” program that I’ll build as a statically-linked binary. The program repeatedly sleeps rather than exiting, as the kernel will panic if process 1 exits.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
@@ -115,38 +99,24 @@ end</code></pre></div>
 	<span style="color:#ff79c6">for</span> {
 		time.<span style="color:#50fa7b">Sleep</span>(time.Second)
 	}
-}</code></pre></div>
-<p>I can build a linux version of this on my Mac using <code>GOOS=linux go build</code>. Since I’ve called my directory scratchmachine the output binary is called <code>scratchmachine</code>. I then do <code>vagrant up</code> followed by <code>vagrant ssh</code> and suddenly I’m in the Alpine VM, with my Mac directory mounted as <code>/vagrant</code>. I then run <code>sudo cp /vagrant/scratchmachine /sbin/init</code> to replace the init binary, followed by <code>sudo reboot</code> to restart the machine.</p>
-
+}
+</code></pre></div><p>I can build a linux version of this on my Mac using <code>GOOS=linux go build</code>. Since I’ve called my directory scratchmachine the output binary is called <code>scratchmachine</code>. I then do <code>vagrant up</code> followed by <code>vagrant ssh</code> and suddenly I’m in the Alpine VM, with my Mac directory mounted as <code>/vagrant</code>. I then run <code>sudo cp /vagrant/scratchmachine /sbin/init</code> to replace the init binary, followed by <code>sudo reboot</code> to restart the machine.</p>
 <p>When the machine reboots, first the linux kernel will load, then the kernel will start the first user-space process, process 1, using my “hello world” binary that it finds at <code>/sbin/init</code>.</p>
-
-<p><img src="/post/scratch1.png" alt="Success! scratchmachine is running as process 1" /></p>
-
+<p><img src="/post/scratch1.png" alt="Success! scratchmachine is running as process 1"></p>
 <p>If we open VirtualBox and look at the machine console we can see the output of this experiment. It’s a success!</p>
-
 <p>But this is all our machine can do. Our new <code>init</code> is the only thing running in user-space on this machine. And all it does is says hello and goes to sleep.</p>
-
 <p>What I’d really like to do is run a web-server. For that I need a network connection.</p>
-
 <h2 id="attempt-2-getting-on-the-network">Attempt 2: Getting on the network</h2>
-
 <p>My new mantra is <code>vagrant destroy -f; vagrant up; vagrant ssh</code>, which quickly restores a fully working alpine machine.</p>
-
 <p>To get the network working I know I will need an active network interface. Perhaps I should just copy what happens when running alpine normally? <code>ifconfig -a</code> shows me the interfaces on the VM.</p>
-
 <pre><code>alpine:~$ ifconfig -a
 eth0      Link encap:Ethernet  HWaddr 08:00:27:9E:9E:E5
 inet addr:10.0.2.15  Bcast:0.0.0.0  Mask:255.255.255.0
 inet6 addr: fe80::a00:27ff:fe9e:9ee5/64 Scope:Link
 UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-</code></pre>
-
-<p>The VM has a single network interface eth0 using IP address 10.0.2.15.</p>
-
+</code></pre><p>The VM has a single network interface eth0 using IP address 10.0.2.15.</p>
 <p>So, what would happen if I tried to just assign 10.0.2.15 to eth0 and set the UP and RUNNING flags from my code? Some digging turned up the <a href="https://linux.die.net/man/7/netdevice">linux netdevice interface</a> was what I needed to do this.</p>
-
 <p>This netdevice interface is extremely weird. To use it you open any old internet socket, then commands to the kernel using the <code>SYS_IOCTL</code> syscall referencing the socket (IOCTL stands for input/output control).</p>
-
 <p>Luckily there’s support for making the syscalls and for some of the structures I needed in <code>golang.org/x/sys/unix</code>.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> socketAddrRequest <span style="color:#8be9fd;font-style:italic">struct</span> {
 	name [unix.IFNAMSIZ]<span style="color:#8be9fd">byte</span>
@@ -207,36 +177,24 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 		<span style="color:#ff79c6">return</span> errno
 	}
 	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}</code></pre></div>
-<p><img src="/post/scratch1.png" alt="Not so easy this time" /></p>
-
+}
+</code></pre></div><p><img src="/post/scratch1.png" alt="Not so easy this time"></p>
 <p>Unfortunately it’s not that easy. The <code>eth0</code> device I’ve tried to configure does not exist. <code>/sbin/init</code> must normally do something to make the device appear.</p>
-
 <h2 id="finding-eth0">Finding eth0</h2>
-
 <p>I can now be heard muttering <code>vagrant destroy -f; vagrant up; vagrant ssh</code> as I stomp around trying to think how to make <code>eth0</code> appear. It must be something <code>/sbin/init</code> does when the machine boots.</p>
-
 <p>So what does <code>/sbin/init</code> do when the machine boots? Well, one thing it does is run “init scripts”. These are arcane scripts that have been handed down by the ancient ones to make machines start. The scripts usually live in <code>/etc</code> but the exact details vary between unixes. Using ancient wisdom, I go looking in <code>/etc</code> for files and directories related to “init”, to “rc” and to “run levels”.</p>
-
-<p><img src="/post/scratch3.png" alt="/etc/runlevels has boot and sysinit subdirectories" /></p>
-
+<p><img src="/post/scratch3.png" alt="/etc/runlevels has boot and sysinit subdirectories"></p>
 <p>And it turns out <code>/etc/runlevels</code> exists and has subdirectories <code>sysinit</code> and <code>boot</code>, each with a bunch of scripts that get run to start the system. I try deleting scripts and rebooting to see what’s crucial for setting up ethernet. Cutting a long story short, the interesting file is <code>/etc/runlevels/sysinit/hwdrivers</code>. This is a quite short script that boils down to the following.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">find /sys -name modalias -type f -print0 | xargs -0 sort -u <span style="color:#f1fa8c">\
-</span><span style="color:#f1fa8c"></span>| xargs modprobe -b -a</code></pre></div>
-<p>This is looking for files under <code>/sys</code> and passing them to <code>modprobe</code>. <code>man modprobe</code> tells us</p>
-
+</span><span style="color:#f1fa8c"></span>| xargs modprobe -b -a
+</code></pre></div><p>This is looking for files under <code>/sys</code> and passing them to <code>modprobe</code>. <code>man modprobe</code> tells us</p>
 <blockquote>
 <p>modprobe — program to add and remove modules from the Linux Kernel</p>
 </blockquote>
-
 <p>So perhaps we need to load a driver for <code>eth0</code>? If we poke around in <code>/sys</code> for things related to <code>eth0</code> we find <code>/sys/class/net/eth0/device</code>. And from there we can discover that the driver is called <code>e1000</code></p>
-
-<p><img src="/post/scratch4.png" alt="The eth0 driver is e1000" /></p>
-
+<p><img src="/post/scratch4.png" alt="The eth0 driver is e1000"></p>
 <p>So how do we load the driver? I don’t want <code>bash</code>, <code>find</code> or <code>modprobe</code> in my final system, so I need to load the driver directly from my Go code.</p>
-
 <p>Looking for clues, I found some source code for <code>modprobe</code> <a href="https://github.com/vadmium/module-init-tools/blob/master/modprobe.c">here</a>. This shows <code>modprobe</code> reading the bytes of a driver binary, then calling <code>init_module</code>, which turns out to be another <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">syscall</a>. The <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">man page</a> says there’s a newer version called <code>finit_module</code>. So, obviously, I go with the f’ing one.</p>
-
 <p>The <code>modprobe</code> code also contains another hint. It looks for modules under <code>/lib/modules</code>. A quick <code>find /lib/modules -print | grep e1000</code> shows us the driver we want is <code>/lib/modules/4.9.73–0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko</code>. This is the driver I want to load. All I need to do is open this file and pass the file descriptor to the <code>finit_module</code> syscall.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> fakeString [<span style="color:#bd93f9">3</span>]<span style="color:#8be9fd">byte</span>
 
@@ -256,9 +214,8 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 	}
 
 	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}</code></pre></div>
-<h2 id="putting-it-all-together">Putting it all together</h2>
-
+}
+</code></pre></div><h2 id="putting-it-all-together">Putting it all together</h2>
 <p>Ever optimistic, I add some code to start an HTTP server after the code to load the ethernet driver and configure the interface. This is what the code looks like now:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">run</span>() <span style="color:#8be9fd">error</span> {
 	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;Hello World!\n&#34;</span>)
@@ -279,46 +236,34 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 	}))
 
 	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}</code></pre></div>
-<p>I rebuild, copy the binary over <code>/sbin/init</code> and reboot. And wait a minute. And then…</p>
+}
+</code></pre></div><p>I rebuild, copy the binary over <code>/sbin/init</code> and reboot. And wait a minute. And then…</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ curl localhost:8080
-Hello from Scratch Machine!</code></pre></div>
-<p>It works!</p>
-
+Hello from Scratch Machine!
+</code></pre></div><p>It works!</p>
 <h2 id="attempt-3-cutting-it-down">Attempt 3: Cutting it down</h2>
-
 <p>So I can build a Go web server and install it as <code>/sbin/init</code> in a linux VM. The web server is the only user-space process running on the VM, and I can convince myself that it’s really the only user-space code that counts. But I really wanted a VM with only my code &amp; the kernel on it and nothing else. How can I achieve that?</p>
-
 <p>This turns out to be really quite hard. Not many people do this kind of thing, so there aren’t many clues out in the world. And all the clues that are there are arcane and somewhat contradictory.</p>
-
 <p>In the end (several weeks later!) I find a working formula.</p>
-
 <ul>
 <li>I build a CD/DVD image (.iso) using the xorriso package.</li>
 <li>I configure this to boot linux using what’s called an “<a href="https://www.kernel.org/doc/html/v4.12/admin-guide/initrd.html#f1">initial RAM file system</a>” and the <a href="https://www.syslinux.org/wiki/index.php?title=ISOLINUX">isolinux boot loader</a>.</li>
 <li>Because I don’t need much else I stop there. Normally the “initial RAM file system” is just enough code to work out where the real root file system is, mount it and boot from it. In my case the “initial RAM file system” contains just my binaries and the ethernet driver, and I have no “real root” with additional stuff.</li>
-<li>I boot a VirtualBox VM from this iso with no other hard drive configured.
-<br /></li>
+<li>I boot a VirtualBox VM from this iso with no other hard drive configured.</li>
 </ul>
-
 <p>To reiterate, the initial RAM file system contains the following.</p>
-
 <ul>
 <li>e1000.ko (the ethernet driver).</li>
 <li>My Go program, renamed to ‘init’ (the /sbin prefix is unnecessary for an initramfs).</li>
 </ul>
-
 <p>My image just contains the following.</p>
-
 <ul>
 <li>isolinux.bin &amp; ldlinux.c32 (the ISOLINUX bootloader)</li>
 <li>an isolinux.cfg configuration file.</li>
 <li>vmlinuz-virtualhardened (the linux kernel copied from alpine).</li>
 <li>initramfs.gz, which is the gzipped cpio archive of the initial RAM file system.</li>
 </ul>
-
 <h2 id="building-the-initramfs">Building the initramfs</h2>
-
 <p>The “initial RAM file system” is just a gzipped cpio archive with the files I need. I can build it as follows. All these commands are run inside the alpine virtual machine.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># build our initial RAM file system</span>
 mkdir -p ramfs
@@ -330,9 +275,8 @@ cat <span style="color:#f1fa8c">&lt;&lt;EOF | cpio -o -H newc | gzip &gt; initra
 </span><span style="color:#f1fa8c">init
 </span><span style="color:#f1fa8c">e1000.ko
 </span><span style="color:#f1fa8c">EOF</span>
-popd</code></pre></div>
-<h2 id="building-the-iso">Building the ISO</h2>
-
+<span style="color:#8be9fd;font-style:italic">popd</span>
+</code></pre></div><h2 id="building-the-iso">Building the ISO</h2>
 <p>To build the ISO I again just need to build a directory containing the files I need in my alpine VM and run a command.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir cdroot
 mkdir cdroot/dev
@@ -354,27 +298,20 @@ cat <span style="color:#f1fa8c">&lt;&lt;EOF &gt; cdroot/isolinux/isolinux.cfg
 </span><span style="color:#f1fa8c">KERNEL /kernel/vmlinuz-virthardened
 </span><span style="color:#f1fa8c">INITRD /initramfs.gz
 </span><span style="color:#f1fa8c">APPEND root=/dev/ram0 ro console=tty0 console=ttyS0,115200
-</span><span style="color:#f1fa8c">EOF</span></code></pre></div>
-<p>Finally we can build the iso.</p>
+</span><span style="color:#f1fa8c">EOF</span>
+</code></pre></div><p>Finally we can build the iso.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkisofs -o /vagrant/output.iso <span style="color:#f1fa8c">\
 </span><span style="color:#f1fa8c"></span>  -cache-inodes -J -l <span style="color:#f1fa8c">\
 </span><span style="color:#f1fa8c"></span>  -b isolinux/isolinux.bin -c isolinux/boot.cat <span style="color:#f1fa8c">\
 </span><span style="color:#f1fa8c"></span>  -no-emul-boot -boot-load-size <span style="color:#bd93f9">4</span> -boot-info-table <span style="color:#f1fa8c">\
-</span><span style="color:#f1fa8c"></span>  cdroot/</code></pre></div>
-<h2 id="results">Results</h2>
-
+</span><span style="color:#f1fa8c"></span>  cdroot/
+</code></pre></div><h2 id="results">Results</h2>
 <p>My Go program is 6,749,734 bytes. My ISO boot image is 7,114,752 bytes, which compares well with the ~38 MB for the alpine VM iso. It takes about 24s to boot under VirtualBox on my laptop (which I think is far too slow!). I suspect it is not vulnerable to many known linux security issues as it contains zero standard user-space components.</p>
-
 <p>On the down side it isn’t very configurable (hardwired IP address!) or debuggable.</p>
-
 <p>Personally I think this might not be a crazy avenue to pursue. It wouldn’t be too difficult to add a few things like a DHCP client or a log forwarder as either libraries or additional executables. Then you might have a useful system that’s trivial to audit for known security vulnerabilities.</p>
-
 <p>If you want to take a closer look, the code is on <a href="https://github.com/philpearl/scratchmachine">github.com</a></p>
-
 <h2 id="other-things-to-consider">Other things to consider</h2>
-
 <p>None of this is a terribly new idea. If you’re interested in this area, you might want to take a look at some of the following.</p>
-
 <ul>
 <li><a href="https://github.com/linuxkit/linuxkit">Linux kit</a></li>
 <li><a href="http://unikernel.org/projects/">Unikernels</a></li>
@@ -387,6 +324,7 @@ cat <span style="color:#f1fa8c">&lt;&lt;EOF &gt; cdroot/isolinux/isolinux.cfg
     </main>
 
     
+      
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
@@ -398,5 +336,6 @@ if (!doNotTrack) {
 </script>
 <script async src='https://www.google-analytics.com/analytics.js'></script>
 
+    
   </body>
 </html>

@@ -1,52 +1,55 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://philpearl.github.io/categories/benchmark/</loc>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://philpearl.github.io/categories/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/go/</loc>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/performance/</loc>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/post/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/categories/programming/</loc>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/json_iter/</loc>
+    <lastmod>2020-04-12T09:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/examining_evil/</loc>
+    <lastmod>2020-01-25T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/post/json_own_way/</loc>
     <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/benchmark/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/go/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/performance/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://philpearl.github.io/categories/programming/</loc>
-    <lastmod>2019-11-17T09:00:00+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -85,20 +88,18 @@
   </url>
   
   <url>
-    <loc>https://philpearl.github.io/post/k8s_ingress/</loc>
-    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://philpearl.github.io/categories/devops/</loc>
     <lastmod>2019-07-26T18:07:00+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/categories/kubernetes/</loc>
     <lastmod>2019-07-26T18:07:00+00:00</lastmod>
-    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/k8s_ingress/</loc>
+    <lastmod>2019-07-26T18:07:00+00:00</lastmod>
   </url>
   
   <url>
@@ -107,14 +108,13 @@
   </url>
   
   <url>
-    <loc>https://philpearl.github.io/post/json_embed/</loc>
+    <loc>https://philpearl.github.io/categories/json/</loc>
     <lastmod>2019-03-10T20:49:37+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://philpearl.github.io/categories/json/</loc>
+    <loc>https://philpearl.github.io/post/json_embed/</loc>
     <lastmod>2019-03-10T20:49:37+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -130,7 +130,6 @@
   <url>
     <loc>https://philpearl.github.io/categories/memoryleak/</loc>
     <lastmod>2018-11-15T19:57:02+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -146,7 +145,6 @@
   <url>
     <loc>https://philpearl.github.io/categories/linux/</loc>
     <lastmod>2018-06-04T20:19:41+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -166,7 +164,6 @@
   
   <url>
     <loc>https://philpearl.github.io/tags/</loc>
-    <priority>0</priority>
   </url>
   
 </urlset>
