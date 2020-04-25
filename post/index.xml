@@ -6,10 +6,21 @@
     <description>Recent content in Posts on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 12 Apr 2020 09:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 25 Apr 2020 13:39:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Nil versus empty slices</title>
+      <link>https://philpearl.github.io/post/nil_and_empty/</link>
+      <pubDate>Sat, 25 Apr 2020 13:39:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/nil_and_empty/</guid>
+      <description>Go can have nil slices and empty slices, and they&amp;rsquo;re different. What&amp;rsquo;s up with that?
+Regular readers of my blog (a select group if ever there was one) will know by now that a slice is syntactic sugar for a struct with a Data pointer, a Length and a Capacity. There&amp;rsquo;s a definition of this struct in reflect. It looks like this.
+type SliceHeader struct { Data uintptr Len int Cap int } When a slice is nil all the fields of the slice header are empty.</description>
+    </item>
     
     <item>
       <title>Search for a new JSON: jsoniter</title>
