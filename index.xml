@@ -6,10 +6,19 @@
     <description>Recent content on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 25 Apr 2020 13:39:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 23 May 2020 14:30:40 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>[]byte versus io.Reader</title>
+      <link>https://philpearl.github.io/post/reader/</link>
+      <pubDate>Sat, 23 May 2020 14:30:40 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/reader/</guid>
+      <description>Everyone loves io.Reader. It&amp;rsquo;s often touted as people&amp;rsquo;s favourite thing in Go. But it&amp;rsquo;s not the best abstraction when you get down to the small. When you&amp;rsquo;re doing lots of small reads to parse a protocol the overheads are too high, even if you&amp;rsquo;re using a buffered reader. I think the best abstraction at this point may be []byte, which is essentially no abstraction at all. But lets try using io.</description>
+    </item>
     
     <item>
       <title>Nil versus empty slices</title>

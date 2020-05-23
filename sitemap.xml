@@ -3,17 +3,22 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://philpearl.github.io/post/nil_and_empty/</loc>
-    <lastmod>2020-04-25T13:39:00+00:00</lastmod>
+    <loc>https://philpearl.github.io/post/reader/</loc>
+    <lastmod>2020-05-23T14:30:40+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/</loc>
-    <lastmod>2020-04-25T13:39:00+00:00</lastmod>
+    <lastmod>2020-05-23T14:30:40+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://philpearl.github.io/post/</loc>
+    <lastmod>2020-05-23T14:30:40+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://philpearl.github.io/post/nil_and_empty/</loc>
     <lastmod>2020-04-25T13:39:00+00:00</lastmod>
   </url>
   
