@@ -6,10 +6,21 @@
     <description>Recent content on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 23 May 2020 14:30:40 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 16 Jun 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>It ain&#39;t necessarily slow</title>
+      <link>https://philpearl.github.io/post/aintnecessarilyslow/</link>
+      <pubDate>Tue, 16 Jun 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/aintnecessarilyslow/</guid>
+      <description>Don&amp;rsquo;t use reflection. Unless you really have to. But when you&amp;rsquo;re not using reflection, don&amp;rsquo;t think that it is because reflection is fundamentally slow. It doesn&amp;rsquo;t have to be slow.
+Reflection allows you to obtain information about Go types at runtime. We&amp;rsquo;ll look at how you can use it to populate structs if you were ever foolish enough to try to write a new version of something like json.Unmarshal.
+We&amp;rsquo;ll deal with a simple case.</description>
+    </item>
     
     <item>
       <title>[]byte versus io.Reader</title>
