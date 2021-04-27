@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.68.3" />
+  <meta name="generator" content="Hugo 0.81.0" />
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2020. All rights reserved.</p>
+    <p>&copy; 2016 - 2021. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -116,7 +116,7 @@
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
   <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>
 }
-</code></pre></div><p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>'s <code>MarshalJSON</code>. Entirely what you&rsquo;d expect when you think about it, but completely surprising for me at least in this situation.</p>
+</code></pre></div><p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>&rsquo;s <code>MarshalJSON</code>. Entirely what you&rsquo;d expect when you think about it, but completely surprising for me at least in this situation.</p>
 <p>So, be extremely careful about using struct embedding with structs that are marshalled or unmarshalled.</p>
 <p>How can we fix this? Well, if we add another field to <code>Outer</code> that implements <code>json.Marshaller</code>, then <code>Outer</code> will no-longer implement <code>json.Marshaller</code> as the implementation will be ambiguous. We can use <code>struct{}</code> for this and it will take no room!</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> marshalblock <span style="color:#8be9fd;font-style:italic">struct</span>{}

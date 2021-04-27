@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.68.3" />
+  <meta name="generator" content="Hugo 0.81.0" />
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2020. All rights reserved.</p>
+    <p>&copy; 2016 - 2021. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -70,7 +70,7 @@
   <p>In my last post I whinged endlessly about <a href="https://golang.org/pkg/encoding/json/">encoding/json</a> and in particular about the poor performance of anything with a <a href="https://golang.org/pkg/encoding/json/#Marshal">custom marshaler</a>. I decided to try to do something about it and I raised a <a href="https://github.com/golang/go/issues/34701">proposal</a> for a new marshaler interface.</p>
 <p>As I half expected I wasn&rsquo;t immediately welcomed as the new Go Messiah and my proposal has been effectively rejected (stop press - actually rejected). There&rsquo;s very little inclination amongst the Go maintainers to change any of the interfaces in the standard libraries, and for some reason changing encoding/json or encoding/xml is viewed with particular horror.</p>
 <p>So I could cry and sulk a bit (and of course I will), but I could also see what else I could do to improve things. When I looked at this before there were 3 allocations for every field with a custom JSON marshaler. One is imposed by the poor interface. I wondered what I could do about the other two?</p>
-<p>Now, I happen to have been to a <a href="https://golang.org/doc/contribute.html">Go contributor</a>&lsquo;s workshop, and I have made a simple contribution to Go before, so I do have the Go git repo on my laptop. So step one was to pull master, build the Go toolchain and run the encoding/json tests and benchmarks.</p>
+<p>Now, I happen to have been to a <a href="https://golang.org/doc/contribute.html">Go contributor</a>&rsquo;s workshop, and I have made a simple contribution to Go before, so I do have the Go git repo on my laptop. So step one was to pull master, build the Go toolchain and run the encoding/json tests and benchmarks.</p>
 <p>After a bit of poking about I found there was no benchmark for marshaling a struct with a custom marshaler. Following the principle that you cannot improve what you do not measure, adding a new benchmark was step one.</p>
 <p>This is the new benchmark. It uses an Encoder as this can be reused, which reduces the noise from the test and shows the overhead due to the custom marshaler in stark relief.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkEncodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {

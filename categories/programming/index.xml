@@ -6,11 +6,7 @@
     <description>Recent content in programming on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 12 Apr 2020 09:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="https://philpearl.github.io/categories/programming/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 12 Apr 2020 09:00:00 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/categories/programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Search for a new JSON: jsoniter</title>
       <link>https://philpearl.github.io/post/json_iter/</link>
