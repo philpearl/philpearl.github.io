@@ -6,7 +6,17 @@
     <description>Recent content in performance on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 12 Apr 2020 09:00:00 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/categories/performance/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 01 Oct 2021 12:00:00 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/categories/performance/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Faster time parsing</title>
+      <link>https://philpearl.github.io/post/perf_time/</link>
+      <pubDate>Fri, 01 Oct 2021 12:00:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/perf_time/</guid>
+      <description>Here at Ravelin we have a lot of data with a lot of timestamps. Most of the timestamps are stored as strings in BigQuery, and most of our Go structs represent time with the Go time.Time type.
+I say these facts above with regret. We really do have a lot of data. And we really do have a lot of timestamps. For some time I&amp;rsquo;ve been circling around a conclusion, and as more time passes I&amp;rsquo;m certain I&amp;rsquo;ll fall toward it:</description>
+    </item>
+    
     <item>
       <title>Search for a new JSON: jsoniter</title>
       <link>https://philpearl.github.io/post/json_iter/</link>
