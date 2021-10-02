@@ -54,8 +54,8 @@
     <div class="post">
   
   <figure class="post-figure">
-    <img src="https://philpearl.github.io/" alt="">
-    <figcaption></figcaption>
+    <img src="https://philpearl.github.io/post/time.jpg" alt="Time can be overwhelming">
+    <figcaption>Time can be overwhelming</figcaption>
   </figure>
   
 
@@ -67,7 +67,7 @@
   <time datetime=2021-10-01T12:00:00Z class="post-date">Fri, Oct 1, 2021</time>
 
 
-  <p>Here at Ravelin we have a lot of data with a lot of timestamps.
+  <p>Here at <a href="https://www.ravelin.com/careers">Ravelin</a> we have a lot of data with a lot of timestamps.
 Most of the timestamps are stored as strings in BigQuery, and most of our Go structs represent time with the Go time.Time type.</p>
 <p>I say these facts above with regret.
 We really do have <em>a lot</em> of data. And we really do have <em>a lot</em> of timestamps.
@@ -76,7 +76,7 @@ For some time I&rsquo;ve been circling around a conclusion, and as more time pas
 <p>Anyway, decisions have been made and we are stuck with them.
 But being stuck with the decision doesn&rsquo;t mean we&rsquo;re stuck with all the unfortunate consequences.
 We can make the best of things.
-And, for me, making the best of things now inevitably includes finding a faster way to parse RFC3339 timestamps than using <code>time.Parse</code>.</p>
+And, for me, making the best of things now inevitably includes finding a faster way to parse RFC3339 timestamps than using <a href="https://pkg.go.dev/time#Parse"><code>time.Parse</code></a>.</p>
 <hr>
 <p>It turns out this is pretty easy. <code>time.Parse</code> has two parameters: one that describes the format of the data to parse, and another that is the data string that needs parsing.
 The format parameter does not just select a dedicated parsing routine appropriate for that format.
@@ -100,13 +100,13 @@ ParseRFC3339-16  150ns ± 1%
 It&rsquo;s boring.
 It isn&rsquo;t pretty.
 But (as far as I can tell!) it works.</p>
-<p>(It really is quite long and not very pretty, so rather than include it in this post and make you all scroll past it, <a href="https://github.com/philpearl/avro/blob/master/time/parse.go">here</a> is a link to the final version with all the optimisations discussed below applied. If you imagine a great long function with quite a few calls to <code>strconv.Atoi</code> you&rsquo;ll get the picture)</p>
+<p>(It really is quite long and not very pretty, so rather than include it in this post and make you all scroll past it, <a href="https://github.com/philpearl/avro/blob/master/time/parse.go">here</a> is a link to the final version with all the optimisations discussed below applied. If you imagine a great long function with quite a few calls to <a href="https://pkg.go.dev/strconv#Atoi"><code>strconv.Atoi</code></a> you&rsquo;ll get the picture)</p>
 <p>If we tweak our benchmark to use our new parsing function we get the following results.</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16   150ns ± 1%    45ns ± 4%  -70.15%  (p=0.000 n=7+8)
 </code></pre><p>It&rsquo;s really quite a lot faster than <code>time.Time</code>. Great. We&rsquo;re done.</p>
 <h2 id="of-course-were-not-done">Of course we&rsquo;re not done.</h2>
-<p>If we get a CPU profile we see lots of our time is now taken in calls to <code>strconv.Atoi</code>.</p>
+<p>If we get a <a href="https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz">CPU profile</a> we see lots of our time is now taken in calls to <code>strconv.Atoi</code>.</p>
 <pre><code>&gt; go test -run ^$ -bench BenchmarkParseRFC3339 -cpuprofile cpu.prof 
 &gt; go tool pprof cpu.prof
 Type: cpu
@@ -150,7 +150,7 @@ Definitely done now.</p>
 <p>Ah, but let&rsquo;s just have another look at the CPU profile.
 And let&rsquo;s take a look at the disassembly.
 There are two slice length checks in <code>atoi2</code> (they&rsquo;re the calls to panicIndex seen in the green disassembly below).
-Isn&rsquo;t there a trick about that?</p>
+Isn&rsquo;t there a <a href="https://go101.org/article/bounds-check-elimination.html">trick about that</a>?</p>
 <p><img src="/post/lencheck.png" alt="Two calls to panicIndex are slice length checks"></p>
 <p>Here&rsquo;s the code updated with the trick.
 <code>_ = in[1]</code> at the start of the function gives the compiler enough of a hint that it doesn&rsquo;t check the string is long enough each time we reference it later on.</p>
@@ -166,7 +166,7 @@ Isn&rsquo;t there a trick about that?</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16  39.7ns ± 3%  38.4ns ± 2%  -3.26%  (p=0.001 n=8+7)
 </code></pre><p>And <code>atoi2</code> is very short.
-Why isn&rsquo;t it inlined?
+Why isn&rsquo;t it <a href="https://dave.cheney.net/2020/04/25/inlining-optimisations-in-go">inlined</a>?
 Perhaps if we simplify the error it will be?
 If we remove the call to <code>fmt.Errorf</code> and replace it with a simple error that
 reduces the complexity of our atoi functions.
