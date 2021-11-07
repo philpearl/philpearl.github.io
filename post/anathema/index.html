@@ -168,7 +168,7 @@ So Go has some optimisations to avoid some of these allocations.</p>
 <p>Ah, that&rsquo;s not good.
 The next time someone puts an integer variable containing zero into an interface variable, Go will use that entry in the static table again.
 Except it now contains 42.
-We&rsquo;ve made 0 == 42.</p>
+We&rsquo;ve made 0 == 42. Sometimes.</p>
 <hr>
 <p>Winding back a little, I said the flawed code was not 100% wrong.</p>
 <ul>
