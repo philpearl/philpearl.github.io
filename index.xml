@@ -6,7 +6,22 @@
     <description>Recent content on Phil Pearl&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sun, 07 Nov 2021 12:00:00 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 16 Apr 2023 09:00:00 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>What is a Go function variable?</title>
+      <link>https://philpearl.github.io/post/functionpointers/</link>
+      <pubDate>Sun, 16 Apr 2023 09:00:00 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/functionpointers/</guid>
+      <description>Me: What&amp;rsquo;s the audience for this post?
+Also Me: People who write code in Go and care what a function variable actually is.
+Me: &amp;hellip;
+Also Me: I mean right down to the bits and bytes
+Me: &amp;hellip;
+Also Me: &amp;hellip;
+What is it that got me interested in writing this blog post, given I think it&amp;rsquo;s likely to have an incredibly small audience? Well, I wrote some code recently that uses a list of function variables, and I wanted to test that every function in the list had a unit test, and that every unit tested function was included in the list.</description>
+    </item>
+    
     <item>
       <title>Breaking Printf</title>
       <link>https://philpearl.github.io/post/anathema/</link>
