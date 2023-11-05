@@ -1,102 +1,85 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
-
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Bad Go: slices of pointers &middot; Phil Pearl&#39;s Blog</title>
-  <meta name="description" content="Please don&#39;t" />
+  <title>Bad Go: slices of pointers</title>
+  <meta name="description" content="Please don&#39;t"/> 
 
-  
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
-
-
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  
-  
-<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+  <style>
+  body{
+    font-family: "PT Sans", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  .description {
+    font-size: 1.25em;
+    font-weight: 300;
+  }
+  img {
+    max-width: 100%;
+  }
+  main {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+  }
+  footer {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+    color: gray;
+    font-size: 0.8em;
+  }
+  </style>
 </head>
+<body>
+    <main>
+        <div class="post">
+            
+            <figure>
+                <img src="/post/slice.jpg" alt="" />
+                
+            </figure>
+            
 
-  <body class=" layout-reverse">
-  <aside class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://philpearl.github.io/">
-        <h1>Phil Pearl&#39;s Blog</h1>
-      </a>
-      <p class="lead">
-        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
-      </p>
-    </div>
+            <h1>Bad Go: slices of pointers</h1>
+            <p class="description" >Please don&#39;t</p> 
 
-    <nav>
-      <ul class="sidebar-nav">
-        <li><a href="https://philpearl.github.io/">Home</a> </li>
-        
-      </ul>
-    </nav>
-
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
-  </div>
-</aside>
-    <main class="content container">
-    <div class="post">
-  
-  <figure class="post-figure">
-    <img src="https://philpearl.github.io/post/slice.jpg" alt="">
-    <figcaption></figcaption>
-  </figure>
-  
-
-  <h1>Bad Go: slices of pointers</h1>
-  
-  <p class="lead">Please don&#39;t</p>
-  
-
-  <time datetime=2019-08-30T09:25:00Z class="post-date">Fri, Aug 30, 2019</time>
-
-
-  <p>This is the first of what may be a series of blog posts on uses of Go that I&rsquo;ve found frustrating. They&rsquo;re mostly minor things that could just be <em>better</em> without being more complicated. I&rsquo;m going to try to not only explain why they are bad but also demonstrate it.</p>
+            <p>This is the first of what may be a series of blog posts on uses of Go that I've found frustrating. They're mostly minor things that could just be <em>better</em> without being more complicated. I'm going to try to not only explain why they are bad but also demonstrate it.</p>
 <p>First up is slices of pointers. Things like <code>[]*MyStruct</code>. Unless you need to express that certain indices in the slice are nil, then this is just wasteful and <code>[]MyStruct</code> is better in almost all circumstances.</p>
-<p>Let&rsquo;s start with some benchmarks. Here&rsquo;s the struct we&rsquo;re going to use.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> MyStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
-	A <span style="color:#8be9fd">int</span>
-	B <span style="color:#8be9fd">int</span>
+<p>Let's start with some benchmarks. Here's the struct we're going to use.</p>
+<pre><code class="language-go">type MyStruct struct {
+	A int
+	B int
 }
-</code></pre></div><p>First we&rsquo;ll benchmark building a slice of 100 entries, each of which is a pointer to a MyStruct. We&rsquo;ll fill in some fields in the struct just for laughs.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSlicePointers</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</code></pre>
+<p>First we'll benchmark building a slice of 100 entries, each of which is a pointer to a MyStruct. We'll fill in some fields in the struct just for laughs.</p>
+<pre><code class="language-go">func BenchmarkSlicePointers(b *testing.B) {
+	b.ReportAllocs()
 
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		slice <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span>MyStruct, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">100</span>)
-		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; j &lt; <span style="color:#bd93f9">100</span>; j<span style="color:#ff79c6">++</span> {
-			slice = <span style="color:#8be9fd;font-style:italic">append</span>(slice, <span style="color:#ff79c6">&amp;</span>MyStruct{A: j, B: j <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>})
+	for i := 0; i &lt; b.N; i++ {
+		slice := make([]*MyStruct, 0, 100)
+		for j := 0; j &lt; 100; j++ {
+			slice = append(slice, &amp;MyStruct{A: j, B: j + 1})
 		}
 	}
 }
-</code></pre></div><p>Next we&rsquo;ll do the same, but use a <code>[]MyStruct</code>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSliceNoPointers</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</code></pre>
+<p>Next we'll do the same, but use a <code>[]MyStruct</code>.</p>
+<pre><code class="language-go">func BenchmarkSliceNoPointers(b *testing.B) {
+	b.ReportAllocs()
 
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		slice <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]MyStruct, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">100</span>)
-		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; j &lt; <span style="color:#bd93f9">100</span>; j<span style="color:#ff79c6">++</span> {
-			slice = <span style="color:#8be9fd;font-style:italic">append</span>(slice, MyStruct{A: j, B: j <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>})
+	for i := 0; i &lt; b.N; i++ {
+		slice := make([]MyStruct, 0, 100)
+		for j := 0; j &lt; 100; j++ {
+			slice = append(slice, MyStruct{A: j, B: j + 1})
 		}
 	}
 }
-</code></pre></div><p>We run the benchmarks with <code>go test -bench . -count 10 &gt; run1.txt</code>, then analyse the results with <code>benchstat run1.txt</code>. Here are the results.</p>
+</code></pre>
+<p>We run the benchmarks with <code>go test -bench . -count 10 &gt; run1.txt</code>, then analyse the results with <code>benchstat run1.txt</code>. Here are the results.</p>
 <pre><code>name               time/op
 SlicePointers-8    2.50µs ± 2%
 SliceNoPointers-8   117ns ± 1%
@@ -108,32 +91,35 @@ SliceNoPointers-8   0.00B
 name               allocs/op
 SlicePointers-8       100 ± 0%
 SliceNoPointers-8    0.00     
-</code></pre><p>The no-pointer version allocates less memory, performs fewer allocations and is over an order of magnitude faster.</p>
+</code></pre>
+<p>The no-pointer version allocates less memory, performs fewer allocations and is over an order of magnitude faster.</p>
 <p>Why is it faster? Well, the pointer version allocates a new piece of memory for each entry in the slice, whereas the non-pointer version simply fills in the A &amp; B ints in the slice entry itself. Allocating memory takes time - somewhere around 25ns per allocation - and hence the pointer version must take ~2500ns to allocate 100 entries.</p>
 <p>Are there any downsides? Not really.</p>
-<h2 id="but-i-want-to-change-entries-in-the-slice">But I want to change entries in the slice!</h2>
+<h2>But I want to change entries in the slice!</h2>
 <p>You can still do this with a non-pointer slice. You can obtain a pointer to an entry in the slice and change it.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>slice[<span style="color:#bd93f9">37</span>]
-e.A = <span style="color:#bd93f9">42</span>
-</code></pre></div><h2 id="but-i-really-need-a-slice-of-pointers-to-pass-to-this-library">But I really need a slice of pointers to pass to this library</h2>
-<p>OK, sometimes you&rsquo;re forced to use a slice of pointers because that&rsquo;s what a library needs. If you can&rsquo;t change the library then perhaps you just do need to build a slice of pointers. You might still be better off using a slice of non-pointers to do this! First build up the slice of non-pointers, then build a slice of pointers from that. You&rsquo;ll likely end up with fewer allocations overall.</p>
+<pre><code class="language-go">e := &amp;slice[37]
+e.A = 42
+</code></pre>
+<h2>But I really need a slice of pointers to pass to this library</h2>
+<p>OK, sometimes you're forced to use a slice of pointers because that's what a library needs. If you can't change the library then perhaps you just do need to build a slice of pointers. You might still be better off using a slice of non-pointers to do this! First build up the slice of non-pointers, then build a slice of pointers from that. You'll likely end up with fewer allocations overall.</p>
 <p>We can benchmark this too.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSliceHybrid</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
+<pre><code class="language-go">func BenchmarkSliceHybrid(b *testing.B) {
+	b.ReportAllocs()
 
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		slice <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]MyStruct, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">100</span>)
-		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; j &lt; <span style="color:#bd93f9">100</span>; j<span style="color:#ff79c6">++</span> {
-			slice = <span style="color:#8be9fd;font-style:italic">append</span>(slice, MyStruct{A: j, B: j <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>})
+	for i := 0; i &lt; b.N; i++ {
+		slice := make([]MyStruct, 0, 100)
+		for j := 0; j &lt; 100; j++ {
+			slice = append(slice, MyStruct{A: j, B: j + 1})
 		}
 
-		slicep <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span>MyStruct, <span style="color:#8be9fd;font-style:italic">len</span>(slice))
-		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> slice {
-			slicep[j] = <span style="color:#ff79c6">&amp;</span>slice[j]
+		slicep := make([]*MyStruct, len(slice))
+		for j := range slice {
+			slicep[j] = &amp;slice[j]
 		}
 	}
 }
-</code></pre></div><pre><code>name           time/op
+</code></pre>
+<pre><code>name           time/op
 SliceHybrid-8   349ns ± 0%
 
 name           alloc/op
@@ -141,20 +127,17 @@ SliceHybrid-8  1.79kB ± 0%
 
 name           allocs/op
 SliceHybrid-8    1.00 ± 0%
-</code></pre><p>This time we don&rsquo;t have to make a fresh allocation for each slice entry in the <code>[]*MyStruct</code> - we just use pointers to the entries in <code>[]MyStruct</code>. The amount of memory allocated it about the same, but it&rsquo;s done in many fewer allocations.</p>
-<h2 id="but-my-function-returns-a-mystruct">But my function returns a *MyStruct</h2>
+</code></pre>
+<p>This time we don't have to make a fresh allocation for each slice entry in the <code>[]*MyStruct</code> - we just use pointers to the entries in <code>[]MyStruct</code>. The amount of memory allocated it about the same, but it's done in many fewer allocations.</p>
+<h2>But my function returns a *MyStruct</h2>
 <p>Does it have to? Could you change it to return a <code>MyStruct</code> instead?</p>
-<h2 id="but--its-complicated">But &hellip; it&rsquo;s complicated!?</h2>
-<p>Remember this is just a suggestion. If your case is complicated perhaps you can write a benchmark to see whether changing things will make a worthwhile improvement. I&rsquo;m just saying that perhaps <code>[]MyStruct</code> should be the normal case, and you should use slices of pointers only where they are necessary.</p>
-<p>I&rsquo;m kind of hoping and kind of dreading that no-one out in the world uses slices of pointers, and therefore this post has fallen completely flat. I hestitate to say let me know on twitter&hellip;</p>
+<h2>But ... it's complicated!?</h2>
+<p>Remember this is just a suggestion. If your case is complicated perhaps you can write a benchmark to see whether changing things will make a worthwhile improvement. I'm just saying that perhaps <code>[]MyStruct</code> should be the normal case, and you should use slices of pointers only where they are necessary.</p>
+<p>I'm kind of hoping and kind of dreading that no-one out in the world uses slices of pointers, and therefore this post has fallen completely flat. I hestitate to say let me know on twitter...</p>
 
-</div>
-
-
+        </div>
     </main>
-
-    
-      
-    
-  </body>
-</html>
+    <footer>
+        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
+    </footer>
+</body>

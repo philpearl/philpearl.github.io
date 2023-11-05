@@ -1,196 +1,181 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
-
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Breaking Printf &middot; Phil Pearl&#39;s Blog</title>
-  <meta name="description" content="" />
-
+  <title>Breaking Printf</title>
   
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
 
-
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  
-  
-<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+  <style>
+  body{
+    font-family: "PT Sans", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  .description {
+    font-size: 1.25em;
+    font-weight: 300;
+  }
+  img {
+    max-width: 100%;
+  }
+  main {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+  }
+  footer {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+    color: gray;
+    font-size: 0.8em;
+  }
+  </style>
 </head>
+<body>
+    <main>
+        <div class="post">
+            
+            <figure>
+                <img src="/post/unsafe.jpg" alt="A very unsafe house by Cindy Tang via Unsplash" />
+                <figcaption>A very unsafe house by Cindy Tang via Unsplash</figcaption> 
+            </figure>
+            
 
-  <body class=" layout-reverse">
-  <aside class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://philpearl.github.io/">
-        <h1>Phil Pearl&#39;s Blog</h1>
-      </a>
-      <p class="lead">
-        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
-      </p>
-    </div>
+            <h1>Breaking Printf</h1>
+            
 
-    <nav>
-      <ul class="sidebar-nav">
-        <li><a href="https://philpearl.github.io/">Home</a> </li>
-        
-      </ul>
-    </nav>
-
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
-  </div>
-</aside>
-    <main class="content container">
-    <div class="post">
-  
-  <figure class="post-figure">
-    <img src="https://philpearl.github.io/post/unsafe.jpg" alt="A very unsafe house by Cindy Tang via Unsplash">
-    <figcaption>A very unsafe house by Cindy Tang via Unsplash</figcaption>
-  </figure>
-  
-
-  <h1>Breaking Printf</h1>
-  
-  <p class="lead"></p>
-  
-
-  <time datetime=2021-11-07T12:00:00Z class="post-date">Sun, Nov 7, 2021</time>
-
-
-  <p>Acute impostor syndrome. When something you&rsquo;ve built, something you&rsquo;re proud of, built against all advice, full of unsafe, goes deeply, horribly wrong. Unspeakably wrong. You&rsquo;ve built your company&rsquo;s data pipeline around this code. If it is wrong then everything might be wrong. How could it go so wrong?</p>
-<p>Your belief in yourself crumbles away. The ghost of Rob Pike haunts your every waking moment, shreiking &ldquo;premature optimisation is the root of all evil&rdquo;.</p>
+            <p>Acute impostor syndrome. When something you've built, something you're proud of, built against all advice, full of unsafe, goes deeply, horribly wrong. Unspeakably wrong. You've built your company's data pipeline around this code. If it is wrong then everything might be wrong. How could it go so wrong?</p>
+<p>Your belief in yourself crumbles away. The ghost of Rob Pike haunts your every waking moment, shreiking &quot;premature optimisation is the root of all evil&quot;.</p>
 <p>How wrong exactly? Well, code that you know should print zero, or at worst some reasonably small number, insists on printing a number that matches the time in nanoseconds since first January 1970 at around 9 in the morning on 30th September 2021.</p>
-<p>Panic grips as you hear Robert Griesemer whispering &ldquo;memory corruption&rdquo;. Ken Thompson is not angry, just disappointed.</p>
+<p>Panic grips as you hear Robert Griesemer whispering &quot;memory corruption&quot;. Ken Thompson is not angry, just disappointed.</p>
 <p>But you keep the panic under control and begin to investigate. In the debugger the variable appears to be zero, but it still prints as 163298695000000000. You change the code so it will only print the variable if it is zero. It prints 163298695000000000.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#ff79c6">if</span> limited <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
-		fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;limited is zero. %d\n&#34;</span>, limited) <span style="color:#6272a4">// Prints 163298695000000000
-</span><span style="color:#6272a4"></span>	}
-</code></pre></div><p>Your despair lifts. Even if you&rsquo;ve done something very stupid, at least it&rsquo;s <em>interesting</em>.</p>
-<p>Here&rsquo;s a minimal reproduction scenario. For what I hope are obvious reasons I&rsquo;ve used 42 in place of 163298695000000000.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> badgo
+<pre><code class="language-go">	if limited == 0 {
+		fmt.Printf(&quot;limited is zero. %d\n&quot;, limited) // Prints 163298695000000000
+	}
+</code></pre>
+<p>Your despair lifts. Even if you've done something very stupid, at least it's <em>interesting</em>.</p>
+<p>Here's a minimal reproduction scenario. For what I hope are obvious reasons I've used 42 in place of 163298695000000000.</p>
+<pre><code class="language-go">package badgo
 
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
-	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
+import (
+	&quot;fmt&quot;
+	&quot;unsafe&quot;
 )
 
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">run</span>() {
-	<span style="color:#8be9fd;font-style:italic">var</span> limited <span style="color:#8be9fd">int</span>
-	<span style="color:#8be9fd;font-style:italic">var</span> out <span style="color:#8be9fd">int</span>
-	<span style="color:#50fa7b">doThing</span>(out, <span style="color:#8be9fd;font-style:italic">func</span>(out <span style="color:#8be9fd;font-style:italic">interface</span>{}) {
-		<span style="color:#ff79c6">if</span> limited <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
-			fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;limited is zero. %d\n&#34;</span>, limited) <span style="color:#6272a4">// Prints 42
-</span><span style="color:#6272a4"></span>		}
-		limited<span style="color:#ff79c6">++</span>
+func run() {
+	var limited int
+	var out int
+	doThing(out, func(out interface{}) {
+		if limited == 0 {
+			fmt.Printf(&quot;limited is zero. %d\n&quot;, limited) // Prints 42
+		}
+		limited++
 	})
 }
 
-<span style="color:#6272a4">//go:noinline
-</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">doThing</span>(out <span style="color:#8be9fd;font-style:italic">interface</span>{}, f <span style="color:#8be9fd;font-style:italic">func</span>(out <span style="color:#8be9fd;font-style:italic">interface</span>{})) {
-	p <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>eface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>out)).data
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(p) = <span style="color:#bd93f9">42</span>
-	<span style="color:#50fa7b">f</span>(out)
+//go:noinline
+func doThing(out interface{}, f func(out interface{})) {
+	p := (*eface)(unsafe.Pointer(&amp;out)).data
+	*(*int)(p) = 42
+	f(out)
 }
 
-<span style="color:#8be9fd;font-style:italic">type</span> eface <span style="color:#8be9fd;font-style:italic">struct</span> {
+type eface struct {
 	rtype unsafe.Pointer
 	data  unsafe.Pointer
 }
 
-</code></pre></div><p>Here&rsquo;s the output.</p>
+</code></pre>
+<p>Here's the output.</p>
 <pre><code>limited is zero. 42
-</code></pre><p>The flaw is this bit. Just look at it. It certainly doesn&rsquo;t seem to be rational
-or understandable. It&rsquo;s wrong, but it isn&rsquo;t <em>quite</em> as wrong as it looks.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    p <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>eface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>out)).data
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(p) = <span style="color:#bd93f9">42</span>
-</code></pre></div><p>What it is doing is using knowledge of the internals of interface types to gain
+</code></pre>
+<p>The flaw is this bit. Just look at it. It certainly doesn't seem to be rational
+or understandable. It's wrong, but it isn't <em>quite</em> as wrong as it looks.</p>
+<pre><code class="language-go">    p := (*eface)(unsafe.Pointer(&amp;out)).data
+	*(*int)(p) = 42
+</code></pre>
+<p>What it is doing is using knowledge of the internals of interface types to gain
 access to a pointer to the value that the interface represents.
-I&rsquo;ve talked about the internals of interface types before <a href="https://syslog.ravelin.com/what-is-an-interface-ee67b3cc9e97">here</a>, but let&rsquo;s see if we can go over what&rsquo;s going on.</p>
+I've talked about the internals of interface types before <a href="https://syslog.ravelin.com/what-is-an-interface-ee67b3cc9e97">here</a>, but let's see if we can go over what's going on.</p>
 <p>An interface variable is comprised of two pointers.
 You can think of it as syntactic sugar for a struct like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> eface <span style="color:#8be9fd;font-style:italic">struct</span> {
+<pre><code class="language-go">type eface struct {
 	rtype unsafe.Pointer
 	data unsafe.Pointer
 }
-</code></pre></div><p>The first pointer points to some information about the type of the value contained in the interface.
+</code></pre>
+<p>The first pointer points to some information about the type of the value contained in the interface.
 The second pointer points to the value of the interface.</p>
 <p>When you put a pointer type into an interface variable, then the data pointer in the interface variable can simply be the pointer.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> a <span style="color:#8be9fd;font-style:italic">interface</span>{}
+<pre><code class="language-go">var a interface{}
 
-i = <span style="color:#bd93f9">7</span>
-a = <span style="color:#ff79c6">&amp;</span>i
-</code></pre></div><p>In this code above, the <code>data</code> pointer within a can simply be a pointer to i.</p>
+i = 7
+a = &amp;i
+</code></pre>
+<p>In this code above, the <code>data</code> pointer within a can simply be a pointer to i.</p>
 <p>If you put a non-pointer type in an interface variable then what do you use for the data pointer?
 One choice would be to use a pointer to the original variable.
 But what would then happen if you changed the original variable?</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> i <span style="color:#8be9fd">int</span>
-<span style="color:#8be9fd;font-style:italic">var</span> a <span style="color:#8be9fd;font-style:italic">interface</span>{}
+<pre><code class="language-go">var i int
+var a interface{}
 
-i = <span style="color:#bd93f9">7</span>
+i = 7
 a = i
-i<span style="color:#ff79c6">++</span>
+i++
 
-fmt.<span style="color:#50fa7b">Println</span>(a)
-</code></pre></div><p>What would happen to <code>a</code> in this case?
+fmt.Println(a)
+</code></pre>
+<p>What would happen to <code>a</code> in this case?
 If <code>a</code> contained a pointer to <code>i</code>, then when we change <code>i</code> the contents of <code>a</code> would change, and the code above would print 8, not 7.
 This is not what we want, and not what happens if you run the code above.</p>
 <p>So Go does not put a pointer to the original value in the interface variable in this case.
 Instead it allocates some memory, copies the value into it, then uses the pointer to this newly allocated memory in the interface variable.</p>
 <p>That way you can change the original value (<code>i</code> in the case above), and the value in the interface variable (<code>a</code> above) does not change.</p>
-<p>So let&rsquo;s go back and look at that dodgy code again.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    p <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>eface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>out)).data
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(p) = <span style="color:#bd93f9">42</span>
-</code></pre></div><p><code>out</code> is an interface variable containing an <code>int</code>
+<p>So let's go back and look at that dodgy code again.</p>
+<pre><code class="language-go">    p := (*eface)(unsafe.Pointer(&amp;out)).data
+	*(*int)(p) = 42
+</code></pre>
+<p><code>out</code> is an interface variable containing an <code>int</code>
 All those brackets and unsafe things are retrieving that data pointer from the interface variable.
 Which is in this case is a pointer to an <code>int</code>.
 And then it writes the value <code>42</code> into it.
 That should be fine, right?
-As long as we don&rsquo;t care about the original value changing?</p>
-<p>Ah, actually, no, it isn&rsquo;t.</p>
-<p>As I&rsquo;ve described above, putting a non-pointer value in an interface variable causes an allocation so Go can copy the value.
+As long as we don't care about the original value changing?</p>
+<p>Ah, actually, no, it isn't.</p>
+<p>As I've described above, putting a non-pointer value in an interface variable causes an allocation so Go can copy the value.
 Allocations can be bad for performance.
 So Go has some optimisations to avoid some of these allocations.</p>
 <p>In particular if you put a small <code>int</code> (&lt;= 255) in an interface variable, Go does not allocate and instead uses a pointer into a statically defined table containing integers 0 to 255.</p>
 <p>So when this code runs the data pointer in the <code>out</code> interface variable contains a pointer to the zero entry in this static table.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    p <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>eface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>out)).data
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(p) = <span style="color:#bd93f9">42</span>
-</code></pre></div><p>And we overwrite it with 42. :facepalm:</p>
-<p>Ah, that&rsquo;s not good.
+<pre><code class="language-go">    p := (*eface)(unsafe.Pointer(&amp;out)).data
+	*(*int)(p) = 42
+</code></pre>
+<p>And we overwrite it with 42. :facepalm:</p>
+<p>Ah, that's not good.
 The next time someone puts an integer variable containing zero into an interface variable, Go will use that entry in the static table again.
 Except it now contains 42.
-We&rsquo;ve made 0 == 42. Sometimes.</p>
+We've made 0 == 42. Sometimes.</p>
 <hr>
 <p>Winding back a little, I said the flawed code was not 100% wrong.</p>
 <ul>
 <li>The utterly wrong mistake was using this trick on int types.</li>
 <li>The mostly wrong mistake was using this trick on non-pointer types at all.</li>
-<li>The rather foolish mistake was using any trick in this very particular case as there&rsquo;s very little upside. We&rsquo;re saving just one allocation in a relatively rare operation.</li>
+<li>The rather foolish mistake was using any trick in this very particular case as there's very little upside. We're saving just one allocation in a relatively rare operation.</li>
 </ul>
-<p>But I&rsquo;ll not say using tricks like this is completely wrong.
-The flawed code is in <a href="https://github.com/philpearl/avro">github.com/philpearl/avro</a> (I&rsquo;ve not fixed it yet), and that library is riddled with tricks with unsafe.
+<p>But I'll not say using tricks like this is completely wrong.
+The flawed code is in <a href="https://github.com/philpearl/avro">github.com/philpearl/avro</a> (I've not fixed it yet), and that library is riddled with tricks with unsafe.
 The unsafe tricks reduced data-processing runs of ~5 hours on 60-plus cores with 95% of the time in GC, to ~24 minutes.</p>
 <p>There may be other flaws.
 Future changes to Go may cause problems.
 The library may be hard to use correctly.
 But the risk is worth the reward, despite the heart-stopping moments.</p>
 
-</div>
-
-
+        </div>
     </main>
-
-    
-      
-    
-  </body>
-</html>
+    <footer>
+        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
+    </footer>
+</body>

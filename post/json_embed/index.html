@@ -1,146 +1,129 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
-
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>JSON and embedding &middot; Phil Pearl&#39;s Blog</title>
-  <meta name="description" content="Prefer composition over inheritance, but with JSON both of them can get in the sea." />
+  <title>JSON and embedding</title>
+  <meta name="description" content="Prefer composition over inheritance, but with JSON both of them can get in the sea."/> 
 
-  
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
-
-
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  
-  
-<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+  <style>
+  body{
+    font-family: "PT Sans", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  .description {
+    font-size: 1.25em;
+    font-weight: 300;
+  }
+  img {
+    max-width: 100%;
+  }
+  main {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+  }
+  footer {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+    color: gray;
+    font-size: 0.8em;
+  }
+  </style>
 </head>
+<body>
+    <main>
+        <div class="post">
+            
+            <figure>
+                <img src="/post/sea.jpg" alt="A lovely picture of the sea" />
+                <figcaption>A lovely picture of the sea</figcaption> 
+            </figure>
+            
 
-  <body class=" layout-reverse">
-  <aside class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://philpearl.github.io/">
-        <h1>Phil Pearl&#39;s Blog</h1>
-      </a>
-      <p class="lead">
-        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
-      </p>
-    </div>
+            <h1>JSON and embedding</h1>
+            <p class="description" >Prefer composition over inheritance, but with JSON both of them can get in the sea.</p> 
 
-    <nav>
-      <ul class="sidebar-nav">
-        <li><a href="https://philpearl.github.io/">Home</a> </li>
-        
-      </ul>
-    </nav>
+            <p>Did everyone else already know this? Why didn't you tell me? I got very confused the other day with some apparently simple JSON encoding. Here's a simplified version, showing marshalling a struct with an <a href="https://golang.org/doc/effective_go.html#embedding">embedded struct</a> inside it.</p>
+<pre><code class="language-go">package main
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
-  </div>
-</aside>
-    <main class="content container">
-    <div class="post">
-  
-  <figure class="post-figure">
-    <img src="https://philpearl.github.io/post/sea.jpg" alt="A lovely picture of the sea">
-    <figcaption>A lovely picture of the sea</figcaption>
-  </figure>
-  
-
-  <h1>JSON and embedding</h1>
-  
-  <p class="lead">Prefer composition over inheritance, but with JSON both of them can get in the sea.</p>
-  
-
-  <time datetime=2019-03-10T20:49:37Z class="post-date">Sun, Mar 10, 2019</time>
-
-
-  <p>Did everyone else already know this? Why didn&rsquo;t you tell me? I got very confused the other day with some apparently simple JSON encoding. Here&rsquo;s a simplified version, showing marshalling a struct with an <a href="https://golang.org/doc/effective_go.html#embedding">embedded struct</a> inside it.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
-
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+import (
+	&quot;encoding/json&quot;
+	&quot;fmt&quot;
 )
 
-<span style="color:#8be9fd;font-style:italic">type</span> Inner <span style="color:#8be9fd;font-style:italic">struct</span> {
-	InnerField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;inner_field&#34;`</span>
+type Inner struct {
+	InnerField string `json:&quot;inner_field&quot;`
 }
 
-<span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
+type Outer struct {
 	Inner
-	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
+	OuterField string `json:&quot;outer_field&quot;`
 }
 
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	val <span style="color:#ff79c6">:=</span> Outer{
+func main() {
+	val := Outer{
 		Inner: Inner {
-			InnerField: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
+			InnerField: &quot;inner&quot;,
 		},
-		OuterField: <span style="color:#f1fa8c">&#34;outer&#34;</span>,
+		OuterField: &quot;outer&quot;,
 	}
-	data, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">MarshalIndent</span>(val, <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#f1fa8c">&#34;  &#34;</span>)
-	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-		fmt.<span style="color:#50fa7b">Println</span>(err)
-		<span style="color:#ff79c6">return</span>
+	data, err := json.MarshalIndent(val, &quot;&quot;, &quot;  &quot;)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
-	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#8be9fd;font-style:italic">string</span>(data))
+	fmt.Println(string(data))
 }
-</code></pre></div><p>Output is as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</code></pre>
+<p>Output is as follows.</p>
+<pre><code class="language-json">{
+  &quot;inner_field&quot;: &quot;inner&quot;,
+  &quot;outer_field&quot;: &quot;outer&quot;
 }
-</code></pre></div><p>Now, let&rsquo;s say we want to implement a custom marshaller for Inner. This is a silly example - in the real world I was trying out <a href="https://github.com/mailru/easyjson">easyjson</a> looking for some performance gains.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (i Inner) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
-	<span style="color:#ff79c6">return</span> []<span style="color:#8be9fd;font-style:italic">byte</span>(fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">`{&#34;innnnnnerrFeild&#34;: %q}`</span>, i.InnerField)), <span style="color:#ff79c6">nil</span>
+</code></pre>
+<p>Now, let's say we want to implement a custom marshaller for Inner. This is a silly example - in the real world I was trying out <a href="https://github.com/mailru/easyjson">easyjson</a> looking for some performance gains.</p>
+<pre><code class="language-go">func (i Inner) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`{&quot;innnnnnerrFeild&quot;: %q}`, i.InnerField)), nil
 }
-</code></pre></div><p>What would you expect the output to be? I know I hoped it would be as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</code></pre>
+<p>What would you expect the output to be? I know I hoped it would be as follows.</p>
+<pre><code class="language-json">{
+  &quot;innnnnnerrFeild&quot;: &quot;inner&quot;,
+  &quot;outer_field&quot;: &quot;outer&quot;
 }
-</code></pre></div><p>But it turns out the output is as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>
+</code></pre>
+<p>But it turns out the output is as follows.</p>
+<pre><code class="language-json">{
+  &quot;innnnnnerrFeild&quot;: &quot;inner&quot;
 }
-</code></pre></div><p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>&rsquo;s <code>MarshalJSON</code>. Entirely what you&rsquo;d expect when you think about it, but completely surprising for me at least in this situation.</p>
+</code></pre>
+<p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>'s <code>MarshalJSON</code>. Entirely what you'd expect when you think about it, but completely surprising for me at least in this situation.</p>
 <p>So, be extremely careful about using struct embedding with structs that are marshalled or unmarshalled.</p>
 <p>How can we fix this? Well, if we add another field to <code>Outer</code> that implements <code>json.Marshaller</code>, then <code>Outer</code> will no-longer implement <code>json.Marshaller</code> as the implementation will be ambiguous. We can use <code>struct{}</code> for this and it will take no room!</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> marshalblock <span style="color:#8be9fd;font-style:italic">struct</span>{}
-<span style="color:#8be9fd;font-style:italic">func</span> (marshalblock) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) { <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, <span style="color:#ff79c6">nil</span> }
+<pre><code class="language-go">type marshalblock struct{}
+func (marshalblock) MarshalJSON() ([]byte, error) { return nil, nil }
 
-<span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
+type Outer struct {
 	marshalblock
 	Inner
-	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
+	OuterField string `json:&quot;outer_field&quot;`
 }
-</code></pre></div><p>Here&rsquo;s the output after this modification.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</code></pre>
+<p>Here's the output after this modification.</p>
+<pre><code class="language-json">{
+  &quot;inner_field&quot;: &quot;inner&quot;,
+  &quot;outer_field&quot;: &quot;outer&quot;
 }
-</code></pre></div><p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug - but perhaps just another hint that embedding and JSON don&rsquo;t mix.</p>
+</code></pre>
+<p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug - but perhaps just another hint that embedding and JSON don't mix.</p>
 
-</div>
-
-
+        </div>
     </main>
-
-    
-      
-    
-  </body>
-</html>
+    <footer>
+        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
+    </footer>
+</body>

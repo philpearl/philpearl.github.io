@@ -1,123 +1,103 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
-
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Nil versus empty slices &middot; Phil Pearl&#39;s Blog</title>
-  <meta name="description" content="No lock was held in the creation of this empty slice" />
-
+  <title>Nil versus empty slices</title>
   
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
 
-
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  
-  
-<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+  <style>
+  body{
+    font-family: "PT Sans", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  .description {
+    font-size: 1.25em;
+    font-weight: 300;
+  }
+  img {
+    max-width: 100%;
+  }
+  main {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+  }
+  footer {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+    color: gray;
+    font-size: 0.8em;
+  }
+  </style>
 </head>
+<body>
+    <main>
+        <div class="post">
+            
+            <figure>
+                <img src="/post/vacuum.jpg" alt="JD Hancock. The Lonely Vacuum of Space. https://www.flickr.com/photos/jdhancock/8955273266 https://creativecommons.org/licenses/by/2.0/" />
+                <figcaption>JD Hancock. The Lonely Vacuum of Space. https://www.flickr.com/photos/jdhancock/8955273266 https://creativecommons.org/licenses/by/2.0/</figcaption> 
+            </figure>
+            
 
-  <body class=" layout-reverse">
-  <aside class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://philpearl.github.io/">
-        <h1>Phil Pearl&#39;s Blog</h1>
-      </a>
-      <p class="lead">
-        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
-      </p>
-    </div>
+            <h1>Nil versus empty slices</h1>
+            
 
-    <nav>
-      <ul class="sidebar-nav">
-        <li><a href="https://philpearl.github.io/">Home</a> </li>
-        
-      </ul>
-    </nav>
-
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
-  </div>
-</aside>
-    <main class="content container">
-    <div class="post">
-  
-  <figure class="post-figure">
-    <img src="https://philpearl.github.io/post/vacuum.jpg" alt="JD Hancock. The Lonely Vacuum of Space. https://www.flickr.com/photos/jdhancock/8955273266 https://creativecommons.org/licenses/by/2.0/">
-    <figcaption>JD Hancock. The Lonely Vacuum of Space. https://www.flickr.com/photos/jdhancock/8955273266 https://creativecommons.org/licenses/by/2.0/</figcaption>
-  </figure>
-  
-
-  <h1>Nil versus empty slices</h1>
-  
-  <p class="lead">No lock was held in the creation of this empty slice</p>
-  
-
-  <time datetime=2020-04-25T13:39:00Z class="post-date">Sat, Apr 25, 2020</time>
-
-
-  <p>Go can have nil slices and empty slices, and they&rsquo;re different. What&rsquo;s up with that?</p>
-<p>Regular readers of my blog (a select group if ever there was one) will know by now that a slice is syntactic sugar for a struct with a Data pointer, a Length and a Capacity. There&rsquo;s a definition of this struct in <a href="https://golang.org/pkg/reflect/#SliceHeader">reflect</a>. It looks like this.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> SliceHeader <span style="color:#8be9fd;font-style:italic">struct</span> {
-    Data <span style="color:#8be9fd">uintptr</span>
-    Len  <span style="color:#8be9fd">int</span>
-    Cap  <span style="color:#8be9fd">int</span>
+            <p>Go can have nil slices and empty slices, and they're different. What's up with that?</p>
+<p>Regular readers of my blog (a select group if ever there was one) will know by now that a slice is syntactic sugar for a struct with a Data pointer, a Length and a Capacity. There's a definition of this struct in <a href="https://golang.org/pkg/reflect/#SliceHeader">reflect</a>. It looks like this.</p>
+<pre><code class="language-go">type SliceHeader struct {
+    Data uintptr
+    Len  int
+    Cap  int
 }
-</code></pre></div><p>When a slice is nil all the fields of the slice header are empty. If you create a non-nil slice with zero capacity the Data field is populated. Thus you can tell the difference between a nil slice and an empty slice. Which I guess is useful if you want to tell the difference between a slice being empty versus not present. Here&rsquo;s some code to show how you could check this. (<a href="https://play.golang.org/p/D3nl5lImdcT">playground</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#8be9fd;font-style:italic">var</span> nilSlice []<span style="color:#8be9fd">byte</span>
-    emptySlice <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">byte</span>{}
+</code></pre>
+<p>When a slice is nil all the fields of the slice header are empty. If you create a non-nil slice with zero capacity the Data field is populated. Thus you can tell the difference between a nil slice and an empty slice. Which I guess is useful if you want to tell the difference between a slice being empty versus not present. Here's some code to show how you could check this. (<a href="https://play.golang.org/p/D3nl5lImdcT">playground</a>)</p>
+<pre><code class="language-go">    var nilSlice []byte
+    emptySlice := []byte{}
 
-    fmt.<span style="color:#50fa7b">Println</span>(nilSlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
-    fmt.<span style="color:#50fa7b">Println</span>(emptySlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
-</code></pre></div><p>Here&rsquo;s another short program that shows the content of the Slice header for various byte slices (<a href="https://play.golang.org/p/PIuDJyVI-iW">on the playground</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
+    fmt.Println(nilSlice == nil)
+    fmt.Println(emptySlice == nil)
+</code></pre>
+<p>Here's another short program that shows the content of the Slice header for various byte slices (<a href="https://play.golang.org/p/PIuDJyVI-iW">on the playground</a>)</p>
+<pre><code class="language-go">package main
 
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
-	<span style="color:#f1fa8c">&#34;reflect&#34;</span>
-	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
+import (
+	&quot;fmt&quot;
+	&quot;reflect&quot;
+	&quot;unsafe&quot;
 )
 
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#ff79c6">nil</span>)
-	<span style="color:#50fa7b">printSlice</span>([]<span style="color:#8be9fd">byte</span>{})
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">7</span>, <span style="color:#bd93f9">43</span>))
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">2</span>))
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0</span>))	
+func main() {
+	printSlice(nil)
+	printSlice([]byte{})
+	printSlice(make([]byte, 7, 43))
+	printSlice(make([]byte, 0, 2))
+	printSlice(make([]byte, 0, 0))	
 }
 
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">printSlice</span>(s []<span style="color:#8be9fd">byte</span>) {
-	sh <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span>reflect.SliceHeader)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>s))
-	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;%#v\n&#34;</span>, sh)
+func printSlice(s []byte) {
+	sh := *(*reflect.SliceHeader)(unsafe.Pointer(&amp;s))
+	fmt.Printf(&quot;%#v\n&quot;, sh)
 }
-</code></pre></div><p>The output is as follows.</p>
+</code></pre>
+<p>The output is as follows.</p>
 <pre><code>reflect.SliceHeader{Data:0x0, Len:0, Cap:0}
 reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:0}
 reflect.SliceHeader{Data:0xc0000a2f4d, Len:7, Cap:43}
 reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:2}
 reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:0}
-</code></pre><p>Note in this case that all the zero capacity slices have the same address for their backing data. This is OK as you can never write to that address via these slices. If you did try to append to the slices you&rsquo;d exceed the capacity and the backing array would be replaced. You&rsquo;ll also notice that the address is shared with the capacity 2 slice. This is OK for that same reason: any change to the capacity 2 slice would be irrelevant to the zero-capacity slices, and any change to the zero capacity slices would change the address of their backing array.</p>
-<p>Is there any penalty for using an empty slice as opposed to a nil slice? Not really. Although in the empty slice case the runtime needs to provide a data pointer, it uses either an arbitrary address on the stack if the slice does not <a href="https://www.ardanlabs.com/blog/2017/05/language-mechanics-on-escape-analysis.html">escape the stack</a> or the address of a specific global variable (<a href="https://github.com/golang/go/blob/a9f8f02f3cfba18501669cdf58ae75ca36a4cff0/src/runtime/malloc.go#L907">runtime.zerobase</a>) in the case it does escape. There&rsquo;s is a little bit more code run creating the slice in this latter case. Calling into the runtime to get the address to use requires some more instructions than simply setting the Data pointer to nil. But when I tried to measure this overhead it was less than a nanosecond. Nothing to worry about except in the extremest of cases.</p>
-<p>I think I prefer nil slices, but on closer inspection it&rsquo;s crazy to have a preference.</p>
+</code></pre>
+<p>Note in this case that all the zero capacity slices have the same address for their backing data. This is OK as you can never write to that address via these slices. If you did try to append to the slices you'd exceed the capacity and the backing array would be replaced. You'll also notice that the address is shared with the capacity 2 slice. This is OK for that same reason: any change to the capacity 2 slice would be irrelevant to the zero-capacity slices, and any change to the zero capacity slices would change the address of their backing array.</p>
+<p>Is there any penalty for using an empty slice as opposed to a nil slice? Not really. Although in the empty slice case the runtime needs to provide a data pointer, it uses either an arbitrary address on the stack if the slice does not <a href="https://www.ardanlabs.com/blog/2017/05/language-mechanics-on-escape-analysis.html">escape the stack</a> or the address of a specific global variable (<a href="https://github.com/golang/go/blob/a9f8f02f3cfba18501669cdf58ae75ca36a4cff0/src/runtime/malloc.go#L907">runtime.zerobase</a>) in the case it does escape. There's is a little bit more code run creating the slice in this latter case. Calling into the runtime to get the address to use requires some more instructions than simply setting the Data pointer to nil. But when I tried to measure this overhead it was less than a nanosecond. Nothing to worry about except in the extremest of cases.</p>
+<p>I think I prefer nil slices, but on closer inspection it's crazy to have a preference.</p>
 
-</div>
-
-
+        </div>
     </main>
-
-    
-      
-    
-  </body>
-</html>
+    <footer>
+        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
+    </footer>
+</body>

@@ -1,85 +1,65 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
-  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
-
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>A container image in 60* lines of Go &middot; Phil Pearl&#39;s Blog</title>
-  <meta name="description" content="*Not really 60 lines" />
+  <title>A container image in 60* lines of Go</title>
+  <meta name="description" content="*Not really 60 lines"/> 
 
-  
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
-  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
-
-
-  
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
-  <link rel="shortcut icon" href="/favicon.png">
-
-  
-  
-<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+  <style>
+  body{
+    font-family: "PT Sans", Helvetica, Arial, sans-serif;
+    font-size: 1.2em;
+    line-height: 1.5em;
+  }
+  .description {
+    font-size: 1.25em;
+    font-weight: 300;
+  }
+  img {
+    max-width: 100%;
+  }
+  main {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+  }
+  footer {
+    margin: auto;
+    width: 60%;
+    padding: 0 1em;
+    color: gray;
+    font-size: 0.8em;
+  }
+  </style>
 </head>
+<body>
+    <main>
+        <div class="post">
+            
+            <figure>
+                <img src="/post/containers.jpeg" alt="“Yellow and orange shipping containers stacked on top of each other” by frank mckenna on Unsplash" />
+                <figcaption>“Yellow and orange shipping containers stacked on top of each other” by frank mckenna on Unsplash</figcaption> 
+            </figure>
+            
 
-  <body class=" layout-reverse">
-  <aside class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <a href="https://philpearl.github.io/">
-        <h1>Phil Pearl&#39;s Blog</h1>
-      </a>
-      <p class="lead">
-        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
-      </p>
-    </div>
+            <h1>A container image in 60* lines of Go</h1>
+            <p class="description" >*Not really 60 lines</p> 
 
-    <nav>
-      <ul class="sidebar-nav">
-        <li><a href="https://philpearl.github.io/">Home</a> </li>
-        
-      </ul>
-    </nav>
-
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
-  </div>
-</aside>
-    <main class="content container">
-    <div class="post">
-  
-  <figure class="post-figure">
-    <img src="https://philpearl.github.io/post/containers.jpeg" alt="“Yellow and orange shipping containers stacked on top of each other” by frank mckenna on Unsplash">
-    <figcaption>“Yellow and orange shipping containers stacked on top of each other” by frank mckenna on Unsplash</figcaption>
-  </figure>
-  
-
-  <h1>A container image in 60* lines of Go</h1>
-  
-  <p class="lead">*Not really 60 lines</p>
-  
-
-  <time datetime=2018-04-29T22:05:50Z class="post-date">Sun, Apr 29, 2018</time>
-
-
-  <p>At Ravelin we build Go binaries, package them into scratch Docker containers and upload them to Google Cloud Registry so we can use them in a GKE cluster. We develop on Mac laptops, so we use Docker for Mac for this. But building and pushing the container images is very slow, particularly if we want to build 44 at once. Given we just want to package up single binaries the process seemed a bit overblown and complicated.</p>
+            <p>At Ravelin we build Go binaries, package them into scratch Docker containers and upload them to Google Cloud Registry so we can use them in a GKE cluster. We develop on Mac laptops, so we use Docker for Mac for this. But building and pushing the container images is very slow, particularly if we want to build 44 at once. Given we just want to package up single binaries the process seemed a bit overblown and complicated.</p>
 <p>So I thought I’d work out what a docker image actually is, and see if I could build one myself and upload it directly. I wanted a small Go program with few dependencies that could build a very simple container image and upload it.</p>
-<h2 id="so-what-is-a-container-image">So what is a container image?</h2>
+<h2>So what is a container image?</h2>
 <p>I started off thinking a container image is a file that you would construct and upload. This is wrong. A container image is a set of files and a manifest file. For my simple image there are 3 files we need.</p>
 <ol>
 <li><em>An image layer</em>. This is a tar file containing the files I want in the container. If I had a more complex container it would have multiple layers (tar files) that would be applied one on top of another. But for my simple scratch image a single tar file will do.</li>
 <li><em>An image config</em>. This basically corresponds to the bits of your Dockerfile that aren’t concerned with which files are in your layers. So things like labels, environment variables, volumes, etc. It also contains references to the layers in the image. You can find the definitions I used for this here.</li>
 <li><em>A manifest</em>. This references the layer file and image config file, tying everything together.</li>
 </ol>
-<h2 id="the-good-thing-about-standards-is-theres-so-many-of-them">The good thing about standards is there’s so many of them.</h2>
+<h2>The good thing about standards is there’s so many of them.</h2>
 <p>There are several standards for these things. I began by looking at the <a href="https://github.com/opencontainers/image-spec/blob/master/spec.md">Open Container Initiative standards</a>, and that’s nearly where I left it. The OCI documents are extremely difficult to understand, and after quite a bit of work I found they’re not supported by the Docker repository.</p>
 <p>So I swapped to the definitions used by Docker, which seem to be documented by code and a string of issues. I decided to copy them out of the docker codebase into my own code to avoid some fairly hefty dependencies, so you can find the definitions here.</p>
-<h2 id="so-what-do-you-actually-do">So what do you actually do?</h2>
+<h2>So what do you actually do?</h2>
 <ol>
 <li>Create a tar file of the contents of your container. Yep, just an ordinary tar file.</li>
 <li>Run this tar file through sha256 to get a digest. There’s a nice library to help you do this.</li>
@@ -90,74 +70,75 @@
 <li>Build the manifest JSON. This references the layer &amp; image config via their digests.</li>
 <li>Upload the manifest to the repo. The URL for the manifest includes the image name and tag. If you want multiple tags just upload the manifest again with a different URL.</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;architecture&#34;</span>: <span style="color:#f1fa8c">&#34;amd64&#34;</span>,
-  <span style="color:#ff79c6">&#34;os&#34;</span>: <span style="color:#f1fa8c">&#34;linux&#34;</span>,
-  <span style="color:#ff79c6">&#34;config&#34;</span>: {
-    <span style="color:#ff79c6">&#34;Entrypoint&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;/app&#34;</span>
+<pre><code class="language-json">{
+  &quot;architecture&quot;: &quot;amd64&quot;,
+  &quot;os&quot;: &quot;linux&quot;,
+  &quot;config&quot;: {
+    &quot;Entrypoint&quot;: [
+      &quot;/app&quot;
     ]
   },
-  <span style="color:#ff79c6">&#34;rootfs&#34;</span>: {
-    <span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;layers&#34;</span>,
-    <span style="color:#ff79c6">&#34;diff_ids&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&#34;</span>
+  &quot;rootfs&quot;: {
+    &quot;type&quot;: &quot;layers&quot;,
+    &quot;diff_ids&quot;: [
+      &quot;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&quot;
     ]
   }
 }
-</code></pre></div><p>A very simple image config</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;schemaVersion&#34;</span>: <span style="color:#bd93f9">2</span>,
-  <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.distribution.manifest.v2+json&#34;</span>,
-  <span style="color:#ff79c6">&#34;config&#34;</span>: {
-    <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.container.image.v1+json&#34;</span>,
-    <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">184</span>,
-    <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:51f7917e0550525eda6b4656a3bdf8ddbd084664edb1dc372dd63f55ed52c565&#34;</span>
+</code></pre>
+<p>A very simple image config</p>
+<pre><code class="language-json">{
+  &quot;schemaVersion&quot;: 2,
+  &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,
+  &quot;config&quot;: {
+    &quot;mediaType&quot;: &quot;application/vnd.docker.container.image.v1+json&quot;,
+    &quot;size&quot;: 184,
+    &quot;digest&quot;: &quot;sha256:51f7917e0550525eda6b4656a3bdf8ddbd084664edb1dc372dd63f55ed52c565&quot;
   },
-  <span style="color:#ff79c6">&#34;layers&#34;</span>: [
+  &quot;layers&quot;: [
     {
-      <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.image.rootfs.diff.tar.gzip&#34;</span>,
-      <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">729097</span>,
-      <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:08c20a47894d73e1f4f672b56ef19ae3f836b799a582732bf995439adf492167&#34;</span>
+      &quot;mediaType&quot;: &quot;application/vnd.docker.image.rootfs.diff.tar.gzip&quot;,
+      &quot;size&quot;: 729097,
+      &quot;digest&quot;: &quot;sha256:08c20a47894d73e1f4f672b56ef19ae3f836b799a582732bf995439adf492167&quot;
     }
   ]
 }
-</code></pre></div><p>A very simple manifest</p>
-<h2 id="how-do-you-upload-a-blob">How do you upload a blob?</h2>
+</code></pre>
+<p>A very simple manifest</p>
+<h2>How do you upload a blob?</h2>
 <p>A blob on Docker Hub has a URL like <code>https://index.docker.io/v2/&lt;image name&gt;/blobs/&lt;digest&gt;</code>. So before you upload a blob you can check whether it’s already present by sending a HEAD request for this URL. If you get a 200 OK, the blob is already uploaded.</p>
 <p>If you do need to upload the blob, you first create a new upload with a POST to <code>https://index.docker.io/v2/&lt;image name&gt;/blobs/uploads</code>. This will return a <code>202 ACCEPTED</code> response with a <code>Location</code> header containing the URL to upload the blob to.</p>
 <p>Next you upload the blob with a PUT to the URL you’ve received. Add <code>digest=&lt;digest&gt;</code> as a URL query parameter, set the <code>Content-Length</code>, and set the <code>Content-Type</code> to <code>application/octet-stream</code>.</p>
 <p>Both the layer tar file and the JSON-encoded image config should be uploaded as blobs.</p>
-<h2 id="how-do-you-upload-the-manifest">How do you upload the manifest?</h2>
+<h2>How do you upload the manifest?</h2>
 <p>The JSON-encoded manifest should be PUT to <code>https://index.docker.io/v2/&lt;image name&gt;/manifests/&lt;tag&gt;</code>. This time the <code>Content-Type</code> should be <code>application/vnd.docker.distribution.manifest.v2+json</code></p>
-<h2 id="what-about-auth">What about auth?</h2>
+<h2>What about auth?</h2>
 <p>Any of these requests could return a 401 Unauthorised response with a Www-Authenticate header that, for the Docker registry, looks something like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">Bearer realm=”https://auth.docker.io/token&#34;,service=&#34;registry.docker.io&#34;,scope=&#34;repository:philpearl/test:pull,push&#34;
-</code></pre></div><p>This is telling you that you can get a Bearer token by sending a GET to <code>https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:philpearl/test:pull,push</code>. In the case of Docker you need to send your Docker Hub username and password using Basic Auth.</p>
+<pre><code class="language-http">Bearer realm=”https://auth.docker.io/token&quot;,service=&quot;registry.docker.io&quot;,scope=&quot;repository:philpearl/test:pull,push&quot;
+</code></pre>
+<p>This is telling you that you can get a Bearer token by sending a GET to <code>https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:philpearl/test:pull,push</code>. In the case of Docker you need to send your Docker Hub username and password using Basic Auth.</p>
 <p>The response looks something like the following. I’ve edited the tokens in this response.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">{&#34;token&#34;:&#34;eyJ..snip..&#34;,&#34;access_token&#34;:&#34;eyJ..snap...&#34;,&#34;expires_in&#34;:300,&#34;issued_at&#34;:&#34;2018-04-29T14:50:42.311414998Z&#34;}
-</code></pre></div><p>The token field is a Bearer token that can then be used to authorise your requests by adding a header like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">Authorization: Bearer eyJ..snip..
-</code></pre></div><p>If you don’t want to wait for the challenge, you can start by sending a GET to <code>https://index.docker.io/v2/</code>. This will return the <code>WWW-Authenticate</code> header, so you can get a token before attempting any uploads.</p>
-<h2 id="so-wheres-that-60-lines-of-go">So where’s that 60 lines of Go?</h2>
+<pre><code class="language-http">{&quot;token&quot;:&quot;eyJ..snip..&quot;,&quot;access_token&quot;:&quot;eyJ..snap...&quot;,&quot;expires_in&quot;:300,&quot;issued_at&quot;:&quot;2018-04-29T14:50:42.311414998Z&quot;}
+</code></pre>
+<p>The token field is a Bearer token that can then be used to authorise your requests by adding a header like the following.</p>
+<pre><code class="language-http">Authorization: Bearer eyJ..snip..
+</code></pre>
+<p>If you don’t want to wait for the challenge, you can start by sending a GET to <code>https://index.docker.io/v2/</code>. This will return the <code>WWW-Authenticate</code> header, so you can get a token before attempting any uploads.</p>
+<h2>So where’s that 60 lines of Go?</h2>
 <p>Ah, well, it’s more like 540 lines, and they’re <a href="https://github.com/philpearl/scratchbuild">here</a>.</p>
-<h2 id="prior-art">Prior Art</h2>
+<h2>Prior Art</h2>
 <p>If what I’ve put together here is too simple for your needs there are quite a few other container image builders that avoid Docker, but allow you to build complex multi-layered images directly from Dockerfiles. Some of the tools below came out very recently, and were basically what started me thinking about this.</p>
 <ul>
-<li><a href="https://github.com/genuinetools/img">https://github.com/genuinetools/img</a></li>
-<li><a href="https://github.com/cyphar/orca-build">https://github.com/cyphar/orca-build</a></li>
-<li><a href="https://github.com/projectatomic/buildah">https://github.com/projectatomic/buildah</a></li>
-<li><a href="https://github.com/projectatomic/skopeo">https://github.com/projectatomic/skopeo</a></li>
-<li><a href="https://github.com/GoogleContainerTools/kaniko">https://github.com/GoogleContainerTools/kaniko</a></li>
+<li>https://github.com/genuinetools/img</li>
+<li>https://github.com/cyphar/orca-build</li>
+<li>https://github.com/projectatomic/buildah</li>
+<li>https://github.com/projectatomic/skopeo</li>
+<li>https://github.com/GoogleContainerTools/kaniko</li>
 </ul>
 
-</div>
-
-
+        </div>
     </main>
-
-    
-      
-    
-  </body>
-</html>
+    <footer>
+        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
+    </footer>
+</body>
