@@ -1,130 +1,143 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>What’s all that memory for?</title>
+  <title>What’s all that memory for? &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Perhaps it’s for storing strings?" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/strings2.jpeg" alt="Photo by Sandrachile . on Unsplash">
+    <figcaption>Photo by Sandrachile . on Unsplash</figcaption>
+  </figure>
   
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
-</head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/strings2.jpeg" alt="Photo by Sandrachile . on Unsplash" />
-                <figcaption>Photo by Sandrachile . on Unsplash</figcaption> 
-            </figure>
-            
+  <h1>What’s all that memory for?</h1>
+  
+  <p class="lead">Perhaps it’s for storing strings?</p>
+  
 
-            <h1>What’s all that memory for?</h1>
-            
+  <time datetime=2018-04-17T22:27:40Z class="post-date">Tue, Apr 17, 2018</time>
 
-            <p>If you actually want to use the memory on your computer with Go — really use it, with gigabytes of it allocated — then you may pay a big penalty for the Go garbage collector (GC). But there are things you can do about it.</p>
+
+  <p>If you actually want to use the memory on your computer with Go — really use it, with gigabytes of it allocated — then you may pay a big penalty for the Go garbage collector (GC). But there are things you can do about it.</p>
 <p>The Go GC checks what parts of the memory you have allocated are still in use. It does this by looking at all the memory for references to other pieces of memory. If you’ve allocated millions of pieces of memory, then all that ‘looking’ necessarily takes some CPU time to do. So if you actually want to use the gigabytes of memory in your computer, you might want to be a little careful about how you do things.</p>
-<h2>How bad is it?</h2>
+<h2 id="how-bad-is-it">How bad is it?</h2>
 <p>Imagine you have a desperate need to remember 100 million random 20 byte strings. What kind of overhead does the GC impose if you do this in a normal way?</p>
 <p>Here’s some code to allocate those strings. This uses about 3.5 GB of RAM.</p>
-<pre><code class="language-go">space := make([]string, 100*1000*1000)
-for i := range space {
-	space[i] = fmt.Sprintf(“%20.20d”, rand.Int())
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">space <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, <span style="color:#bd93f9">100</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span>)
+<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> space {
+	space[i] = fmt.<span style="color:#50fa7b">Sprintf</span>(“<span style="color:#ff79c6">%</span><span style="color:#bd93f9">20.20</span>d”, rand.<span style="color:#50fa7b">Int</span>())
 }
-</code></pre>
-<p>So what impact does this have on GC? Well, one easy thing we can do to measure this is call the Go runtime to force GC, and measure how long that takes.</p>
-<pre><code class="language-go">start := time.Now()
-runtime.GC()
-fmt.Printf(“GC takes %s\n”, time.Since(start))
-</code></pre>
-<p>How long does that take?</p>
+</code></pre></div><p>So what impact does this have on GC? Well, one easy thing we can do to measure this is call the Go runtime to force GC, and measure how long that takes.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">start <span style="color:#ff79c6">:=</span> time.<span style="color:#50fa7b">Now</span>()
+runtime.<span style="color:#50fa7b">GC</span>()
+fmt.<span style="color:#50fa7b">Printf</span>(“GC takes <span style="color:#ff79c6">%</span>s\n”, time.<span style="color:#50fa7b">Since</span>(start))
+</code></pre></div><p>How long does that take?</p>
 <pre><code>GC takes 730.93697ms
-</code></pre>
-<p>Oh. That’s quite a long time.</p>
+</code></pre><p>Oh. That’s quite a long time.</p>
 <p>Well, it’s quite quick for looking at 100 million things (about 7ns a thing). But burning 700ms of CPU time each time the GC runs is definitely edging into the realm of “not ideal”.</p>
 <p>And if we run the GC again, it takes approximately the same time again. We’re stuck with ~700ms of GC work every time the GC runs until we’re done with these strings.</p>
-<h2>How can we fix it?</h2>
+<h2 id="how-can-we-fix-it">How can we fix it?</h2>
 <p>Luckily for us the Go GC is so clever that it does not look at every piece of memory allocated. If it knows the memory does not contain any pointers, it does not look at it. Without pointers the memory cannot be referencing other pieces of memory, so the GC doesn’t need to look at it to determine which memory is no longer referenced and therefore can be freed.</p>
 <p>If we can arrange things so we can store the strings without any pointers, we can save this GC overhead.</p>
-<h2>Oh, strings contain pointers?</h2>
+<h2 id="oh-strings-contain-pointers">Oh, strings contain pointers?</h2>
 <p>Yes, strings contain pointers. The reflect package shows us what a string actually is.</p>
-<pre><code class="language-go">type StringHeader struct {
-	Data uintptr
-	Len int
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> StringHeader <span style="color:#8be9fd;font-style:italic">struct</span> {
+	Data <span style="color:#8be9fd">uintptr</span>
+	Len <span style="color:#8be9fd">int</span>
 }
-</code></pre>
-<p>A string is a pointer to a piece of memory containing the bytes of the string, and a length of the string. So our slice of 100 million strings contains 100 million pointers and 100 million lengths. And 100 million separate allocations which hold the bytes for the strings.</p>
-<h2>Our solution</h2>
+</code></pre></div><p>A string is a pointer to a piece of memory containing the bytes of the string, and a length of the string. So our slice of 100 million strings contains 100 million pointers and 100 million lengths. And 100 million separate allocations which hold the bytes for the strings.</p>
+<h2 id="our-solution">Our solution</h2>
 <p>Instead of having 100 million separate allocations and 100 million pointers, we can allocate a single slice of bytes to contain all the bytes for all the strings, and make our own string-like objects that contain offsets into this slice.</p>
 <p>We define a string bank to contain the string bytes.</p>
-<pre><code class="language-go">type stringbank []byte
-</code></pre>
-<p>And this is our “banked” version of a string with offsets instead of pointers.</p>
-<pre><code class="language-go">type bankedString struct {
-	offset int
-	len int
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> stringbank []<span style="color:#8be9fd">byte</span>
+</code></pre></div><p>And this is our “banked” version of a string with offsets instead of pointers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> bankedString <span style="color:#8be9fd;font-style:italic">struct</span> {
+	offset <span style="color:#8be9fd">int</span>
+	len <span style="color:#8be9fd">int</span>
 }
-</code></pre>
-<p>We can make a function to add a string to the string bank and return a <code>bankedString</code>. This copies the bytes from the string into our string bank, and saves the offset of the string and the length of the string.</p>
-<pre><code class="language-go">func (sb *stringbank) store(in string) bankedString {
-	offset := len(*sb)
-	*sb = append(*sb, in…)
-	return bankedString{
+</code></pre></div><p>We can make a function to add a string to the string bank and return a <code>bankedString</code>. This copies the bytes from the string into our string bank, and saves the offset of the string and the length of the string.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (sb <span style="color:#ff79c6">*</span>stringbank) <span style="color:#50fa7b">store</span>(in <span style="color:#8be9fd">string</span>) bankedString {
+	offset <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">len</span>(<span style="color:#ff79c6">*</span>sb)
+	<span style="color:#ff79c6">*</span>sb = <span style="color:#8be9fd;font-style:italic">append</span>(<span style="color:#ff79c6">*</span>sb, in…)
+	<span style="color:#ff79c6">return</span> bankedString{
 		offset: offset,
-		len: len(in),
+		len: <span style="color:#8be9fd;font-style:italic">len</span>(in),
 	}
 }
-</code></pre>
-<p>This bankedString can then be used to retrieve the original string.</p>
-<pre><code class="language-go">func (sb stringbank) get(in bankedString) string {
-	return string(sb[in.offset : in.offset+in.len])
+</code></pre></div><p>This bankedString can then be used to retrieve the original string.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (sb stringbank) <span style="color:#50fa7b">get</span>(in bankedString) <span style="color:#8be9fd">string</span> {
+	<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">string</span>(sb[in.offset : in.offset<span style="color:#ff79c6">+</span>in.len])
 }
-</code></pre>
-<p>Storing our random strings needs just a little modification. We need to allocate a stringbank, which we make big enough to hold all our string data, and we keep a <code>[]bankedString</code> instead of a <code>[]string</code>.</p>
-<pre><code class="language-go">sb := make(stringbank, 0, 20*100*1000*1000)
-space := make([]bankedString, 100*1000*1000)
-for i := range space {
-	space[i] = sb.store(fmt.Sprintf(“%20.20d”, rand.Int()))
+</code></pre></div><p>Storing our random strings needs just a little modification. We need to allocate a stringbank, which we make big enough to hold all our string data, and we keep a <code>[]bankedString</code> instead of a <code>[]string</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">sb <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(stringbank, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">20</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">100</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span>)
+space <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]bankedString, <span style="color:#bd93f9">100</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span><span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span>)
+<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> space {
+	space[i] = sb.<span style="color:#50fa7b">store</span>(fmt.<span style="color:#50fa7b">Sprintf</span>(“<span style="color:#ff79c6">%</span><span style="color:#bd93f9">20.20</span>d”, rand.<span style="color:#50fa7b">Int</span>()))
 }
-</code></pre>
-<p>If we now time GC we get a marked improvement.</p>
+</code></pre></div><p>If we now time GC we get a marked improvement.</p>
 <pre><code>GC takes 108.166528ms
-</code></pre>
-<p>This is still quite a long time for GC, but if we run GC again we see a further big drop. The first run of the GC frees up temporary strings we’ve created (rather carelessly) while we build our slice of strings. Once this is done, the GC overhead is practically nil.</p>
+</code></pre><p>This is still quite a long time for GC, but if we run GC again we see a further big drop. The first run of the GC frees up temporary strings we’ve created (rather carelessly) while we build our slice of strings. Once this is done, the GC overhead is practically nil.</p>
 <pre><code>GC takes 348.923µs
-</code></pre>
-<h2>Conclusions</h2>
+</code></pre><h2 id="conclusions">Conclusions</h2>
 <p>I doubt it makes sense to do this kind of thing normally. It only really makes sense if you are going to keep the strings for the lifetime of your process as there’s no way to delete individual strings.</p>
 <p>What does this say about other situations? Perhaps you don’t want to store a huge amount of data. Perhaps you’re building some kind of API service. Does this stuff apply? Well, if across all your goroutines and API handlers you use a significant amount of RAM then perhaps it does. If you can avoid using pointers here and there, perhaps some of your allocations will end up being pointer-free, and this may reduce the overall CPU usage of the GC. Which might make your program perform better, or cost less to run. Just make sure you measure things before and after any change to be sure you actually make an improvement.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

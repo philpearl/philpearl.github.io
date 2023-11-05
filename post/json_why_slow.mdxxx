@@ -1,0 +1,43 @@
+---
+title: "Why is JSON slow"
+date: 2019-07-13T20:49:37Z
+categories: ["go", "json"]
+---
+
+Why is the Go standard package JSON slow? Is it slow? What does it mean to be slow?
+
+One definition of slow is whether it is slower than the alternatives for JSON encoding. I'll pick easyjson as that's something I've been using at work. We'll build a little JSON, then write some benchmarks to compare unmarshalling it between standard encoding/json and easyjson.
+
+First benchmark. encoding/json takes more than twice as long as easyjson and requires more allocations.
+
+```
+name                  time/op
+Unmarshal/std-8       2.69µs ± 1%
+Unmarshal/easyjson-8  1.02µs ± 2%
+
+name                  alloc/op
+Unmarshal/std-8         320B ± 0%
+Unmarshal/easyjson-8    272B ± 0%
+
+name                  allocs/op
+Unmarshal/std-8         8.00 ± 0%
+Unmarshal/easyjson-8    5.00 ± 0%
+```
+
+So it is slower than one alternative. Why is that? The obvious thing to point at is reflection. encoding/json uses reflection to discover what fields are available to unmarshal into, to allocate substructures and to set values. easyjson generates code for all of these, so does not need reflection. encoding/json does cache some of its information about structs between efforts, but it still needs to use reflection to set values and allocate objects.
+
+We can benchmark how long it takes to set a field via reflection. There are 4 fields that are set via reflection, and it takes 43ns to set them. But we're looking to explain a difference of over 1600ns, so that's not enough.
+
+There are other aspects to using reflection that will slow things down, but many don't apply here as we don't have pointers to allocate.
+
+So why is it slower? My guess is because the encoding/json is a literal interpretation of the JSON state machine. It processes the input one byte at a time and returns to the full state machine for every byte. Easyjson also implements the state machine, but it takes a different approach. Rather than always running the full state machine, it has functions appropriate for running parts of it. For example, when it sees a string it runs a smaller state machine appropriate to consuming a string. These small functions loop over the bytes to process within the functions, checking for values that would change the state.
+
+How can we test this idea? Let's write something to count the characters within strings in the JSON used for the previous benchmarks. We'll do it two ways - one that follows the encoding/json model of having a function for each state called 1 byte at a time, and one that follows the easyjson model of processing bytes within a function until the state changes.
+
+```
+name             time/op
+Count/machine-8   269ns ± 1%
+Count/simple-8   68.0ns ± 1%
+```
+
+The easyjson way is considerably faster. Now if we can't scale these numbers up to the full cost of JSON decoding simply by multplying, but it does indicate that this structural approach to state machines is a big handicap for encoding/json and may well be a big part of why it is slower than some of the alternatives.

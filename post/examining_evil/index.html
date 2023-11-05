@@ -1,71 +1,95 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Examining Evil</title>
-  <meta name="description" content="Evil is in the eye of the beholder"/> 
+  <title>Examining Evil &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Evil is in the eye of the beholder" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/evil.jpg" alt="Now do blue steel" />
-                <figcaption>Now do blue steel</figcaption> 
-            </figure>
-            
 
-            <h1>Examining Evil</h1>
-            <p class="description" >Evil is in the eye of the beholder</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>It feels trite to write about the famous quote about premature optimisation being the root of all evil (I double-checked the definition of &quot;trite&quot; before I wrote that sentence!). But I do have a strongly-held opinion about it. What I like to call &quot;normal&quot; levels of optimisation are not only not evil: they're entirely necessary in many circumstances.</p>
-<p>I keep hitting examples where performance was apparently not considered before something was released. Or it was considered but simplicity was preferred. One example is described in my recent rant about the Go encoding/json Marshaler &amp; Unmarshaler interfaces. Another recent issue I came across was ~50,000 unnecessary allocations for a single execution of a TensorFlow model. Underneath this was because the TensorFlow Go library uses encoding/binary. And the documentation for encoding/binary says &quot;This package favors simplicity over efficiency&quot;.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/evil.jpg" alt="Now do blue steel">
+    <figcaption>Now do blue steel</figcaption>
+  </figure>
+  
+
+  <h1>Examining Evil</h1>
+  
+  <p class="lead">Evil is in the eye of the beholder</p>
+  
+
+  <time datetime=2020-01-25T00:00:00Z class="post-date">Sat, Jan 25, 2020</time>
+
+
+  <p>It feels trite to write about the famous quote about premature optimisation being the root of all evil (I double-checked the definition of &ldquo;trite&rdquo; before I wrote that sentence!). But I do have a strongly-held opinion about it. What I like to call &ldquo;normal&rdquo; levels of optimisation are not only not evil: they&rsquo;re entirely necessary in many circumstances.</p>
+<p>I keep hitting examples where performance was apparently not considered before something was released. Or it was considered but simplicity was preferred. One example is described in my recent rant about the Go encoding/json Marshaler &amp; Unmarshaler interfaces. Another recent issue I came across was ~50,000 unnecessary allocations for a single execution of a TensorFlow model. Underneath this was because the TensorFlow Go library uses encoding/binary. And the documentation for encoding/binary says &ldquo;This package favors simplicity over efficiency&rdquo;.</p>
 <p>You could blame the authors of the Go TensorFlow library for this. They should have cared more about performance. But I have sympathy for them assuming that an apparent building block in the Go standard library would be the right thing to use.</p>
 <p>I really think if you are creating building blocks then your users implicitly expect you to have considered efficiency and done at least a normal level of basic optimisation.</p>
-<p>What do I think of as &quot;normal&quot; optimisation and when should it be applied? The first question I ask myself is &quot;does the performance of this code matter at all?&quot;. The second is &quot;do I have any idea how this code is likely to perform&quot;. I'm increasingly thinking I want to know something about the performance of any code before it goes live. If the code is different from anything we've run before then perhaps it's worth measuring. If it's unlikely to surprise us then we can let it go.</p>
-<p>If you're producing a package that's going to be used by others or is part of a platform on which a large amount of other code rests then I think it is important to think about performance.</p>
+<p>What do I think of as &ldquo;normal&rdquo; optimisation and when should it be applied? The first question I ask myself is &ldquo;does the performance of this code matter at all?&rdquo;. The second is &ldquo;do I have any idea how this code is likely to perform&rdquo;. I&rsquo;m increasingly thinking I want to know something about the performance of any code before it goes live. If the code is different from anything we&rsquo;ve run before then perhaps it&rsquo;s worth measuring. If it&rsquo;s unlikely to surprise us then we can let it go.</p>
+<p>If you&rsquo;re producing a package that&rsquo;s going to be used by others or is part of a platform on which a large amount of other code rests then I think it is important to think about performance.</p>
 <ul>
-<li>Small inefficiencies add up. If your software is built on a myriad of inefficent blocks then it stands a fair chance of being inefficient overall. And attempts to profile the system won't show you a particular candidate to improve. I call this the &quot;grey death&quot; of efficiency.</li>
-<li>You don't know if your component might be used in the future in a way where its performance &amp; efficiency does matter. A little effort up-front may avoid performance problems in future.</li>
-<li>If you don't think about performance up-front you may end up committing to an API with built-in efficiency issues that can't easily be fixed. This is particularly true if you're providing a library to a large number of users and provide API compatibility guarantees.</li>
+<li>Small inefficiencies add up. If your software is built on a myriad of inefficent blocks then it stands a fair chance of being inefficient overall. And attempts to profile the system won&rsquo;t show you a particular candidate to improve. I call this the &ldquo;grey death&rdquo; of efficiency.</li>
+<li>You don&rsquo;t know if your component might be used in the future in a way where its performance &amp; efficiency does matter. A little effort up-front may avoid performance problems in future.</li>
+<li>If you don&rsquo;t think about performance up-front you may end up committing to an API with built-in efficiency issues that can&rsquo;t easily be fixed. This is particularly true if you&rsquo;re providing a library to a large number of users and provide API compatibility guarantees.</li>
 </ul>
-<p>If you do think performance might matter then write a benchmark. With Go it's pretty easy to write a simple benchmark that gives you some idea of what the performance of your code is like. And once you have a benchmark you can tell if any changes you make actually improve things.</p>
-<p>Once you have your benchmark, review the results and the code. The big things to look for in a Go context are unnecessary allocations, but you can also think about whether there's any work done unnecessarily or work that's repeated. Traditional advice is to 'pick the right algorithm' - but when thinking about the performance of ordinary code there's often no identifiable &quot;algorithm&quot; in play.</p>
-<p>If you're writing a package with an API then it's worth thinking about whether it can be used efficiently when someone does care about performance,  This might be as simple as adding a <code>Reset</code> call to an API object so it can be re-used, or allowing the caller to pass in a slice that results are appended to instead of allocating a fresh slice each time.</p>
-<p>And in nearly all cases I'd say stop there. If your code isn't obviously wasteful then that's normally good enough. I've written a fair amount of code that needs to perform well and fixed a fair number of performance issues and I've never had to write any assembly or ever found that unrolling a loop has made a measureable difference. Reserve clever tricks for when there's an actual performance problem. But don't ignore the everyday inefficiencies.</p>
+<p>If you do think performance might matter then write a benchmark. With Go it&rsquo;s pretty easy to write a simple benchmark that gives you some idea of what the performance of your code is like. And once you have a benchmark you can tell if any changes you make actually improve things.</p>
+<p>Once you have your benchmark, review the results and the code. The big things to look for in a Go context are unnecessary allocations, but you can also think about whether there&rsquo;s any work done unnecessarily or work that&rsquo;s repeated. Traditional advice is to &lsquo;pick the right algorithm&rsquo; - but when thinking about the performance of ordinary code there&rsquo;s often no identifiable &ldquo;algorithm&rdquo; in play.</p>
+<p>If you&rsquo;re writing a package with an API then it&rsquo;s worth thinking about whether it can be used efficiently when someone does care about performance,  This might be as simple as adding a <code>Reset</code> call to an API object so it can be re-used, or allowing the caller to pass in a slice that results are appended to instead of allocating a fresh slice each time.</p>
+<p>And in nearly all cases I&rsquo;d say stop there. If your code isn&rsquo;t obviously wasteful then that&rsquo;s normally good enough. I&rsquo;ve written a fair amount of code that needs to perform well and fixed a fair number of performance issues and I&rsquo;ve never had to write any assembly or ever found that unrolling a loop has made a measureable difference. Reserve clever tricks for when there&rsquo;s an actual performance problem. But don&rsquo;t ignore the everyday inefficiencies.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

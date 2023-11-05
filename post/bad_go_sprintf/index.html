@@ -1,81 +1,100 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Bad Go: frivolous Sprintf</title>
-  <meta name="description" content="Sprintf is not always fastf"/> 
+  <title>Bad Go: frivolous Sprintf &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Sprintf is not always fastf" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/sprint.jpg" alt="" />
-                
-            </figure>
-            
 
-            <h1>Bad Go: frivolous Sprintf</h1>
-            <p class="description" >Sprintf is not always fastf</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>This is the 3rd in a series of posts about Bad Go - a clickbaity title for posts about Go that I've found frustrating because it could just be that little bit better. Better in my mind is often more performant with less impact on GC without being more complex or harder to read.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/sprint.jpg" alt="">
+    <figcaption></figcaption>
+  </figure>
+  
+
+  <h1>Bad Go: frivolous Sprintf</h1>
+  
+  <p class="lead">Sprintf is not always fastf</p>
+  
+
+  <time datetime=2019-09-01T09:25:00Z class="post-date">Sun, Sep 1, 2019</time>
+
+
+  <p>This is the 3rd in a series of posts about Bad Go - a clickbaity title for posts about Go that I&rsquo;ve found frustrating because it could just be that little bit better. Better in my mind is often more performant with less impact on GC without being more complex or harder to read.</p>
 <p>The first two posts are about <a href="https://medium.com/@philpearl/bad-go-slices-of-pointers-ed3c06b8bb41">slices of pointers</a> and <a href="https://medium.com/@philpearl/bad-go-pointer-returns-340f2da8289">pointer returns from functions</a></p>
 <p>This one is about reaching for <code>fmt.Sprintf</code> to convert types to strings. Things like <code>fmt.Sprintf(&quot;%d&quot;, aNumber)</code> and <code>fmt.Sprintf(&quot;%t&quot;, aBoolean)</code>. Or even worse <code>tag := &quot;working:&quot; + fmt.Sprintf(&quot;%t&quot;, isWorking)</code>.</p>
-<p>Is this bad Go? Not really. But it annoys me beyond reason. I should really just chill out and get over it. Before I go and do that, let's go over why it annoys me in excruciating detail.</p>
-<p>The reason I don't like this is not just that it is inefficient. It is <em>needlessly</em> inefficient. The more efficient versions are not more difficult to write or to understand.</p>
+<p>Is this bad Go? Not really. But it annoys me beyond reason. I should really just chill out and get over it. Before I go and do that, let&rsquo;s go over why it annoys me in excruciating detail.</p>
+<p>The reason I don&rsquo;t like this is not just that it is inefficient. It is <em>needlessly</em> inefficient. The more efficient versions are not more difficult to write or to understand.</p>
 <p>Why is it inefficient?</p>
 <ol>
-<li><code>fmt.Sprintf</code> needs to parse its first argument to understand what to do. But in these examples the programmer knows there's just a single very simple task required: convert this number to a string, or this boolean to a string. Why not just do that directly?</li>
-<li><code>fmt.Sprintf</code> needs to marshal its variable arguments into a slice of interface{}. The compiler has improved a lot here, but this could cause unnecessary allocations. There are simpler functions for the same task that don't need variable arguments or interface arguments.</li>
-<li>But this isn't all bashing <code>fmt.Sprintf</code>. <code>fmt.Sprintf</code> is great. But when you use it, use it. Build the whole string. Don't build tiny pieces and concatenate them. Concatenating strings causes allocations. Allocations are the bane of the life of anyone trying to squeeze performance out of Go.</li>
+<li><code>fmt.Sprintf</code> needs to parse its first argument to understand what to do. But in these examples the programmer knows there&rsquo;s just a single very simple task required: convert this number to a string, or this boolean to a string. Why not just do that directly?</li>
+<li><code>fmt.Sprintf</code> needs to marshal its variable arguments into a slice of interface{}. The compiler has improved a lot here, but this could cause unnecessary allocations. There are simpler functions for the same task that don&rsquo;t need variable arguments or interface arguments.</li>
+<li>But this isn&rsquo;t all bashing <code>fmt.Sprintf</code>. <code>fmt.Sprintf</code> is great. But when you use it, use it. Build the whole string. Don&rsquo;t build tiny pieces and concatenate them. Concatenating strings causes allocations. Allocations are the bane of the life of anyone trying to squeeze performance out of Go.</li>
 </ol>
-<p>What should we do instead? Well, for that first case <code>fmt.Sprintf(&quot;%d&quot;, aNumber)</code>, we can just replace it with <code>strconv.FormatInt</code>. Let's write a quick benchmark to compare converting a number with <code>fmt.Sprintf</code> and <code>strconv.FormatInt</code>.</p>
-<pre><code class="language-go">func BenchmarkSprintfNumber(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = fmt.Sprintf(&quot;%d&quot;, i)
+<p>What should we do instead? Well, for that first case <code>fmt.Sprintf(&quot;%d&quot;, aNumber)</code>, we can just replace it with <code>strconv.FormatInt</code>. Let&rsquo;s write a quick benchmark to compare converting a number with <code>fmt.Sprintf</code> and <code>strconv.FormatInt</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSprintfNumber</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">&#34;%d&#34;</span>, i)
 	}
 }
 
-func BenchmarkSprintfStrconvNumber(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = strconv.FormatInt(int64(i), 10)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSprintfStrconvNumber</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = strconv.<span style="color:#50fa7b">FormatInt</span>(<span style="color:#8be9fd;font-style:italic">int64</span>(i), <span style="color:#bd93f9">10</span>)
 	}
 }
-</code></pre>
-<p>Next we run the benchmarks and feed the results into benchstat</p>
+</code></pre></div><p>Next we run the benchmarks and feed the results into benchstat</p>
 <pre><code>go test -run ^$ -bench BenchmarkSprintf -count 8 | tee sprint1.txt
 benchstat sprint1.txt 
 name                    time/op
@@ -89,27 +108,25 @@ SprintfStrconvNumber-8   23.0B ± 0%
 name                    allocs/op
 SprintfNumber-8           2.00 ± 0%
 SprintfStrconvNumber-8    0.00   
-</code></pre>
-<p>So <code>fmt.Sprintf</code> takes quite a bit longer and allocates more memory. I struggle to believe that the <code>strconv.FormatInt</code> case allocates no memory. I think it's doing just under 1 allocation per operation, as it has a lookup table for strings for 0-99 so doesn't allocate in those cases. (and it's an easy exercise for the reader to change the benchmark to use numbers greater than 100 to prove this).</p>
-<p>The <code>fmt.Sprintf</code> case is already benefitting from lots of compiler cleverness. The function takes variable <code>interface{}</code> arguments, so in previous versions of the compiler there would be an allocation for the slice to carry the arguments and an allocation to convert the integer argument to an <code>interface{}</code>. That doesn't seem to be the case anymore and the difference between these two options used to be starker in earlier versions of Go.</p>
+</code></pre><p>So <code>fmt.Sprintf</code> takes quite a bit longer and allocates more memory. I struggle to believe that the <code>strconv.FormatInt</code> case allocates no memory. I think it&rsquo;s doing just under 1 allocation per operation, as it has a lookup table for strings for 0-99 so doesn&rsquo;t allocate in those cases. (and it&rsquo;s an easy exercise for the reader to change the benchmark to use numbers greater than 100 to prove this).</p>
+<p>The <code>fmt.Sprintf</code> case is already benefitting from lots of compiler cleverness. The function takes variable <code>interface{}</code> arguments, so in previous versions of the compiler there would be an allocation for the slice to carry the arguments and an allocation to convert the integer argument to an <code>interface{}</code>. That doesn&rsquo;t seem to be the case anymore and the difference between these two options used to be starker in earlier versions of Go.</p>
 <p>What about <code>fmt.Sprintf(&quot;%t&quot;, aBoolean)</code>? Well, in this case the difference is pretty stark. <code>fmt.Sprintf</code> has all kinds of work to do and <code>strconv.FormatBool</code> is an extremely simple function. We can see the difference in some simple benchmarks.</p>
-<pre><code class="language-go">func BenchmarkBoolSprintf(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = fmt.Sprintf(&quot;%t&quot;, i&amp;1 == 0)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkBoolSprintf</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">&#34;%t&#34;</span>, i<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>)
 	}
 }
 
-func BenchmarkBoolStrconv(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = strconv.FormatBool(i&amp;1 == 0)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkBoolStrconv</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = strconv.<span style="color:#50fa7b">FormatBool</span>(i<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>)
 	}
 }
-</code></pre>
-<p>Here are the results - <code>strconv.FormatBool</code> wins hands down.</p>
+</code></pre></div><p>Here are the results - <code>strconv.FormatBool</code> wins hands down.</p>
 <pre><code>name           time/op
 BoolSprintf-8  85.9ns ± 7%
 BoolStrconv-8  14.0ns ± 5%
@@ -121,47 +138,44 @@ BoolStrconv-8   16.0B ± 0%
 name           allocs/op
 BoolSprintf-8    1.00 ± 0%
 BoolStrconv-8    0.00     
-</code></pre>
-<p>Finally, why do I find <code>tag := &quot;working:&quot; + fmt.Sprintf(&quot;%t&quot;, isWorking)</code> so particularly annoying? Well, what if we wrote <code>tag := fmt.Sprintf(&quot;working:%t&quot;, isWorking)</code>? That's using <code>fmt.Sprintf</code> as it is supposed to be used - to build moderately complex strings. Isn't that just much nicer? And it doesn't incur an extra allocation concatenating the two strings.</p>
-<p><code>fmt.Sprintf</code> used like that doesn't make me angry. But for a really hot loop there's a more efficient way. It's a bool so there are only two options for the strings required. So we could write the following.</p>
-<pre><code class="language-go">var tag string
-if isWorking {
-	tag = &quot;working:true&quot;
-} else {
-	tag = &quot;working:false&quot;
+</code></pre><p>Finally, why do I find <code>tag := &quot;working:&quot; + fmt.Sprintf(&quot;%t&quot;, isWorking)</code> so particularly annoying? Well, what if we wrote <code>tag := fmt.Sprintf(&quot;working:%t&quot;, isWorking)</code>? That&rsquo;s using <code>fmt.Sprintf</code> as it is supposed to be used - to build moderately complex strings. Isn&rsquo;t that just much nicer? And it doesn&rsquo;t incur an extra allocation concatenating the two strings.</p>
+<p><code>fmt.Sprintf</code> used like that doesn&rsquo;t make me angry. But for a really hot loop there&rsquo;s a more efficient way. It&rsquo;s a bool so there are only two options for the strings required. So we could write the following.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> tag <span style="color:#8be9fd">string</span>
+<span style="color:#ff79c6">if</span> isWorking {
+	tag = <span style="color:#f1fa8c">&#34;working:true&#34;</span>
+} <span style="color:#ff79c6">else</span> {
+	tag = <span style="color:#f1fa8c">&#34;working:false&#34;</span>
 }
-</code></pre>
-<p>We can compare these three approaches with some simple benchmarks.</p>
-<pre><code class="language-go">func BenchmarkBoolTagSprintfAdd(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = &quot;working:&quot; + fmt.Sprintf(&quot;%t&quot;, i&amp;1 == 0)
+</code></pre></div><p>We can compare these three approaches with some simple benchmarks.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkBoolTagSprintfAdd</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = <span style="color:#f1fa8c">&#34;working:&#34;</span> <span style="color:#ff79c6">+</span> fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">&#34;%t&#34;</span>, i<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>)
 	}
 }
 
-func BenchmarkBoolTagSprintf(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		vals[i] = fmt.Sprintf(&quot;working:%t&quot;, i&amp;1 == 0)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkBoolTagSprintf</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		vals[i] = fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">&#34;working:%t&#34;</span>, i<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>)
 	}
 }
 
-func BenchmarkBoolTagIf(b *testing.B) {
-	b.ReportAllocs()
-	vals := make([]string, b.N)
-	for i := 0; i &lt; b.N; i++ {
-		isWorking := i&amp;1 == 0
-		if isWorking {
-			vals[i] = &quot;working:true&quot;
-		} else {
-			vals[i] = &quot;working:false&quot;
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkBoolTagIf</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, b.N)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		isWorking <span style="color:#ff79c6">:=</span> i<span style="color:#ff79c6">&amp;</span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>
+		<span style="color:#ff79c6">if</span> isWorking {
+			vals[i] = <span style="color:#f1fa8c">&#34;working:true&#34;</span>
+		} <span style="color:#ff79c6">else</span> {
+			vals[i] = <span style="color:#f1fa8c">&#34;working:false&#34;</span>
 		}
 	}
 }
-</code></pre>
-<p>And here are the results (again run 8 times and fed through benchstat).</p>
+</code></pre></div><p>And here are the results (again run 8 times and fed through benchstat).</p>
 <pre><code>name                 time/op
 BoolTagSprintfAdd-8   133ns ± 3%
 BoolTagSprintf-8      106ns ± 2%
@@ -176,12 +190,15 @@ name                 allocs/op
 BoolTagSprintfAdd-8    2.00 ± 0%
 BoolTagSprintf-8       1.00 ± 0%
 BoolTagIf-8            0.00     
-</code></pre>
-<p>All these results are in nanoseconds, so really none of this matters terribly much by itself. But all these inefficiencies will eventually add up, so why not use the more efficient versions? They aren't harder to read or to write. And if your code somehow eventually ends up at the heart of a massive machine learning pipeline, it won't cause nearly as much grief!</p>
+</code></pre><p>All these results are in nanoseconds, so really none of this matters terribly much by itself. But all these inefficiencies will eventually add up, so why not use the more efficient versions? They aren&rsquo;t harder to read or to write. And if your code somehow eventually ends up at the heart of a massive machine learning pipeline, it won&rsquo;t cause nearly as much grief!</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

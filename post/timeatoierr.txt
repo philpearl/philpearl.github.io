@@ -1,0 +1,14 @@
+goos: darwin
+goarch: amd64
+pkg: github.com/philpearl/blog/content/post
+cpu: Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz
+BenchmarkParseRFC3339-16    	31980162	        34.23 ns/op
+BenchmarkParseRFC3339-16    	37121386	        31.62 ns/op
+BenchmarkParseRFC3339-16    	37566867	        31.66 ns/op
+BenchmarkParseRFC3339-16    	36254004	        32.94 ns/op
+BenchmarkParseRFC3339-16    	29473550	        34.37 ns/op
+BenchmarkParseRFC3339-16    	36283366	        33.39 ns/op
+BenchmarkParseRFC3339-16    	38033934	        32.69 ns/op
+BenchmarkParseRFC3339-16    	38342068	        32.16 ns/op
+PASS
+ok  	github.com/philpearl/blog/content/post	9.917s

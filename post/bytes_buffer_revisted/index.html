@@ -1,48 +1,73 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>bytes.Buffer revisited</title>
-  <meta name="description" content="Always be benchmarking"/> 
+  <title>bytes.Buffer revisited &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Always be benchmarking" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
 
-            <h1>bytes.Buffer revisited</h1>
-            <p class="description" >Always be benchmarking</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>Two years ago I wrote a <a href="https://syslog.ravelin.com/bytes-buffer-i-thought-you-were-my-friend-4148fd001229">post about building up strings with bytes.Buffer</a>. I wondered what’s changed over the past two years?</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/" alt="">
+    <figcaption></figcaption>
+  </figure>
+  
+
+  <h1>bytes.Buffer revisited</h1>
+  
+  <p class="lead">Always be benchmarking</p>
+  
+
+  <time datetime=2018-09-02T20:15:18Z class="post-date">Sun, Sep 2, 2018</time>
+
+
+  <p>Two years ago I wrote a <a href="https://syslog.ravelin.com/bytes-buffer-i-thought-you-were-my-friend-4148fd001229">post about building up strings with bytes.Buffer</a>. I wondered what’s changed over the past two years?</p>
 <p>Here are the benchmarks taken from the original post.</p>
 <pre><code>BenchmarkCopyKey-8            114 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleKey-8          141 ns/op     31 B/op      1 allocs/op
@@ -51,8 +76,7 @@ BenchmarkSprintfKey-8         392 ns/op     79 B/op      4 allocs/op
 BenchmarkJoinKey-8            156 ns/op     63 B/op      2 allocs/op
 BenchmarkBufferKey-8          268 ns/op    175 B/op      3 allocs/op
 BenchmarkSimpleBufferKey-8    265 ns/op    143 B/op      2 allocs/op
-</code></pre>
-<p>If we run the same benchmarks with the latest version of Go — 1.11</p>
+</code></pre><p>If we run the same benchmarks with the latest version of Go — 1.11</p>
 <pre><code>BenchmarkCopyKey-8           64.4 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleKey-8         85.3 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleMultilineKey-8 190 ns/op     63 B/op      4 allocs/op
@@ -60,26 +84,27 @@ BenchmarkSprintfKey-8         280 ns/op     79 B/op      4 allocs/op
 BenchmarkJoinKey-8           94.8 ns/op     31 B/op      1 allocs/op
 BenchmarkBufferKey-8          194 ns/op    175 B/op      3 allocs/op
 BenchmarkSimpleBufferKey-8    164 ns/op    143 B/op      2 allocs/op
-</code></pre>
-<p>Every option is considerably faster than before! The <code>strings.Join</code> version has one less allocation. Presumably the compiler has improved and one of the allocations has been optimised away or is now kept on the stack.</p>
+</code></pre><p>Every option is considerably faster than before! The <code>strings.Join</code> version has one less allocation. Presumably the compiler has improved and one of the allocations has been optimised away or is now kept on the stack.</p>
 <p>There is now a new option for building strings — <code>strings.Builder</code>. This appears to be aimed precisely at this use-case. We can build our key as follows.</p>
-<pre><code class="language-go">w := strings.Builder{}
-w.Grow(len(itemType) + len(clientId) + len(id) + 2)
-w.WriteString(itemType)
-w.WriteRune(':')
-w.WriteString(clientId)
-w.WriteRune(':')
-w.WriteString(id)
-key := w.String()
-</code></pre>
-<p>This turns out to be as fast as our fastest option.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">w <span style="color:#ff79c6">:=</span> strings.Builder{}
+w.<span style="color:#50fa7b">Grow</span>(<span style="color:#8be9fd;font-style:italic">len</span>(itemType) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(clientId) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(id) <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>)
+w.<span style="color:#50fa7b">WriteString</span>(itemType)
+w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
+w.<span style="color:#50fa7b">WriteString</span>(clientId)
+w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
+w.<span style="color:#50fa7b">WriteString</span>(id)
+key <span style="color:#ff79c6">:=</span> w.<span style="color:#50fa7b">String</span>()
+</code></pre></div><p>This turns out to be as fast as our fastest option.</p>
 <pre><code>BenchmarkStringBuilderKey-8  69.6 ns/op     31 B/op      1 allocs/op
-</code></pre>
-<p>So, <code>bytes.Buffer</code> still isn’t your friend for this use-case. Just use + in simple cases, and reach for <code>strings.Builder</code> in more complex cases.</p>
+</code></pre><p>So, <code>bytes.Buffer</code> still isn’t your friend for this use-case. Just use + in simple cases, and reach for <code>strings.Builder</code> in more complex cases.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

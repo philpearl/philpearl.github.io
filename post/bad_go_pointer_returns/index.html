@@ -1,116 +1,129 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Bad Go: pointer returns</title>
-  <meta name="description" content="Mmmm, pointy"/> 
+  <title>Bad Go: pointer returns &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Mmmm, pointy" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/pointer.jpg" alt="" />
-                
-            </figure>
-            
 
-            <h1>Bad Go: pointer returns</h1>
-            <p class="description" >Mmmm, pointy</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>As an old C programmer I struggle with this one: it feels completely normal for functions to return pointers to structs. But I've a feeling this is bad Go, and that we're normally better off returning struct values. I'm going to see if I can prove that returning struct values is just plain better, and that returning pointers is bad Go.</p>
-<p>I'm going to define a struct that I can vary in size easily. The contents of the struct is an array: I can change the size of the struct simply by changing the size of the array.</p>
-<pre><code class="language-go">const bigStructSize = 10
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
 
-type bigStruct struct {
-	a [bigStructSize]int
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/pointer.jpg" alt="">
+    <figcaption></figcaption>
+  </figure>
+  
+
+  <h1>Bad Go: pointer returns</h1>
+  
+  <p class="lead">Mmmm, pointy</p>
+  
+
+  <time datetime=2019-08-30T15:30:00Z class="post-date">Fri, Aug 30, 2019</time>
+
+
+  <p>As an old C programmer I struggle with this one: it feels completely normal for functions to return pointers to structs. But I&rsquo;ve a feeling this is bad Go, and that we&rsquo;re normally better off returning struct values. I&rsquo;m going to see if I can prove that returning struct values is just plain better, and that returning pointers is bad Go.</p>
+<p>I&rsquo;m going to define a struct that I can vary in size easily. The contents of the struct is an array: I can change the size of the struct simply by changing the size of the array.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">const</span> bigStructSize = <span style="color:#bd93f9">10</span>
+
+<span style="color:#8be9fd;font-style:italic">type</span> bigStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
+	a [bigStructSize]<span style="color:#8be9fd">int</span>
 }
-</code></pre>
-<p>Next I'll create a couple of routines to build a new version of this struct. One will return it as a pointer, the other as a value.</p>
-<pre><code class="language-go">func newBigStruct() bigStruct {
-   var b bigStruct
-   for i := 0; i &lt; bigStructSize; i++ {
-   	b.a[i] = i
+</code></pre></div><p>Next I&rsquo;ll create a couple of routines to build a new version of this struct. One will return it as a pointer, the other as a value.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStruct</span>() bigStruct {
+   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
+   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
+       b.a[i] = i
    }
-   return b
+   <span style="color:#ff79c6">return</span> b
 }
 
-func newBigStructPtr() *bigStruct {
-   var b bigStruct
-   for i := 0; i &lt; bigStructSize; i++ {
-   	b.a[i] = i
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStructPtr</span>() <span style="color:#ff79c6">*</span>bigStruct {
+   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
+   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
+       b.a[i] = i
    }
-   return &amp;b
+   <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>b
 }
-</code></pre>
-<p>Finally I'll write a couple of benchmarks to measure how long it takes to get and use these structs. I'm going to do a simple calculation on the values in the struct so the compiler doesn't just optimise the whole thing away.</p>
-<pre><code class="language-go">func BenchmarkStructReturnValue(b *testing.B) {
-	b.ReportAllocs()
+</code></pre></div><p>Finally I&rsquo;ll write a couple of benchmarks to measure how long it takes to get and use these structs. I&rsquo;m going to do a simple calculation on the values in the struct so the compiler doesn&rsquo;t just optimise the whole thing away.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnValue</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
 
-	t := 0
-	for i := 0; i &lt; b.N; i++ {
-		v := newBigStruct()
-		t += v.a[0]
+	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStruct</span>()
+		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
 	}
 }
 
-func BenchmarkStructReturnPointer(b *testing.B) {
-	b.ReportAllocs()
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnPointer</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
 
-	t := 0
-	for i := 0; i &lt; b.N; i++ {
-		v := newBigStructPtr()
-		t += v.a[0]
+	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStructPtr</span>()
+		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
 	}
 }
-</code></pre>
-<p>With bigStructSize set to 10 returning by value is about twice as fast as returning the pointer. In the pointer case the memory has to be allocated on the heap, which will take about 25ns, then the data is set up (which should take about the same time in both cases), then the pointer is written to the stack to return the struct to the caller. In the value case there's no allocation, but the whole struct has to be copied onto the stack to return it to the caller.</p>
+</code></pre></div><p>With bigStructSize set to 10 returning by value is about twice as fast as returning the pointer. In the pointer case the memory has to be allocated on the heap, which will take about 25ns, then the data is set up (which should take about the same time in both cases), then the pointer is written to the stack to return the struct to the caller. In the value case there&rsquo;s no allocation, but the whole struct has to be copied onto the stack to return it to the caller.</p>
 <p>At this size of struct the overhead of copying the data on the stack is less than the overhead of allocating the memory.</p>
 <pre><code>BenchmarkStructReturnValue-8  	100000000	15.4 ns/op	 0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	50000000	36.5 ns/op	80 B/op	1 allocs/op
-</code></pre>
-<p>When we chage bigStructSize to 100, so the struct now contains 100 ints, the gap in absolute terms increases - although the percentage increase for the pointer case is less.</p>
+</code></pre><p>When we chage bigStructSize to 100, so the struct now contains 100 ints, the gap in absolute terms increases - although the percentage increase for the pointer case is less.</p>
 <pre><code>BenchmarkStructReturnValue-8  	20000000	105 ns/op	  0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	10000000	185 ns/op	896 B/op	1 allocs/op
-</code></pre>
-<p>Surely if we try 1000 ints in the struct then returning the pointer will be faster?</p>
+</code></pre><p>Surely if we try 1000 ints in the struct then returning the pointer will be faster?</p>
 <pre><code>BenchmarkStructReturnValue-8  	2000000	 830 ns/op	   0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	1000000	1401 ns/op	8192 B/op	1 allocs/op
-</code></pre>
-<p>Nope, still much worse. How about 10,000?</p>
+</code></pre><p>Nope, still much worse. How about 10,000?</p>
 <pre><code>BenchmarkStructReturnValue-8  	100000	13332 ns/op	    0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	200000	11032 ns/op	81920 B/op	1 allocs/op
-</code></pre>
-<p>Finally, with 10,000 ints in our struct returning a pointer to the struct is faster. With some further investigation it seems like the tipping point for me on my laptop is 2700. At this point I've very little idea why there's such a large difference at 1000 ints. Lets profile the benchmark!</p>
+</code></pre><p>Finally, with 10,000 ints in our struct returning a pointer to the struct is faster. With some further investigation it seems like the tipping point for me on my laptop is 2700. At this point I&rsquo;ve very little idea why there&rsquo;s such a large difference at 1000 ints. Lets profile the benchmark!</p>
 <pre><code>go test -bench BenchmarkStructReturnValue -run ^$ -cpuprofile cpu2.prof
 go tool pprof  post.test cpu2.prof 
 (pprof) top
@@ -125,8 +138,7 @@ Showing nodes accounting for 2.25s, 100% of 2.25s total
          0     0%   100%      0.02s  0.89%  runtime.sysmon
          0     0%   100%      2.23s 99.11%  testing.(*B).launch
          0     0%   100%      2.23s 99.11%  testing.(*B).runN
-</code></pre>
-<p>In the value case nearly all the work is happening in newBigStruct. It's all very straightforward. What if we profile the pointer test?</p>
+</code></pre><p>In the value case nearly all the work is happening in newBigStruct. It&rsquo;s all very straightforward. What if we profile the pointer test?</p>
 <pre><code>go test -bench BenchmarkStructReturnPointer -run ^$ -cpuprofile cpu.prof
 go tool pprof post.test cpu.prof 
 (pprof) top
@@ -144,13 +156,16 @@ Showing top 10 nodes out of 67
       40ms  1.38% 91.00%      150ms  5.19%  github.com/philpearl/blog/content/post.newBigStructPtr
       30ms  1.04% 92.04%       40ms  1.38%  runtime.gcMarkDone
       30ms  1.04% 93.08%       40ms  1.38%  runtime.scanobject
-</code></pre>
-<p>In the newBigStructPtr case the picture is much more complex and there are many more functions that use significant CPU. Only ~5% of the time is spent in newBigStructPtr setting up the struct. Instead, there's lots of time in the Go runtime dealing with threads and locks and garbage collection. The underlying function returning a pointer is fast, but the baggage that comes with allocating the pointer is a huge overhead.</p>
+</code></pre><p>In the newBigStructPtr case the picture is much more complex and there are many more functions that use significant CPU. Only ~5% of the time is spent in newBigStructPtr setting up the struct. Instead, there&rsquo;s lots of time in the Go runtime dealing with threads and locks and garbage collection. The underlying function returning a pointer is fast, but the baggage that comes with allocating the pointer is a huge overhead.</p>
 <p>Now this scenario is very simplistic. The data is created and then immediately thrown away, so there will be a huge burden on the garbage collector. If the lifetime of the returned data was longer the results could be very different. But perhaps this is an indication that returning pointers to structs that have a short lifetime is bad Go.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

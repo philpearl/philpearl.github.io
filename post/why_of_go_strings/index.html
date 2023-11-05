@@ -1,72 +1,96 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>The why of Go strings</title>
-  <meta name="description" content="A story about strings that might even be true."/> 
+  <title>The why of Go strings &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="A story about strings that might even be true." />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/strings.jpeg" alt="a ball of wool" />
-                <figcaption>a ball of wool</figcaption> 
-            </figure>
-            
 
-            <h1>The why of Go strings</h1>
-            <p class="description" >A story about strings that might even be true.</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>Regular readers of my blog will all be aware that in Go a string is in fact a struct with a pointer to an area of memory containing the byte content of the string and an integer <code>Len</code> that tells you how many bytes make up the string.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/strings.jpeg" alt="a ball of wool">
+    <figcaption>a ball of wool</figcaption>
+  </figure>
+  
+
+  <h1>The why of Go strings</h1>
+  
+  <p class="lead">A story about strings that might even be true.</p>
+  
+
+  <time datetime=2019-03-10T15:10:27Z class="post-date">Sun, Mar 10, 2019</time>
+
+
+  <p>Regular readers of my blog will all be aware that in Go a string is in fact a struct with a pointer to an area of memory containing the byte content of the string and an integer <code>Len</code> that tells you how many bytes make up the string.</p>
 <p>Ever wondered why? Probably not, as it seems “obvious” that you need both the length of the string and the bytes of the string to make a string. But it wasn’t always this way.</p>
-<h2>Pain</h2>
+<h2 id="pain">Pain</h2>
 <p>The elder progenitors of Go are also deeply implicated in the invention of C. C is a fantastic language that has underpinned most of computing for 50 years. In C there is (or at least was) no such thing as a string type. More of a string convention. A string is represented by a pointer to its first character. The next character is in the next memory location. And so on until the end of the string, which is marked by a zero.</p>
 <p>There is no associated length field. To discover the length you call a function <code>strlen</code>, which is in the the C standard library. This starts at the first character of your string, then moves forward in memory character by character until it finds a zero. The length is the number of bytes it passed over to reach this zero.</p>
-<h2>Zero</h2>
+<h2 id="zero">Zero</h2>
 <p>What if you’d failed to put a zero at the end of the string? Well, strlen would just keep going until it found a zero or the program crashed. Thus the history of strings in C is an astonishingly dangerous, precipitous and complex history of knowing exactly where your zeros are.</p>
 <p>Want to copy a string? You better know how long it is. Want to compare two strings? That’s two lengths that have to be right or your program might crash. Passed a string by a third party? Do you trust them enough to risk seeing how long it is?</p>
-<h2><code>strnlen</code></h2>
+<h2 id="strnlen"><code>strnlen</code></h2>
 <p>So not long into the history of C someone invented <code>strnlen</code>. This is like <code>strlen</code>, but you can specify a maximum length. Also <code>strncpy</code> and <code>strncmp</code>, for copying and comparing strings with some control over how far you are prepared to look. Various other safer variations followed, but all are difficult to use correctly.</p>
-<h2>Consequences</h2>
+<h2 id="consequences">Consequences</h2>
 <p>Not having the length closely associated with the string has had terrible consequences. The most minor are fixed sized form fields. Ever wondered why your address must be less than 100 characters or your password 8 or less? Part of the answer is that it was just too hard to allow arbitrary length without risk that the program would crash.</p>
 <p>The bigger problems are the horrible security flaws mistakes in handling string lengths open up. Say an attacker sends you a string that’s longer than you expect and you copy it without checking. The string may overflow the memory region it is being copied into, and may overwrite some other piece of memory. If you are unlucky and the attacker is very cunning then they may be able to cause your program to execute arbitrary code. Which is bad.</p>
 <p>So that’s why Go strings have a length field that’s set when the string is created. You always know the length of a string, and the compiler ensures the underlying memory buffer is adequate and that you don’t step off it. If you do manage to get things wrong the worst that happens is a panic. Nothing gets overwritten with unexpected values.</p>
 <p>To be clear I don’t think Go introduced this idea for handling strings, and I’m certain Go didn’t invent the idea of keeping track of the length. But this is one of the things that makes Go a “safer” language for writing servers.</p>
 <p>First published <a href="https://syslog.ravelin.com/the-why-of-go-strings-d5b3f1df62bb">here</a></p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

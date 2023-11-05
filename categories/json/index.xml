@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>json on Phil Pearl&#39;s Blog</title>
+    <link>https://philpearl.github.io/categories/json/</link>
+    <description>Recent content in json on Phil Pearl&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Sun, 10 Mar 2019 20:49:37 +0000</lastBuildDate><atom:link href="https://philpearl.github.io/categories/json/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>JSON and embedding</title>
+      <link>https://philpearl.github.io/post/json_embed/</link>
+      <pubDate>Sun, 10 Mar 2019 20:49:37 +0000</pubDate>
+      
+      <guid>https://philpearl.github.io/post/json_embed/</guid>
+      <description>Did everyone else already know this? Why didn&amp;rsquo;t you tell me? I got very confused the other day with some apparently simple JSON encoding. Here&amp;rsquo;s a simplified version, showing marshalling a struct with an embedded struct inside it.
+package main import ( &amp;#34;encoding/json&amp;#34; &amp;#34;fmt&amp;#34; ) type Inner struct { InnerField string `json:&amp;#34;inner_field&amp;#34;` } type Outer struct { Inner OuterField string `json:&amp;#34;outer_field&amp;#34;` } func main() { val := Outer{ Inner: Inner { InnerField: &amp;#34;inner&amp;#34;, }, OuterField: &amp;#34;outer&amp;#34;, } data, err := json.</description>
+    </item>
+    
+  </channel>
+</rss>

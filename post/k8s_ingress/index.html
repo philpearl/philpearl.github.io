@@ -1,85 +1,109 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Kubernetes&#39; dirty endpoint secret and Ingress</title>
-  <meta name="description" content="Grace is overrated"/> 
+  <title>Kubernetes&#39; dirty endpoint secret and Ingress &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Grace is overrated" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/GraceHopper_x575.jpg" alt="This Grace is not overrated" />
-                <figcaption>This Grace is not overrated</figcaption> 
-            </figure>
-            
 
-            <h1>Kubernetes&#39; dirty endpoint secret and Ingress</h1>
-            <p class="description" >Grace is overrated</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>At Ravelin we've migrated to Kubernetes (on GKE). This has been very successful. We've got pod disruption budgets coming out of our ears, our statefulsets are very stately, and rolling node replacements run without a hitch.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/GraceHopper_x575.jpg" alt="This Grace is not overrated">
+    <figcaption>This Grace is not overrated</figcaption>
+  </figure>
+  
+
+  <h1>Kubernetes&#39; dirty endpoint secret and Ingress</h1>
+  
+  <p class="lead">Grace is overrated</p>
+  
+
+  <time datetime=2019-07-26T18:07:00Z class="post-date">Fri, Jul 26, 2019</time>
+
+
+  <p>At Ravelin we&rsquo;ve migrated to Kubernetes (on GKE). This has been very successful. We&rsquo;ve got pod disruption budgets coming out of our ears, our statefulsets are very stately, and rolling node replacements run without a hitch.</p>
 <p>The last piece of the puzzle is to move our API layer from the old VMs into our kubernetes cluster. For this we need to set up an Ingress so the API can be accessed from the outside world.</p>
 <p>At first this seems straight-forward. We just define the ingress controller, tinker with terraform to get some IP addresses and Google takes care of nearly everything else. And it all works like magic. Great!</p>
-<p>But we begin to notice our integration tests are occasionally receiving 502 errors. And there begins a journey that I'll save you the pain of reading about by cutting directly to the final conclusions.</p>
-<h1>Graceful shutdown.</h1>
-<p>Everybody talks about Graceful shutdown. But you really shouldn't do it in Kubernetes. Or at least not the Graceful shutdown you <a href="https://golang.org/pkg/net/http/#Server.Shutdown">learned at your mother's knee</a>. This level of grace is unnecessary to the point of danger in the world of Kubernetes.</p>
-<h1>The Good Place</h1>
-<p>Here's how everyone would love to think that removing a pod from a service or a load balancer works in Kubernetes.</p>
+<p>But we begin to notice our integration tests are occasionally receiving 502 errors. And there begins a journey that I&rsquo;ll save you the pain of reading about by cutting directly to the final conclusions.</p>
+<h1 id="graceful-shutdown">Graceful shutdown.</h1>
+<p>Everybody talks about Graceful shutdown. But you really shouldn&rsquo;t do it in Kubernetes. Or at least not the Graceful shutdown you <a href="https://golang.org/pkg/net/http/#Server.Shutdown">learned at your mother&rsquo;s knee</a>. This level of grace is unnecessary to the point of danger in the world of Kubernetes.</p>
+<h1 id="the-good-place">The Good Place</h1>
+<p>Here&rsquo;s how everyone would love to think that removing a pod from a service or a load balancer works in Kubernetes.</p>
 <ol>
 <li>The replication controller decides to remove a pod.</li>
-<li>The pod's endpoint is removed from the service or load-balancer. New traffic no longer flows to the pod.</li>
-<li>The pod's pre-stop hook is invoked, or the pod receives a SIGTERM.</li>
-<li>The pod 'gracefully shuts down'. It stops listening for new connections.</li>
+<li>The pod&rsquo;s endpoint is removed from the service or load-balancer. New traffic no longer flows to the pod.</li>
+<li>The pod&rsquo;s pre-stop hook is invoked, or the pod receives a SIGTERM.</li>
+<li>The pod &lsquo;gracefully shuts down&rsquo;. It stops listening for new connections.</li>
 <li>The graceful shutdown completes, and the pod exits, when all its existing connections eventually become idle or terminate.</li>
 </ol>
-<p>Unfortunately this just isn't how it works.</p>
-<h1>The Real Story</h1>
-<p>Much of the documentation hints that this isn't how it works but it doesn't spell it out. The big issue in this process is that step 2 does not happen before step 3. They happen at the same time. With normal services removing the endpoints is so quick you are unlikely to notice a problem. But ingresses are usually quite a bit slower to react, so issues become very readily apparent. The pod may receive the SIGTERM quite some time before the change in endpoints is actioned at the ingress.</p>
-<p>This has the consequence that &quot;Gracefully shutting down&quot; is really not what the pod should do. It will receive new connections and it must continue to process them or the client will receive 500 errors and the whole wonderful story of seemless deploys and scaling will begin to fall apart.</p>
+<p>Unfortunately this just isn&rsquo;t how it works.</p>
+<h1 id="the-real-story">The Real Story</h1>
+<p>Much of the documentation hints that this isn&rsquo;t how it works but it doesn&rsquo;t spell it out. The big issue in this process is that step 2 does not happen before step 3. They happen at the same time. With normal services removing the endpoints is so quick you are unlikely to notice a problem. But ingresses are usually quite a bit slower to react, so issues become very readily apparent. The pod may receive the SIGTERM quite some time before the change in endpoints is actioned at the ingress.</p>
+<p>This has the consequence that &ldquo;Gracefully shutting down&rdquo; is really not what the pod should do. It will receive new connections and it must continue to process them or the client will receive 500 errors and the whole wonderful story of seemless deploys and scaling will begin to fall apart.</p>
 <p>This is what really happens.</p>
 <ol>
 <li>The replication controller decides to remove a pod.</li>
-<li>The pod's endpoint is removed from the service or load-balancer. For ingresses this may take some time, and new traffic will continue to be sent to the pod.</li>
-<li>The pod's pre-stop hook is invoked, or the pod receives a SIGTERM.</li>
-<li>The pod should largely ignore this, keep running, and keep serving new connections. If it can, it can hint to its clients that they should move on elsewhere. If it uses HTTP it might want to set &quot;Connection&quot;: &quot;close&quot; in headers on responses.</li>
+<li>The pod&rsquo;s endpoint is removed from the service or load-balancer. For ingresses this may take some time, and new traffic will continue to be sent to the pod.</li>
+<li>The pod&rsquo;s pre-stop hook is invoked, or the pod receives a SIGTERM.</li>
+<li>The pod should largely ignore this, keep running, and keep serving new connections. If it can, it can hint to its clients that they should move on elsewhere. If it uses HTTP it might want to set &ldquo;Connection&rdquo;: &ldquo;close&rdquo; in headers on responses.</li>
 <li>The pod exits only when its termination grace period expires and it is killed with SIGKILL.</li>
 <li>Be sure that this grace period is longer than it takes to reprogram your load balancer.</li>
 </ol>
-<p>If it's 3rd party code and you can't change it's behavior then the best you can do is to add a pre-stop lifecycle hook that sleeps for the length of the grace period so the pod will just continue serving as if nothing happened.</p>
+<p>If it&rsquo;s 3rd party code and you can&rsquo;t change it&rsquo;s behavior then the best you can do is to add a pre-stop lifecycle hook that sleeps for the length of the grace period so the pod will just continue serving as if nothing happened.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

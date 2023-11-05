@@ -1,153 +1,172 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Search for a new JSON: jsoniter</title>
-  <meta name="description" content="Why did nobody tell me about this?"/> 
+  <title>Search for a new JSON: jsoniter &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Why did nobody tell me about this?" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/grail.jpg" alt="gotta find that grail" />
-                <figcaption>gotta find that grail</figcaption> 
-            </figure>
-            
 
-            <h1>Search for a new JSON: jsoniter</h1>
-            <p class="description" >Why did nobody tell me about this?</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>Both of my regular readers may be wondering what happened after my <a href="https://philpearl.github.io/post/json_own_way/">last blog</a> about potentially forking encoding/json. Did I fork it? No I didn't.</p>
-<p>This is partly because I discovered https://github.com/json-iterator/go, which looks like it is the JSON library I was looking for. And partly because I spent my enthusiasm writing <a href="https://github.com/philpearl/plenc">plenc</a> - a serialisation library based around the protobuf wire protocol that bases message definitions on Go structures instead of .proto files. But I'll save talking about plenc for a future post.</p>
-<p>But today we're going to talk about jsoniter. jsoniter is a fabulous JSON library that goes out of its way to discourage you from using it. For one thing it isn't really clear about its name. Is it json-iterator or jsoniter? And if you look at github it looks like it's 'just' a Go version of an older Java library. And Java == bad right? And I don't want to iterate my JSON, I want to encode and decode it.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/grail.jpg" alt="gotta find that grail">
+    <figcaption>gotta find that grail</figcaption>
+  </figure>
+  
+
+  <h1>Search for a new JSON: jsoniter</h1>
+  
+  <p class="lead">Why did nobody tell me about this?</p>
+  
+
+  <time datetime=2020-04-12T09:00:00Z class="post-date">Sun, Apr 12, 2020</time>
+
+
+  <p>Both of my regular readers may be wondering what happened after my <a href="https://philpearl.github.io/post/json_own_way/">last blog</a> about potentially forking encoding/json. Did I fork it? No I didn&rsquo;t.</p>
+<p>This is partly because I discovered <a href="https://github.com/json-iterator/go,">https://github.com/json-iterator/go,</a> which looks like it is the JSON library I was looking for. And partly because I spent my enthusiasm writing <a href="https://github.com/philpearl/plenc">plenc</a> - a serialisation library based around the protobuf wire protocol that bases message definitions on Go structures instead of .proto files. But I&rsquo;ll save talking about plenc for a future post.</p>
+<p>But today we&rsquo;re going to talk about jsoniter. jsoniter is a fabulous JSON library that goes out of its way to discourage you from using it. For one thing it isn&rsquo;t really clear about its name. Is it json-iterator or jsoniter? And if you look at github it looks like it&rsquo;s &lsquo;just&rsquo; a Go version of an older Java library. And Java == bad right? And I don&rsquo;t want to iterate my JSON, I want to encode and decode it.</p>
 <p>If you move past that and start reading the docs there are some heavy hints that it does what we want.</p>
 <blockquote>
 <p>Package jsoniter implements encoding and decoding of JSON as defined in RFC 4627 and provides interfaces with identical syntax of standard lib encoding/json. Converting from encoding/json to jsoniter is no more than replacing the package with jsoniter and variable type declarations (if any). jsoniter interfaces gives 100% compatibility with code using standard lib.</p>
 </blockquote>
-<p>So it looks very much like we can just drop in jsoniter and we'll get better performance. Does it really offer the performance and convenience I'm after? I'll write some benchmarks using the kind of structs we use at <a href="https://www.ravelin.com/careers">Ravelin</a>. And compare encoding/json (from Go 1.14) with jsoniter.</p>
-<h2>Benchmark</h2>
-<p>Here are the benchmarks. Apologies for the length. We'll test with a struct that contains fields that have custom Marshalers and Unmarshalers. These are the types of fields that we've had performance issues with using encoding/json.</p>
-<pre><code class="language-go">package badgo
+<p>So it looks very much like we can just drop in jsoniter and we&rsquo;ll get better performance. Does it really offer the performance and convenience I&rsquo;m after? I&rsquo;ll write some benchmarks using the kind of structs we use at <a href="https://www.ravelin.com/careers">Ravelin</a>. And compare encoding/json (from Go 1.14) with jsoniter.</p>
+<h2 id="benchmark">Benchmark</h2>
+<p>Here are the benchmarks. Apologies for the length. We&rsquo;ll test with a struct that contains fields that have custom Marshalers and Unmarshalers. These are the types of fields that we&rsquo;ve had performance issues with using encoding/json.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> badgo
 
-import (
-	&quot;encoding/json&quot;
-	&quot;testing&quot;
-	&quot;time&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>
+	<span style="color:#f1fa8c">&#34;testing&#34;</span>
+	<span style="color:#f1fa8c">&#34;time&#34;</span>
 
-	jsoniter &quot;github.com/json-iterator/go&quot;
-	&quot;github.com/unravelin/null&quot;
+	jsoniter <span style="color:#f1fa8c">&#34;github.com/json-iterator/go&#34;</span>
+	<span style="color:#f1fa8c">&#34;github.com/unravelin/null&#34;</span>
 )
 
-type myteststruct struct {
+<span style="color:#8be9fd;font-style:italic">type</span> myteststruct <span style="color:#8be9fd;font-style:italic">struct</span> {
 	A null.Int
 	B time.Time
 	C time.Time
 	D null.String
 }
 
-func BenchmarkEncodeMarshaler(b *testing.B) {
-	m := myteststruct{
-		A: null.IntFrom(42),
-		B: time.Now(),
-		C: time.Now().Add(-time.Hour),
-		D: null.StringFrom(`hello`),
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkEncodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	m <span style="color:#ff79c6">:=</span> myteststruct{
+		A: null.<span style="color:#50fa7b">IntFrom</span>(<span style="color:#bd93f9">42</span>),
+		B: time.<span style="color:#50fa7b">Now</span>(),
+		C: time.<span style="color:#50fa7b">Now</span>().<span style="color:#50fa7b">Add</span>(<span style="color:#ff79c6">-</span>time.Hour),
+		D: null.<span style="color:#50fa7b">StringFrom</span>(<span style="color:#f1fa8c">`hello`</span>),
 	}
 
-	b.Run(&quot;encoding/json&quot;, func(b *testing.B) {
-		b.ReportAllocs()
-		b.RunParallel(func(pb *testing.PB) {
-			for pb.Next() {
-				if _, err := json.Marshal(&amp;m); err != nil {
-					b.Fatal(&quot;Encode:&quot;, err)
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+			<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+				<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">Marshal</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+					b.<span style="color:#50fa7b">Fatal</span>(<span style="color:#f1fa8c">&#34;Encode:&#34;</span>, err)
 				}
 			}
 		})
 	})
 
-	b.Run(&quot;jsoniter&quot;, func(b *testing.B) {
-		b.ReportAllocs()
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		b.RunParallel(func(pb *testing.PB) {
-			for pb.Next() {
-				if _, err := json.Marshal(&amp;m); err != nil {
-					b.Fatal(&quot;Encode:&quot;, err)
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;jsoniter&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		<span style="color:#8be9fd;font-style:italic">var</span> json = jsoniter.ConfigCompatibleWithStandardLibrary
+		b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+			<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+				<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">Marshal</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+					b.<span style="color:#50fa7b">Fatal</span>(<span style="color:#f1fa8c">&#34;Encode:&#34;</span>, err)
 				}
 			}
 		})
 	})
 }
 
-func BenchmarkDecodeMarshaler(b *testing.B) {
-	m := myteststruct{
-		A: null.IntFrom(42),
-		B: time.Now(),
-		C: time.Now().Add(-time.Hour),
-		D: null.StringFrom(`hello`),
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkDecodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	m <span style="color:#ff79c6">:=</span> myteststruct{
+		A: null.<span style="color:#50fa7b">IntFrom</span>(<span style="color:#bd93f9">42</span>),
+		B: time.<span style="color:#50fa7b">Now</span>(),
+		C: time.<span style="color:#50fa7b">Now</span>().<span style="color:#50fa7b">Add</span>(<span style="color:#ff79c6">-</span>time.Hour),
+		D: null.<span style="color:#50fa7b">StringFrom</span>(<span style="color:#f1fa8c">`hello`</span>),
 	}
 
-	data, err := json.Marshal(&amp;m)
-	if err != nil {
-		b.Fatal(err)
+	data, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">Marshal</span>(<span style="color:#ff79c6">&amp;</span>m)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		b.<span style="color:#50fa7b">Fatal</span>(err)
 	}
 
-	b.Run(&quot;encoding/json&quot;, func(b *testing.B) {
-		b.ReportAllocs()
-		b.RunParallel(func(pb *testing.PB) {
-			var n myteststruct
-			for pb.Next() {
-				if err := json.Unmarshal(data, &amp;n); err != nil {
-					b.Fatal(err)
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+			<span style="color:#8be9fd;font-style:italic">var</span> n myteststruct
+			<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+				<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">Unmarshal</span>(data, <span style="color:#ff79c6">&amp;</span>n); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+					b.<span style="color:#50fa7b">Fatal</span>(err)
 				}
 			}
 		})
 	})
 
-	b.Run(&quot;jsoniter&quot;, func(b *testing.B) {
-		b.ReportAllocs()
-		var json = jsoniter.ConfigCompatibleWithStandardLibrary
-		b.RunParallel(func(pb *testing.PB) {
-			var n myteststruct
-			for pb.Next() {
-				if err := json.Unmarshal(data, &amp;n); err != nil {
-					b.Fatal(err)
+	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;jsoniter&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+		b.<span style="color:#50fa7b">ReportAllocs</span>()
+		<span style="color:#8be9fd;font-style:italic">var</span> json = jsoniter.ConfigCompatibleWithStandardLibrary
+		b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+			<span style="color:#8be9fd;font-style:italic">var</span> n myteststruct
+			<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+				<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">Unmarshal</span>(data, <span style="color:#ff79c6">&amp;</span>n); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+					b.<span style="color:#50fa7b">Fatal</span>(err)
 				}
 			}
 		})
 	})
 }
 
-</code></pre>
-<p>And the results? Well, jsoniter is a little faster but has more allocations for both encoding and decoding. Not the result I was hoping for. But we didn't really expect things to be quite that easy.</p>
+</code></pre></div><p>And the results? Well, jsoniter is a little faster but has more allocations for both encoding and decoding. Not the result I was hoping for. But we didn&rsquo;t really expect things to be quite that easy.</p>
 <pre><code>EncodeMarshaler/encoding/json-16  342ns ± 8%
 EncodeMarshaler/jsoniter-16       252ns ± 4%
 DecodeMarshaler/encoding/json-16  506ns ± 2%
@@ -158,56 +177,52 @@ EncodeMarshaler/encoding/json-16   6.00 ± 0%
 EncodeMarshaler/jsoniter-16        7.00 ± 0%
 DecodeMarshaler/encoding/json-16   9.00 ± 0%
 DecodeMarshaler/jsoniter-16        16.0 ± 0%
-</code></pre>
-<p>Let's try to improve things. To improve we need to know where these allocations are coming from. We can quickly run a profile.</p>
+</code></pre><p>Let&rsquo;s try to improve things. To improve we need to know where these allocations are coming from. We can quickly run a profile.</p>
 <pre><code>go test -bench 'BenchmarkEncodeMarshaler/jsoniter' -run ^$ -memprofile mem.prof
 go tool pprof -http :6060 post.test mem.prof
-</code></pre>
-<p>Switching to the <code>alloc_objects</code> samples we can quickly see where most of the allocations are happening. It's in our <a href="https://philpearl.github.io/post/badgo_json/">old favourite</a> (Un)Marshaler methods. I'm going to hope there's a jsoniter way of dealing with these that we can apply with a little effort.</p>
+</code></pre><p>Switching to the <code>alloc_objects</code> samples we can quickly see where most of the allocations are happening. It&rsquo;s in our <a href="https://philpearl.github.io/post/badgo_json/">old favourite</a> (Un)Marshaler methods. I&rsquo;m going to hope there&rsquo;s a jsoniter way of dealing with these that we can apply with a little effort.</p>
 <p><img src="/post/pprof1.png" alt="profile"></p>
-<p>If you stare at the documentation extremely hard you'll eventually spot that jsoniter has a very powerful mechanism for writing Encoders and Decoders for any type. These codecs don't have to be methods of the types being encoded/decoded, which means you can create custom marshallers for types that are parts of other packages. So you can directly create custom marshallers and unmarshallers for time.Time for example. This is a complete game-changer. It allows total flexibility.</p>
-<p>Here's a codec for time.Time that implements both jsoniter.ValEncoder and jsoniter.ValDecoder interfaces.</p>
-<pre><code class="language-go">type timeCodec struct{}
+<p>If you stare at the documentation extremely hard you&rsquo;ll eventually spot that jsoniter has a very powerful mechanism for writing Encoders and Decoders for any type. These codecs don&rsquo;t have to be methods of the types being encoded/decoded, which means you can create custom marshallers for types that are parts of other packages. So you can directly create custom marshallers and unmarshallers for time.Time for example. This is a complete game-changer. It allows total flexibility.</p>
+<p>Here&rsquo;s a codec for time.Time that implements both jsoniter.ValEncoder and jsoniter.ValDecoder interfaces.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> timeCodec <span style="color:#8be9fd;font-style:italic">struct</span>{}
 
-func (timeCodec) IsEmpty(ptr unsafe.Pointer) bool {
-	return (*time.Time)(ptr).IsZero()
+<span style="color:#8be9fd;font-style:italic">func</span> (timeCodec) <span style="color:#50fa7b">IsEmpty</span>(ptr unsafe.Pointer) <span style="color:#8be9fd">bool</span> {
+	<span style="color:#ff79c6">return</span> (<span style="color:#ff79c6">*</span>time.Time)(ptr).<span style="color:#50fa7b">IsZero</span>()
 }
 
-func (timeCodec) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
-	t := (*time.Time)(ptr)
+<span style="color:#8be9fd;font-style:italic">func</span> (timeCodec) <span style="color:#50fa7b">Encode</span>(ptr unsafe.Pointer, stream <span style="color:#ff79c6">*</span>jsoniter.Stream) {
+	t <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>time.Time)(ptr)
 
-	var scratch [len(time.RFC3339Nano) + 2]byte
-	b := t.AppendFormat(scratch[:0], `&quot;`+time.RFC3339Nano+`&quot;`)
-	stream.Write(b)
+	<span style="color:#8be9fd;font-style:italic">var</span> scratch [<span style="color:#8be9fd;font-style:italic">len</span>(time.RFC3339Nano) <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>]<span style="color:#8be9fd">byte</span>
+	b <span style="color:#ff79c6">:=</span> t.<span style="color:#50fa7b">AppendFormat</span>(scratch[:<span style="color:#bd93f9">0</span>], <span style="color:#f1fa8c">`&#34;`</span><span style="color:#ff79c6">+</span>time.RFC3339Nano<span style="color:#ff79c6">+</span><span style="color:#f1fa8c">`&#34;`</span>)
+	stream.<span style="color:#50fa7b">Write</span>(b)
 }
 
-func (timeCodec) Decode(ptr unsafe.Pointer, iter *jsoniter.Iterator) {
-	switch iter.WhatIsNext() {
-	case jsoniter.NilValue:
-		iter.Skip()
-		*(*time.Time)(ptr) = time.Time{}
-		return
-	case jsoniter.StringValue:
-		ts := iter.ReadStringAsSlice()
+<span style="color:#8be9fd;font-style:italic">func</span> (timeCodec) <span style="color:#50fa7b">Decode</span>(ptr unsafe.Pointer, iter <span style="color:#ff79c6">*</span>jsoniter.Iterator) {
+	<span style="color:#ff79c6">switch</span> iter.<span style="color:#50fa7b">WhatIsNext</span>() {
+	<span style="color:#ff79c6">case</span> jsoniter.NilValue:
+		iter.<span style="color:#50fa7b">Skip</span>()
+		<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span>time.Time)(ptr) = time.Time{}
+		<span style="color:#ff79c6">return</span>
+	<span style="color:#ff79c6">case</span> jsoniter.StringValue:
+		ts <span style="color:#ff79c6">:=</span> iter.<span style="color:#50fa7b">ReadStringAsSlice</span>()
 
-		t, err := time.Parse(time.RFC3339Nano, *(*string)(unsafe.Pointer(&amp;ts)))
-		if err != nil {
-			iter.ReportError(&quot;decode time&quot;, err.Error())
-			return
+		t, err <span style="color:#ff79c6">:=</span> time.<span style="color:#50fa7b">Parse</span>(time.RFC3339Nano, <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">string</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>ts)))
+		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+			iter.<span style="color:#50fa7b">ReportError</span>(<span style="color:#f1fa8c">&#34;decode time&#34;</span>, err.<span style="color:#50fa7b">Error</span>())
+			<span style="color:#ff79c6">return</span>
 		}
 
-		*(*time.Time)(ptr) = t
-	default:
-		iter.ReportError(&quot;decode time.Time&quot;, &quot;unexpected JSON type&quot;)
+		<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span>time.Time)(ptr) = t
+	<span style="color:#ff79c6">default</span>:
+		iter.<span style="color:#50fa7b">ReportError</span>(<span style="color:#f1fa8c">&#34;decode time.Time&#34;</span>, <span style="color:#f1fa8c">&#34;unexpected JSON type&#34;</span>)
 	}
 }
-</code></pre>
-<p>You register the codec with jsoniter as follows. The name you register with is the <a href="https://github.com/modern-go/reflect2">reflect2</a> type name - <code>reflect2.TypeOf(time.Time{}).String()</code>.</p>
-<pre><code class="language-go">jsoniter.RegisterTypeEncoder(&quot;time.Time&quot;, timeCodec{})
-jsoniter.RegisterTypeDecoder(&quot;time.Time&quot;, timeCodec{})
-</code></pre>
-<p>Being able to create encoders and decoders for third-party types is a huge improvement over the json.Marshaler and json.Unmarshaler in the standard encoding/json. It gives you much more flexibility. You can improve on the marshalling of standard library types like time.Time without needing to make changes to the library.</p>
-<p>Anyway, back to performance. Once I've created codecs for time.Time, null.String and null.Int the benchmarks improve considerably. Now jsoniter looks much more attractive than encoding/json.</p>
+</code></pre></div><p>You register the codec with jsoniter as follows. The name you register with is the <a href="https://github.com/modern-go/reflect2">reflect2</a> type name - <code>reflect2.TypeOf(time.Time{}).String()</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">jsoniter.<span style="color:#50fa7b">RegisterTypeEncoder</span>(<span style="color:#f1fa8c">&#34;time.Time&#34;</span>, timeCodec{})
+jsoniter.<span style="color:#50fa7b">RegisterTypeDecoder</span>(<span style="color:#f1fa8c">&#34;time.Time&#34;</span>, timeCodec{})
+</code></pre></div><p>Being able to create encoders and decoders for third-party types is a huge improvement over the json.Marshaler and json.Unmarshaler in the standard encoding/json. It gives you much more flexibility. You can improve on the marshalling of standard library types like time.Time without needing to make changes to the library.</p>
+<p>Anyway, back to performance. Once I&rsquo;ve created codecs for time.Time, null.String and null.Int the benchmarks improve considerably. Now jsoniter looks much more attractive than encoding/json.</p>
 <pre><code>name                              time/op
 EncodeMarshaler/encoding/json-16  343ns ± 9%
 EncodeMarshaler/jsoniter-16       160ns ± 3%
@@ -219,12 +234,15 @@ EncodeMarshaler/encoding/json-16   6.00 ± 0%
 EncodeMarshaler/jsoniter-16        2.00 ± 0%
 DecodeMarshaler/encoding/json-16   9.00 ± 0%
 DecodeMarshaler/jsoniter-16        1.00 ± 0%
-</code></pre>
-<p>jsoniter's documentation is incomplete and it has a confusing name, but if you fight your way through that you'll find a high-performance, high-quality JSON library that's a drop-in replacement for encoding/json without needing any code generation. So if I spend any more energy on JSON in Go I think I'll try contributing documentation to jsoniter.</p>
+</code></pre><p>jsoniter&rsquo;s documentation is incomplete and it has a confusing name, but if you fight your way through that you&rsquo;ll find a high-performance, high-quality JSON library that&rsquo;s a drop-in replacement for encoding/json without needing any code generation. So if I spend any more energy on JSON in Go I think I&rsquo;ll try contributing documentation to jsoniter.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

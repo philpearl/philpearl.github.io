@@ -1,60 +1,80 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Faster time parsing</title>
-  <meta name="description" content="A story in 3 acts"/> 
+  <title>Faster time parsing &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="A story in 3 acts" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/time.jpg" alt="Time can be overwhelming" />
-                <figcaption>Time can be overwhelming</figcaption> 
-            </figure>
-            
 
-            <h1>Faster time parsing</h1>
-            <p class="description" >A story in 3 acts</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>Here at <a href="https://www.ravelin.com/careers">Ravelin</a> we have a lot of data with a lot of timestamps.
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/time.jpg" alt="Time can be overwhelming">
+    <figcaption>Time can be overwhelming</figcaption>
+  </figure>
+  
+
+  <h1>Faster time parsing</h1>
+  
+  <p class="lead">A story in 3 acts</p>
+  
+
+  <time datetime=2021-10-01T12:00:00Z class="post-date">Fri, Oct 1, 2021</time>
+
+
+  <p>Here at <a href="https://www.ravelin.com/careers">Ravelin</a> we have a lot of data with a lot of timestamps.
 Most of the timestamps are stored as strings in BigQuery, and most of our Go structs represent time with the Go time.Time type.</p>
 <p>I say these facts above with regret.
 We really do have <em>a lot</em> of data. And we really do have <em>a lot</em> of timestamps.
-For some time I've been circling around a conclusion, and as more time passes I'm certain I'll fall toward it:</p>
-<p><strong>Friends don't let friends represent time in databases as strings.</strong></p>
+For some time I&rsquo;ve been circling around a conclusion, and as more time passes I&rsquo;m certain I&rsquo;ll fall toward it:</p>
+<p><strong>Friends don&rsquo;t let friends represent time in databases as strings.</strong></p>
 <p>Anyway, decisions have been made and we are stuck with them.
-But being stuck with the decision doesn't mean we're stuck with all the unfortunate consequences.
+But being stuck with the decision doesn&rsquo;t mean we&rsquo;re stuck with all the unfortunate consequences.
 We can make the best of things.
 And, for me, making the best of things now inevitably includes finding a faster way to parse RFC3339 timestamps than using <a href="https://pkg.go.dev/time#Parse"><code>time.Parse</code></a>.</p>
 <hr>
@@ -63,32 +83,29 @@ The format parameter does not just select a dedicated parsing routine appropriat
 The format parameter describes how the data should be parsed.
 <code>time.Parse</code> not only parses the time, but has to parse, understand and implement a description of how to parse the time.
 If we write a dedicated parsing routine that just parses RFC3339 it should be faster than that.</p>
-<p>But before we start, let's just write a quick benchmark to see how fast <code>time.Parse</code> is.</p>
-<pre><code class="language-go">func BenchmarkParseRFC3339(b *testing.B) {
-	now := time.Now().UTC().Format(time.RFC3339Nano)
+<p>But before we start, let&rsquo;s just write a quick benchmark to see how fast <code>time.Parse</code> is.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkParseRFC3339</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	now <span style="color:#ff79c6">:=</span> time.<span style="color:#50fa7b">Now</span>().<span style="color:#50fa7b">UTC</span>().<span style="color:#50fa7b">Format</span>(time.RFC3339Nano)
 
-	for i := 0; i &lt; b.N; i++ {
-		if _, err := time.Parse(time.RFC3339, now); err != nil {
-			b.Fatal(err)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> time.<span style="color:#50fa7b">Parse</span>(time.RFC3339, now); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+			b.<span style="color:#50fa7b">Fatal</span>(err)
 		}
 	}
 }
-</code></pre>
-<p>Here are the results.</p>
+</code></pre></div><p>Here are the results.</p>
 <pre><code>name             time/op
 ParseRFC3339-16  150ns ± 1%
-</code></pre>
-<p>Now we can write our dedicated RFC3339 parsing function.
-It's boring.
-It isn't pretty.
+</code></pre><p>Now we can write our dedicated RFC3339 parsing function.
+It&rsquo;s boring.
+It isn&rsquo;t pretty.
 But (as far as I can tell!) it works.</p>
-<p>(It really is quite long and not very pretty, so rather than include it in this post and make you all scroll past it, <a href="https://github.com/philpearl/avro/blob/master/time/parse.go">here</a> is a link to the final version with all the optimisations discussed below applied. If you imagine a great long function with quite a few calls to <a href="https://pkg.go.dev/strconv#Atoi"><code>strconv.Atoi</code></a> you'll get the picture)</p>
+<p>(It really is quite long and not very pretty, so rather than include it in this post and make you all scroll past it, <a href="https://github.com/philpearl/avro/blob/master/time/parse.go">here</a> is a link to the final version with all the optimisations discussed below applied. If you imagine a great long function with quite a few calls to <a href="https://pkg.go.dev/strconv#Atoi"><code>strconv.Atoi</code></a> you&rsquo;ll get the picture)</p>
 <p>If we tweak our benchmark to use our new parsing function we get the following results.</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16   150ns ± 1%    45ns ± 4%  -70.15%  (p=0.000 n=7+8)
-</code></pre>
-<p>It's really quite a lot faster than <code>time.Time</code>. Great. We're done.</p>
-<h2>Of course we're not done.</h2>
+</code></pre><p>It&rsquo;s really quite a lot faster than <code>time.Time</code>. Great. We&rsquo;re done.</p>
+<h2 id="of-course-were-not-done">Of course we&rsquo;re not done.</h2>
 <p>If we get a <a href="https://hackernoon.com/go-the-complete-guide-to-profiling-your-code-h51r3waz">CPU profile</a> we see lots of our time is now taken in calls to <code>strconv.Atoi</code>.</p>
 <pre><code>&gt; go test -run ^$ -bench BenchmarkParseRFC3339 -cpuprofile cpu.prof 
 &gt; go tool pprof cpu.prof
@@ -103,85 +120,82 @@ Showing top 10 nodes out of 24
      380ms 39.58% 39.58%      380ms 39.58%  strconv.Atoi
      370ms 38.54% 78.12%      920ms 95.83%  github.com/philpearl/blog/content/post.parseTime
       60ms  6.25% 84.38%      170ms 17.71%  time.Date
-</code></pre>
-<p><code>strconv.Atoi</code> converts numbers in ASCII strings to integers.
-That's a fundamental part of the Go standard library, so it's bound to be really well coded, and optimised already.
-Surely we can't improve on that?</p>
+</code></pre><p><code>strconv.Atoi</code> converts numbers in ASCII strings to integers.
+That&rsquo;s a fundamental part of the Go standard library, so it&rsquo;s bound to be really well coded, and optimised already.
+Surely we can&rsquo;t improve on that?</p>
 <p>Well, most of our numbers are exactly 2 bytes long or exactly 4 bytes long.
-We can write number parsing functions that take advantage of these facts and don't have any of those nasty slow for-loop things.</p>
-<pre><code class="language-go">func atoi2(in string) (int, error) {
-	a, b := int(in[0]-'0'), int(in[1]-'0')
-	if a &lt; 0 || a &gt; 9 || b &lt; 0 || b &gt; 9 {
-		return 0, fmt.Errorf(&quot;can't parse number %q&quot;, in)
+We can write number parsing functions that take advantage of these facts and don&rsquo;t have any of those nasty slow for-loop things.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
+	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;can&#39;t parse number %q&#34;</span>, in)
 	}
-	return a*10 + b, nil
+	<span style="color:#ff79c6">return</span> a<span style="color:#ff79c6">*</span><span style="color:#bd93f9">10</span> <span style="color:#ff79c6">+</span> b, <span style="color:#ff79c6">nil</span>
 }
 
-func atoi4(in string) (int, error) {
-	a, b, c, d := int(in[0]-'0'), int(in[1]-'0'), int(in[2]-'0'), int(in[3]-'0')
-	if a &lt; 0 || a &gt; 9 || b &lt; 0 || b &gt; 9 || c &lt; 0 || c &gt; 9 || d &lt; 0 || d &gt; 9 {
-		return 0, fmt.Errorf(&quot;can't parse number %q&quot;, in)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi4</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+	a, b, c, d <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">2</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">3</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
+	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> c &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> c &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> d &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> d &gt; <span style="color:#bd93f9">9</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;can&#39;t parse number %q&#34;</span>, in)
 	}
-	return a*1000 + b*100 + c*10 + d, nil
+	<span style="color:#ff79c6">return</span> a<span style="color:#ff79c6">*</span><span style="color:#bd93f9">1000</span> <span style="color:#ff79c6">+</span> b<span style="color:#ff79c6">*</span><span style="color:#bd93f9">100</span> <span style="color:#ff79c6">+</span> c<span style="color:#ff79c6">*</span><span style="color:#bd93f9">10</span> <span style="color:#ff79c6">+</span> d, <span style="color:#ff79c6">nil</span>
 }
-</code></pre>
-<p>If we run our benchmark again we can see we've made a nice further improvement.</p>
+</code></pre></div><p>If we run our benchmark again we can see we&rsquo;ve made a nice further improvement.</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16  44.9ns ± 4%  39.7ns ± 3%  -11.51%  (p=0.000 n=8+8)
-</code></pre>
-<p>OK, we've now not only written a custom time parser, but we've also written custom number parsers.
-That's surely enough.
+</code></pre><p>OK, we&rsquo;ve now not only written a custom time parser, but we&rsquo;ve also written custom number parsers.
+That&rsquo;s surely enough.
 Definitely done now.</p>
-<h2>Of course we're not done.</h2>
-<p>Ah, but let's just have another look at the CPU profile.
-And let's take a look at the disassembly.
-There are two slice length checks in <code>atoi2</code> (they're the calls to panicIndex seen in the green disassembly below).
-Isn't there a <a href="https://go101.org/article/bounds-check-elimination.html">trick about that</a>?</p>
+<h2 id="of-course-were-not-done-1">Of course we&rsquo;re not done.</h2>
+<p>Ah, but let&rsquo;s just have another look at the CPU profile.
+And let&rsquo;s take a look at the disassembly.
+There are two slice length checks in <code>atoi2</code> (they&rsquo;re the calls to panicIndex seen in the green disassembly below).
+Isn&rsquo;t there a <a href="https://go101.org/article/bounds-check-elimination.html">trick about that</a>?</p>
 <p><img src="/post/lencheck.png" alt="Two calls to panicIndex are slice length checks"></p>
-<p>Here's the code updated with the trick.
-<code>_ = in[1]</code> at the start of the function gives the compiler enough of a hint that it doesn't check the string is long enough each time we reference it later on.</p>
-<pre><code class="language-go">func atoi2(in string) (int, error) {
-	_ = in[1] // This helps the compiler reduce the number of times it checks `in` is long enough
-	a, b := int(in[0]-'0'), int(in[1]-'0')
-	if a &lt; 0 || a &gt; 9 || b &lt; 0 || b &gt; 9 {
-		return 0, fmt.Errorf(&quot;can't parse number %q&quot;, in)
+<p>Here&rsquo;s the code updated with the trick.
+<code>_ = in[1]</code> at the start of the function gives the compiler enough of a hint that it doesn&rsquo;t check the string is long enough each time we reference it later on.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+	_ = in[<span style="color:#bd93f9">1</span>] <span style="color:#6272a4">// This helps the compiler reduce the number of times it checks `in` is long enough
+</span><span style="color:#6272a4"></span>	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
+	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;can&#39;t parse number %q&#34;</span>, in)
 	}
-	return a*10 + b, nil
+	<span style="color:#ff79c6">return</span> a<span style="color:#ff79c6">*</span><span style="color:#bd93f9">10</span> <span style="color:#ff79c6">+</span> b, <span style="color:#ff79c6">nil</span>
 }
-</code></pre>
-<p>A small change, but enough to give a definite improvement</p>
+</code></pre></div><p>A small change, but enough to give a definite improvement</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16  39.7ns ± 3%  38.4ns ± 2%  -3.26%  (p=0.001 n=8+7)
-</code></pre>
-<p>And <code>atoi2</code> is very short.
-Why isn't it <a href="https://dave.cheney.net/2020/04/25/inlining-optimisations-in-go">inlined</a>?
+</code></pre><p>And <code>atoi2</code> is very short.
+Why isn&rsquo;t it <a href="https://dave.cheney.net/2020/04/25/inlining-optimisations-in-go">inlined</a>?
 Perhaps if we simplify the error it will be?
 If we remove the call to <code>fmt.Errorf</code> and replace it with a simple error that
 reduces the complexity of our atoi functions.
 This might be enough to allow the Go compiler to decide to implement these functions not as separate code blocks but directly within the calling function.</p>
-<pre><code class="language-go">var errNotNumber = errors.New(&quot;not a valid number&quot;)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> errNotNumber = errors.<span style="color:#50fa7b">New</span>(<span style="color:#f1fa8c">&#34;not a valid number&#34;</span>)
 
-func atoi2(in string) (int, error) {
-	_ = in[1]
-	a, b := int(in[0]-'0'), int(in[1]-'0')
-	if a &lt; 0 || a &gt; 9 || b &lt; 0 || b &gt; 9 {
-		return 0, errNotNumber
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+	_ = in[<span style="color:#bd93f9">1</span>]
+	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
+	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, errNotNumber
 	}
-	return a*10 + b, nil
+	<span style="color:#ff79c6">return</span> a<span style="color:#ff79c6">*</span><span style="color:#bd93f9">10</span> <span style="color:#ff79c6">+</span> b, <span style="color:#ff79c6">nil</span>
 }
-</code></pre>
-<p>This is indeed the case and yields a signficant improvement.</p>
+</code></pre></div><p>This is indeed the case and yields a signficant improvement.</p>
 <pre><code>name             old time/op  new time/op  delta
 ParseRFC3339-16  38.4ns ± 2%  32.9ns ± 5%  -14.39%  (p=0.000 n=7+8)
-</code></pre>
-<p>That's the end of our story.
+</code></pre><p>That&rsquo;s the end of our story.
 Quite a lot of work for around ~120ns.
-But nanoseconds add up, and these improvements reduce the running time of some of Ravelin's machine learning feature extraction pipelines by an hour or more.
+But nanoseconds add up, and these improvements reduce the running time of some of Ravelin&rsquo;s machine learning feature extraction pipelines by an hour or more.
 As I said, we do have <em>a lot</em> of data and <em>a lot</em> of timestamps!</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

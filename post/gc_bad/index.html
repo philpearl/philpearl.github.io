@@ -1,48 +1,68 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>GC is bad and you should feel bad</title>
+  <title>GC is bad and you should feel bad &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Don&#39;t feel bad" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
   
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
-</head>
-<body>
-    <main>
-        <div class="post">
-            
+  <h1>GC is bad and you should feel bad</h1>
+  
+  <p class="lead">Don&#39;t feel bad</p>
+  
 
-            <h1>GC is bad and you should feel bad</h1>
-            
+  <time datetime=2018-01-24T22:35:54Z class="post-date">Wed, Jan 24, 2018</time>
 
-            <p>Some time ago <a href="https://syslog.ravelin.com/go-and-a-not-tiny-amount-of-memory-a7a9430d4d22">I wrote</a> about how I went to great lengths moving allocations off the Go heap into memory allocated directly from the OS in order to reduce the overhead of GC. This was in a new Graph Database I was developing at <a href="https://www.ravelin.com/">Ravelin</a> to catch bad people more efficiently. At the time I wasn’t entirely certain that the GC CPU overhead was a terrible thing, but it was untidy and I didn’t want to risk putting the new code into production without getting rid of it.</p>
+
+  <p>Some time ago <a href="https://syslog.ravelin.com/go-and-a-not-tiny-amount-of-memory-a7a9430d4d22">I wrote</a> about how I went to great lengths moving allocations off the Go heap into memory allocated directly from the OS in order to reduce the overhead of GC. This was in a new Graph Database I was developing at <a href="https://www.ravelin.com/">Ravelin</a> to catch bad people more efficiently. At the time I wasn’t entirely certain that the GC CPU overhead was a terrible thing, but it was untidy and I didn’t want to risk putting the new code into production without getting rid of it.</p>
 <p>Well, over the past couple of days I’ve pulled the same trick with another component in Ravelin. In our ML fraud scoring pipeline we have a huge (&gt;5GB) table of pre-calculated probabilities that we kept in Go <code>map[string]X</code> in RAM. Recently we’d seen high GC pause times, corresponding with high 95th percentile response time peaks on our API. The GC pause time suddenly jumped around 6pm on January 7th, and we’re still not sure why. Rather than fret any longer we took the decision to simply move this data away from where the GC could see it.</p>
 <!-- raw HTML omitted -->
 <p>Once we’d moved the allocations off-heap into a custom hash-map backed by mmap allocated memory (yep, go ahead and hate me, it’s riddled with “unsafe”, “syscall” and pointer arithmetic. And no, I couldn’t “just use postgres” for this), the GC pauses practically disappeared.</p>
@@ -52,9 +72,13 @@
 <p>The Go GC isn’t bad. It’s actually very good. But if you have large multi-GB data structures involving pointers (and in particular string map keys contain pointers!) then you’re probably paying a hefty penalty as Go periodically goes to check that every single one of those strings is still in use. And if this is happening to you now and you don’t think it is a problem, it may suddenly become a problem one grey and wet January morning.</p>
 <p>Oh, and we’re hiring. If you like code and you hate bad people, come and work with us!</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

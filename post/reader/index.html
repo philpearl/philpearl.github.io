@@ -1,313 +1,321 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>[]byte versus io.Reader</title>
+  <title>[]byte versus io.Reader &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="I&#39;m rooting for the underdog" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/reader.jpg" alt="The Novel Reader: Vincent van Goch">
+    <figcaption>The Novel Reader: Vincent van Goch</figcaption>
+  </figure>
   
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
-</head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/reader.jpg" alt="The Novel Reader: Vincent van Goch" />
-                <figcaption>The Novel Reader: Vincent van Goch</figcaption> 
-            </figure>
-            
+  <h1>[]byte versus io.Reader</h1>
+  
+  <p class="lead">I&#39;m rooting for the underdog</p>
+  
 
-            <h1>[]byte versus io.Reader</h1>
-            
+  <time datetime=2020-05-23T14:30:40Z class="post-date">Sat, May 23, 2020</time>
 
-            <p>Everyone loves <code>io.Reader</code>. It's often touted as people's favourite thing in Go. But it's not the best abstraction when you get down to the small. When you're doing lots of small reads to parse a protocol the overheads are too high, even if you're using a buffered reader. I think the best abstraction at this point may be <code>[]byte</code>, which is essentially no abstraction at all. But lets try using <code>io.Reader</code> and see where that leads us.</p>
-<h2>Let's set ourselves a task.</h2>
-<p>Suppose we want to read a bunch of strings. The strings are encoded as a <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">Varint</a> length followed by that number of bytes. (Varint is an efficient encoding of integers where smaller numbers take up less space). We'll start by using an <code>io.Reader</code> to access our encoded strings. We'll define our function as <code>func readString(r io.Reader) (string, error)</code>. It turns out there's a <a href="https://golang.org/pkg/encoding/binary/#ReadVarint"><code>ReadVarint</code></a> function in encoding/binary. Fabulous, we can use that to read our Varint. Except it takes an <code>io.ByteReader</code>, not an <code>io.Reader</code>.</p>
-<p>No matter. We can use interface composition to create an interface that combines <code>io.ByteReader</code> and <code>io.Reader</code>. We can then write our <code>readString</code> function. Here's our initial <code>readString</code> below. We'll use a <a href="https://golang.org/pkg/strings/#Builder"><code>strings.Builder</code></a> to build the string that we return to our caller.</p>
-<pre><code class="language-go">import (
-    &quot;encoding/binary&quot;
-    &quot;io&quot;
-    &quot;strings&quot;
+
+  <p>Everyone loves <code>io.Reader</code>. It&rsquo;s often touted as people&rsquo;s favourite thing in Go. But it&rsquo;s not the best abstraction when you get down to the small. When you&rsquo;re doing lots of small reads to parse a protocol the overheads are too high, even if you&rsquo;re using a buffered reader. I think the best abstraction at this point may be <code>[]byte</code>, which is essentially no abstraction at all. But lets try using <code>io.Reader</code> and see where that leads us.</p>
+<h2 id="lets-set-ourselves-a-task">Let&rsquo;s set ourselves a task.</h2>
+<p>Suppose we want to read a bunch of strings. The strings are encoded as a <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">Varint</a> length followed by that number of bytes. (Varint is an efficient encoding of integers where smaller numbers take up less space). We&rsquo;ll start by using an <code>io.Reader</code> to access our encoded strings. We&rsquo;ll define our function as <code>func readString(r io.Reader) (string, error)</code>. It turns out there&rsquo;s a <a href="https://golang.org/pkg/encoding/binary/#ReadVarint"><code>ReadVarint</code></a> function in encoding/binary. Fabulous, we can use that to read our Varint. Except it takes an <code>io.ByteReader</code>, not an <code>io.Reader</code>.</p>
+<p>No matter. We can use interface composition to create an interface that combines <code>io.ByteReader</code> and <code>io.Reader</code>. We can then write our <code>readString</code> function. Here&rsquo;s our initial <code>readString</code> below. We&rsquo;ll use a <a href="https://golang.org/pkg/strings/#Builder"><code>strings.Builder</code></a> to build the string that we return to our caller.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">import</span> (
+    <span style="color:#f1fa8c">&#34;encoding/binary&#34;</span>
+    <span style="color:#f1fa8c">&#34;io&#34;</span>
+    <span style="color:#f1fa8c">&#34;strings&#34;</span>
 )
 
-type Reader interface {
+<span style="color:#8be9fd;font-style:italic">type</span> Reader <span style="color:#8be9fd;font-style:italic">interface</span> {
     io.Reader
     io.ByteReader
 }
 
-func readString(r Reader) (string, error) {
-    l, err := binary.ReadVarint(r)
-    if err != nil {
-        return &quot;&quot;, err
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+    l, err <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">ReadVarint</span>(r)
+    <span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
     }
-    var b strings.Builder
-    b.Grow(int(l))
-    _, err = io.CopyN(&amp;b, r, l)
-    return b.String(), err
+    <span style="color:#8be9fd;font-style:italic">var</span> b strings.Builder
+    b.<span style="color:#50fa7b">Grow</span>(<span style="color:#8be9fd;font-style:italic">int</span>(l))
+    _, err = io.<span style="color:#50fa7b">CopyN</span>(<span style="color:#ff79c6">&amp;</span>b, r, l)
+    <span style="color:#ff79c6">return</span> b.<span style="color:#50fa7b">String</span>(), err
 }
-</code></pre>
-<p>Great, we can read a string! Let's see how that performs. We'll write a benchmark that reads a string.</p>
-<pre><code class="language-go">func BenchmarkReadString(b *testing.B) {
-	data := []byte{16, 'c', 'h', 'e', 'e', 's', 'e', 'i', 't'}
-	buf := bytes.NewReader(nil)
+</code></pre></div><p>Great, we can read a string! Let&rsquo;s see how that performs. We&rsquo;ll write a benchmark that reads a string.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	data <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}
+	buf <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
 
-	b.ReportAllocs()
-	for i := 0; i &lt; b.N; i++ {
-		buf.Reset(data)		
-		if _, err := readString(buf); err != nil {
-			b.Fatal(err)
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+		buf.<span style="color:#50fa7b">Reset</span>(data)		
+		<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">readString</span>(buf); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+			b.<span style="color:#50fa7b">Fatal</span>(err)
 		}
 	}
 }
-</code></pre>
-<p>If we run the benchmark (<code>go test -run ^$ -bench BenchamrkReadString</code>) we get the following.</p>
+</code></pre></div><p>If we run the benchmark (<code>go test -run ^$ -bench BenchamrkReadString</code>) we get the following.</p>
 <pre><code>BenchmarkReadString-16    	 7541395	  155 ns/op	  80 B/op	  4 allocs/op
-</code></pre>
-<p>4 allocations per operation! We really only expect one: we expect to allocate the string. Where are these other allocations? As usual we reach for the profiler.</p>
+</code></pre><p>4 allocations per operation! We really only expect one: we expect to allocate the string. Where are these other allocations? As usual we reach for the profiler.</p>
 <pre><code>go test -run ^$ -bench BenchmarkReadString -memprofile mem.prof
 go tool pprof -http :6060 blog.test mem.prof
-</code></pre>
-<p>We spin the profiler up and set the samples to show allocated objects.
+</code></pre><p>We spin the profiler up and set the samples to show allocated objects.
 <img src="/post/readerprof1.png" alt="eek too many allocations"></p>
 <p>We can see that <code>io.CopyN</code> causes two heap allocations.</p>
 <ul>
 <li>It creates an <code>io.LimitReader</code>. This is used to wrap the source <code>io.Reader</code>. It passes this as an <code>io.Reader</code> to <code>io.Copy</code>.</li>
-<li>It calls <code>io.Copy</code>. <code>io.Copy</code> has shortcuts that don't allocate if the source reader implements <code>WriterTo</code> (which it doesn't because it's wrapped in a <code>LimitReader</code>), or if the destination buffer implements <code>ReaderFrom</code> (which it doesn't because, ..., it doesn't). So it creates a buffer to tranfer data.</li>
+<li>It calls <code>io.Copy</code>. <code>io.Copy</code> has shortcuts that don&rsquo;t allocate if the source reader implements <code>WriterTo</code> (which it doesn&rsquo;t because it&rsquo;s wrapped in a <code>LimitReader</code>), or if the destination buffer implements <code>ReaderFrom</code> (which it doesn&rsquo;t because, &hellip;, it doesn&rsquo;t). So it creates a buffer to tranfer data.</li>
 </ul>
-<p><code>readString</code> itself causes a heap allocation because it creates a <code>strings.Builder</code>, which it then passes as an interface to <code>io.CopyN</code>. Both the <code>strings.Builder</code> and <code>io.LimitReader</code> are placed into interface variables, then methods are called on them. This defeats Go's escape analysis, so both of these are allocated on the heap. The buffer is passed as a parameter on an interface, so again this defeats escape analysis and it is allocated on the heap.</p>
-<p>The 4th allocation is the one we expect. We need an allocation for the string itself. This is the call to <code>Grow</code> on the <code>StringBuilder</code>. This is a necessary as we're returning the string to our caller. We're not aiming to get rid of this.</p>
-<h2>Second attempt</h2>
-<p>Our first attempt was not so great. I picked <code>strings.Builder</code> as it's intended as a way to build a string without causing an additional allocation converting the <code>[]byte</code> you build it in to a string. Before it existed I'd nearly always do a trick with unsafe to avoid that allocation. What if we go back to that older way of operating? Then we can build our string directly in a <code>[]byte</code>.</p>
-<pre><code class="language-go">func readString(r Reader) (string, error) {
-	l, err := binary.ReadVarint(r)
-	if err != nil {
-		return &quot;&quot;, err
+<p><code>readString</code> itself causes a heap allocation because it creates a <code>strings.Builder</code>, which it then passes as an interface to <code>io.CopyN</code>. Both the <code>strings.Builder</code> and <code>io.LimitReader</code> are placed into interface variables, then methods are called on them. This defeats Go&rsquo;s escape analysis, so both of these are allocated on the heap. The buffer is passed as a parameter on an interface, so again this defeats escape analysis and it is allocated on the heap.</p>
+<p>The 4th allocation is the one we expect. We need an allocation for the string itself. This is the call to <code>Grow</code> on the <code>StringBuilder</code>. This is a necessary as we&rsquo;re returning the string to our caller. We&rsquo;re not aiming to get rid of this.</p>
+<h2 id="second-attempt">Second attempt</h2>
+<p>Our first attempt was not so great. I picked <code>strings.Builder</code> as it&rsquo;s intended as a way to build a string without causing an additional allocation converting the <code>[]byte</code> you build it in to a string. Before it existed I&rsquo;d nearly always do a trick with unsafe to avoid that allocation. What if we go back to that older way of operating? Then we can build our string directly in a <code>[]byte</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+	l, err <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">ReadVarint</span>(r)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
 	}
-	b := make([]byte, l)
-	_, err = io.ReadFull(r, b)
-	return *(*string)(unsafe.Pointer(&amp;b)), err
+	b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, l)
+	_, err = io.<span style="color:#50fa7b">ReadFull</span>(r, b)
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">string</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>b)), err
 }
-</code></pre>
-<p>With this version we avoid using <code>io.CopyN</code>, so hopefully we avoid some allocations. Here's the new result from the benchmark.</p>
+</code></pre></div><p>With this version we avoid using <code>io.CopyN</code>, so hopefully we avoid some allocations. Here&rsquo;s the new result from the benchmark.</p>
 <pre><code>BenchmarkReadString-16    	24335883	  44.3 ns/op	  8 B/op	1 allocs/op
-</code></pre>
-<p>OK, that's much better. But it still seems quite slow considering what it is doing. Let's get a CPU benchmark and see what's going on.</p>
+</code></pre><p>OK, that&rsquo;s much better. But it still seems quite slow considering what it is doing. Let&rsquo;s get a CPU benchmark and see what&rsquo;s going on.</p>
 <pre><code>go test -run ^$ -bench BenchmarkReadString -cpuprofile cpi.prof
 go tool pprof -http :6060 blah.test cpu.prof
-</code></pre>
-<p><img src="/post/readercpuprof2.png" alt="runtime.convI2I uses quite a bit of CPU"></p>
-<p>What's this <code>runtime.convI2I</code> thing? There's a wonderful blog post <a href="https://savo.la/sneaky-go-interface-conversion.html">here</a> that explains it. It converts one interface to another. I've defined my own <code>Reader</code> interface, and I need to convert that to an <code>io.ByteReader</code> to call <code>binary.ReadVarint</code> and to an <code>io.Reader</code> to call <code>io.ReadFull</code> and both of those operations take time.</p>
-<h2>Third attempt</h2>
-<p>Say I think I'm always going to be reading these strings from a file. Practically I'd always wrap the file in a <code>bufio.Reader</code>. What happens if I change my function to take this concrete type instead?</p>
-<pre><code class="language-go">func readString(r *bufio.Reader) (string, error) {
-	l, err := binary.ReadVarint(r)
-	if err != nil {
-		return &quot;&quot;, err
+</code></pre><p><img src="/post/readercpuprof2.png" alt="runtime.convI2I uses quite a bit of CPU"></p>
+<p>What&rsquo;s this <code>runtime.convI2I</code> thing? There&rsquo;s a wonderful blog post <a href="https://savo.la/sneaky-go-interface-conversion.html">here</a> that explains it. It converts one interface to another. I&rsquo;ve defined my own <code>Reader</code> interface, and I need to convert that to an <code>io.ByteReader</code> to call <code>binary.ReadVarint</code> and to an <code>io.Reader</code> to call <code>io.ReadFull</code> and both of those operations take time.</p>
+<h2 id="third-attempt">Third attempt</h2>
+<p>Say I think I&rsquo;m always going to be reading these strings from a file. Practically I&rsquo;d always wrap the file in a <code>bufio.Reader</code>. What happens if I change my function to take this concrete type instead?</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r <span style="color:#ff79c6">*</span>bufio.Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+	l, err <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">ReadVarint</span>(r)
+	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
 	}
-	b := make([]byte, l)
-	_, err = io.ReadFull(r, b)
-	return *(*string)(unsafe.Pointer(&amp;b)), err
+	b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, l)
+	_, err = io.<span style="color:#50fa7b">ReadFull</span>(r, b)
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">string</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>b)), err
 }
-</code></pre>
-<p>Well, the call to runtime.convI2I goes away, but overall it is no faster, probably because I've added quite a bit of complexity with layers of readers. If I change the benchmark around a bit to reduce the overhead of resetting the readers things improve.</p>
-<pre><code class="language-go">func BenchmarkReadString(b *testing.B) {
-	data := bytes.Repeat([]byte{16, 'c', 'h', 'e', 'e', 's', 'e', 'i', 't'}, 1000)
-	b.ReportAllocs()
-	r := bytes.NewReader(nil)
-	buf := bufio.NewReader(nil)
-	for i := 0; i &lt; b.N; i += 1000 {
-		r.Reset(data)
-		buf.Reset(r)
-		for j := 0; j &lt; 1000; j++ {
-			if _, err := readString(buf); err != nil {
-				b.Fatal(err)
+</code></pre></div><p>Well, the call to runtime.convI2I goes away, but overall it is no faster, probably because I&rsquo;ve added quite a bit of complexity with layers of readers. If I change the benchmark around a bit to reduce the overhead of resetting the readers things improve.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	data <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">Repeat</span>([]<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}, <span style="color:#bd93f9">1000</span>)
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	r <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
+	buf <span style="color:#ff79c6">:=</span> bufio.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i <span style="color:#ff79c6">+=</span> <span style="color:#bd93f9">1000</span> {
+		r.<span style="color:#50fa7b">Reset</span>(data)
+		buf.<span style="color:#50fa7b">Reset</span>(r)
+		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; j &lt; <span style="color:#bd93f9">1000</span>; j<span style="color:#ff79c6">++</span> {
+			<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">readString</span>(buf); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+				b.<span style="color:#50fa7b">Fatal</span>(err)
 			}
 		}
 	}
 }
-</code></pre>
-<pre><code>BenchmarkReadString-16 	31674597	   33.9 ns/op	     8 B/op	    1 allocs/op
-</code></pre>
-<h2>4th attempt</h2>
-<p>So what if we go back to basics and accept our data just as a <code>[]byte</code>? We don't need to make any function calls to access the data. But we do need to change our function signature to let the caller know how much data we've used. And we need to check there's enough data to read.</p>
-<pre><code class="language-go">func readString(data []byte) (string, int, error) {
-    l, n := binary.Varint(data)
-    if n == 0 {
-        return &quot;&quot;, 0, io.ErrUnexpectedEOF
+</code></pre></div><pre><code>BenchmarkReadString-16 	31674597	   33.9 ns/op	     8 B/op	    1 allocs/op
+</code></pre><h2 id="4th-attempt">4th attempt</h2>
+<p>So what if we go back to basics and accept our data just as a <code>[]byte</code>? We don&rsquo;t need to make any function calls to access the data. But we do need to change our function signature to let the caller know how much data we&rsquo;ve used. And we need to check there&rsquo;s enough data to read.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(data []<span style="color:#8be9fd">byte</span>) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+    l, n <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">Varint</span>(data)
+    <span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#bd93f9">0</span>, io.ErrUnexpectedEOF
     }
-    if n &lt; 0 {
-        return &quot;&quot;, 0, fmt.Errorf(&quot;invalid length&quot;)
+    <span style="color:#ff79c6">if</span> n &lt; <span style="color:#bd93f9">0</span> {
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;invalid length&#34;</span>)
     }
-    if n+int(l) &gt; len(data) {
-        return &quot;&quot;, 0, io.ErrUnexpectedEOF
+    <span style="color:#ff79c6">if</span> n<span style="color:#ff79c6">+</span><span style="color:#8be9fd;font-style:italic">int</span>(l) &gt; <span style="color:#8be9fd;font-style:italic">len</span>(data) {
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#bd93f9">0</span>, io.ErrUnexpectedEOF
     }
 
-	// Casting []byte to string causes an allocation, but we want that here as 
-	// we don't want to hold onto the data []byte
-    return string(data[n : n+int(l)]), n + int(l), nil
+	<span style="color:#6272a4">// Casting []byte to string causes an allocation, but we want that here as 
+</span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// we don&#39;t want to hold onto the data []byte
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">string</span>(data[n : n<span style="color:#ff79c6">+</span><span style="color:#8be9fd;font-style:italic">int</span>(l)]), n <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">int</span>(l), <span style="color:#ff79c6">nil</span>
 }
-</code></pre>
-<p>Here's the benchmark result.</p>
+</code></pre></div><p>Here&rsquo;s the benchmark result.</p>
 <pre><code>BenchmarkReadStringC-16   41971776	   24.2 ns/op	     8 B/op	    1 allocs/op
-</code></pre>
-<p>We're down to about the time it takes for the allocation for the string. The time taken parsing the string is now negligable. And it now takes 1/7th of the time it took when we used interfaces and all the shiny toys from the Go standard libraries.</p>
-<p>Don't get me wrong. <code>io.Reader</code> &amp; <code>io.Writer</code> are both fabulous, and the plug-and-play nature of them can be very convenient. And when moving large chunks of data the overheads are minor. But parsers and marshalers and other low-level things should probably avoid them, or at least provide options to work directly with byte slices.</p>
-<h2>Bonus content</h2>
-<p>OK, OK, this post is really over already, but we kind of cheated above. If our data is very large and isn't framed in some way then perhaps we can't load complete records into a <code>[]byte</code> to process. In those cases we'd need to implement some kind of buffering. But from the lessons above we would want to implement our buffer as a concrete type and have it provide direct access to it's internal <code>[]byte</code>.</p>
+</code></pre><p>We&rsquo;re down to about the time it takes for the allocation for the string. The time taken parsing the string is now negligable. And it now takes 1/7th of the time it took when we used interfaces and all the shiny toys from the Go standard libraries.</p>
+<p>Don&rsquo;t get me wrong. <code>io.Reader</code> &amp; <code>io.Writer</code> are both fabulous, and the plug-and-play nature of them can be very convenient. And when moving large chunks of data the overheads are minor. But parsers and marshalers and other low-level things should probably avoid them, or at least provide options to work directly with byte slices.</p>
+<h2 id="bonus-content">Bonus content</h2>
+<p>OK, OK, this post is really over already, but we kind of cheated above. If our data is very large and isn&rsquo;t framed in some way then perhaps we can&rsquo;t load complete records into a <code>[]byte</code> to process. In those cases we&rsquo;d need to implement some kind of buffering. But from the lessons above we would want to implement our buffer as a concrete type and have it provide direct access to it&rsquo;s internal <code>[]byte</code>.</p>
 <p>The <code>Next()</code> method on <a href="https://golang.org/pkg/bytes/#Buffer"><code>bytes.Buffer</code></a> is a great model here. It lets you see the next n bytes from the buffer directly with no copying, but also allows you to advance the read point. <code>bufio.Reader</code> has <a href="https://golang.org/pkg/bufio/#Reader.Peek"><code>Peek()</code></a> and <code>Discard()</code>, which allows almost the same access but is quite awkward.</p>
-<p>I've knocked together the following implementation to prove the point. The primary interface to this is <code>Next()</code> which just returns the next l bytes of the internal buffer. It attempts to refill from the underlying reader if not enough bytes are available. Despite dissing on <code>Peek</code> ad <code>Discard</code> I've also implemented similar functions here too, as well as a <code>Refill</code> to manually trigger a refill of the buffer from the reader.</p>
-<pre><code class="language-go">func NewBuffer() *Buffer {
-	return &amp;Buffer{
-		data: make([]byte, 1000),
+<p>I&rsquo;ve knocked together the following implementation to prove the point. The primary interface to this is <code>Next()</code> which just returns the next l bytes of the internal buffer. It attempts to refill from the underlying reader if not enough bytes are available. Despite dissing on <code>Peek</code> ad <code>Discard</code> I&rsquo;ve also implemented similar functions here too, as well as a <code>Refill</code> to manually trigger a refill of the buffer from the reader.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">NewBuffer</span>() <span style="color:#ff79c6">*</span>Buffer {
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>Buffer{
+		data: <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">1000</span>),
 	}
 }
 
-type Buffer struct {
-	data []byte
-	i    int
+<span style="color:#8be9fd;font-style:italic">type</span> Buffer <span style="color:#8be9fd;font-style:italic">struct</span> {
+	data []<span style="color:#8be9fd">byte</span>
+	i    <span style="color:#8be9fd">int</span>
 	r    io.Reader
-	err  error
+	err  <span style="color:#8be9fd">error</span>
 }
 
-func (b *Buffer) Reset(r io.Reader) {
-	b.data = b.data[:0]
-	b.i = 0
-	b.err = nil
+<span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Reset</span>(r io.Reader) {
+	b.data = b.data[:<span style="color:#bd93f9">0</span>]
+	b.i = <span style="color:#bd93f9">0</span>
+	b.err = <span style="color:#ff79c6">nil</span>
 	b.r = r
 }
 
-func (b *Buffer) Next(l int) ([]byte, error) {
-	if b.i+l &gt; len(b.data) {
-		// Asking for more data than we have. refill
-		if err := b.refill(l); err != nil {
-			return nil, err
+<span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Next</span>(l <span style="color:#8be9fd">int</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
+	<span style="color:#ff79c6">if</span> b.i<span style="color:#ff79c6">+</span>l &gt; <span style="color:#8be9fd;font-style:italic">len</span>(b.data) {
+		<span style="color:#6272a4">// Asking for more data than we have. refill
+</span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">refill</span>(l); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+			<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, err
 		}
 	}
 
-	b.i += l
-	return b.data[b.i-l : b.i], nil
+	b.i <span style="color:#ff79c6">+=</span> l
+	<span style="color:#ff79c6">return</span> b.data[b.i<span style="color:#ff79c6">-</span>l : b.i], <span style="color:#ff79c6">nil</span>
 }
 
-// Peek allows direct access to the current remaining buffer
-func (b *Buffer) Peek() []byte {
-	return b.data[b.i:]
+<span style="color:#6272a4">// Peek allows direct access to the current remaining buffer
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Peek</span>() []<span style="color:#8be9fd">byte</span> {
+	<span style="color:#ff79c6">return</span> b.data[b.i:]
 }
 
-// Dicard consumes data in the current buffer
-func (b *Buffer) Discard(n int) {
-	b.i += n
+<span style="color:#6272a4">// Dicard consumes data in the current buffer
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Discard</span>(n <span style="color:#8be9fd">int</span>) {
+	b.i <span style="color:#ff79c6">+=</span> n
 }
 
-// Refill forces the buffer to try to put at least one more byte into its buffer
-func (b *Buffer) Refill() error {
-	return b.refill(1)
+<span style="color:#6272a4">// Refill forces the buffer to try to put at least one more byte into its buffer
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Refill</span>() <span style="color:#8be9fd">error</span> {
+	<span style="color:#ff79c6">return</span> b.<span style="color:#50fa7b">refill</span>(<span style="color:#bd93f9">1</span>)
 }
 
-func (b *Buffer) refill(l int) error {
-	if b.err != nil {
-		// We already know we can't get more data
-		return b.err
+<span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">refill</span>(l <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">error</span> {
+	<span style="color:#ff79c6">if</span> b.err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#6272a4">// We already know we can&#39;t get more data
+</span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">return</span> b.err
 	}
 
-	// fill the rest of the buffer from the reader
-	if b.r != nil {
-		// shift existing data down over the read portion of the buffer
-		n := copy(b.data[:cap(b.data)], b.data[b.i:])
-		b.i = 0
+	<span style="color:#6272a4">// fill the rest of the buffer from the reader
+</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> b.r <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+		<span style="color:#6272a4">// shift existing data down over the read portion of the buffer
+</span><span style="color:#6272a4"></span>		n <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">copy</span>(b.data[:<span style="color:#8be9fd;font-style:italic">cap</span>(b.data)], b.data[b.i:])
+		b.i = <span style="color:#bd93f9">0</span>
 
-		read, err := io.ReadFull(b.r, b.data[n:cap(b.data)])
+		read, err <span style="color:#ff79c6">:=</span> io.<span style="color:#50fa7b">ReadFull</span>(b.r, b.data[n:<span style="color:#8be9fd;font-style:italic">cap</span>(b.data)])
 
-		b.data = b.data[:n+read]
-		if err == io.ErrUnexpectedEOF {
+		b.data = b.data[:n<span style="color:#ff79c6">+</span>read]
+		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">==</span> io.ErrUnexpectedEOF {
 			err = io.EOF
 		}
 		b.err = err
 	}
 
-	if b.i+l &gt; len(b.data) {
-		// Still not enough data
-		return io.ErrUnexpectedEOF
+	<span style="color:#ff79c6">if</span> b.i<span style="color:#ff79c6">+</span>l &gt; <span style="color:#8be9fd;font-style:italic">len</span>(b.data) {
+		<span style="color:#6272a4">// Still not enough data
+</span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">return</span> io.ErrUnexpectedEOF
 	}
 
-	return nil
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 }
 
-</code></pre>
-<p>The readString function now looks like the following</p>
-<pre><code class="language-go">func readString(b *Buffer) (string, error) {
-	l, n := binary.Varint(b.Peek())
-	for n == 0 {
-		// Not enough data to read the varint. Can we get more?
-		if err := b.Refill(); err != nil {
-			return &quot;&quot;, err
+</code></pre></div><p>The readString function now looks like the following</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(b <span style="color:#ff79c6">*</span>Buffer) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+	l, n <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">Varint</span>(b.<span style="color:#50fa7b">Peek</span>())
+	<span style="color:#ff79c6">for</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
+		<span style="color:#6272a4">// Not enough data to read the varint. Can we get more?
+</span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">Refill</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+			<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
 		}
-		l, n = binary.Varint(b.Peek())
+		l, n = binary.<span style="color:#50fa7b">Varint</span>(b.<span style="color:#50fa7b">Peek</span>())
 	}
-	if n &lt; 0 {
-		return &quot;&quot;, fmt.Errorf(&quot;blah&quot;)
+	<span style="color:#ff79c6">if</span> n &lt; <span style="color:#bd93f9">0</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;blah&#34;</span>)
 	}
-	b.Discard(n)
+	b.<span style="color:#50fa7b">Discard</span>(n)
 
-	if l &lt; 0 {
-		return &quot;&quot;, fmt.Errorf(&quot;negative length&quot;)
+	<span style="color:#ff79c6">if</span> l &lt; <span style="color:#bd93f9">0</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;negative length&#34;</span>)
 	}
 
-	s, err := b.Next(int(l))
-	return string(s), err
+	s, err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">Next</span>(<span style="color:#8be9fd;font-style:italic">int</span>(l))
+	<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">string</span>(s), err
 }
-</code></pre>
-<p>I've also altered the benchmark so the cost of periodically resetting the buffer
+</code></pre></div><p>I&rsquo;ve also altered the benchmark so the cost of periodically resetting the buffer
 is spread out, and to force the buffer to read from the reader.</p>
-<pre><code class="language-go">func BenchmarkReadString(b *testing.B) {
-	data := bytes.Repeat([]byte{16, 'c', 'h', 'e', 'e', 's', 'e', 'i', 't'}, 1000)
-	b.ReportAllocs()
-	r := bytes.NewReader(nil)
-	buf := NewBuffer()
-	for i := 0; i &lt; b.N; i += 1000 {
-		r.Reset(data)
-		buf.Reset(r)
-		for j := 0; j &lt; 1000; j++ {
-			if _, err := readString(buf); err != nil {
-				b.Fatal(err)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+	data <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">Repeat</span>([]<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}, <span style="color:#bd93f9">1000</span>)
+	b.<span style="color:#50fa7b">ReportAllocs</span>()
+	r <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
+	buf <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">NewBuffer</span>()
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i <span style="color:#ff79c6">+=</span> <span style="color:#bd93f9">1000</span> {
+		r.<span style="color:#50fa7b">Reset</span>(data)
+		buf.<span style="color:#50fa7b">Reset</span>(r)
+		<span style="color:#ff79c6">for</span> j <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; j &lt; <span style="color:#bd93f9">1000</span>; j<span style="color:#ff79c6">++</span> {
+			<span style="color:#ff79c6">if</span> _, err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">readString</span>(buf); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+				b.<span style="color:#50fa7b">Fatal</span>(err)
 			}
 		}
 	}
 }
-</code></pre>
-<p>The benchmark results for this are pretty handy. It's perhaps slightly slower than using a byte slice directly, but now our parser can work with streaming data.</p>
+</code></pre></div><p>The benchmark results for this are pretty handy. It&rsquo;s perhaps slightly slower than using a byte slice directly, but now our parser can work with streaming data.</p>
 <pre><code>BenchmarkReadString-16   44789697	     27.2 ns/op	     8 B/op	    1 allocs/op
 </code></pre>
+</div>
 
-        </div>
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

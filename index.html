@@ -1,261 +1,226 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Phil Pearl's Blog</title>
+  <title>Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  <link href="https://philpearl.github.io/index.xml" rel="alternate" type="application/rss+xml" title="Phil Pearl's Blog" />
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="posts">
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/functionpointers/">What is a Go function variable?</a>
-                </h1>
-                <time datetime="2023-04-16 09:00:00 &#43;0000 UTC" class="post-date">Sun, Apr 16, 2023 </time>
-                I was surprised - perhaps you will be too!
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/anathema/">Breaking Printf</a>
-                </h1>
-                <time datetime="2021-11-07 12:00:00 &#43;0000 UTC" class="post-date">Sun, Nov  7, 2021 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/perf_time/">Faster time parsing</a>
-                </h1>
-                <time datetime="2021-10-01 12:00:00 &#43;0000 UTC" class="post-date">Fri, Oct  1, 2021 </time>
-                A story in 3 acts
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/context/">Context</a>
-                </h1>
-                <time datetime="2021-04-27 11:00:00 &#43;0000 UTC" class="post-date">Tue, Apr 27, 2021 </time>
-                Engineers - write more text
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/aintnecessarilyslow/">It ain&#39;t necessarily slow</a>
-                </h1>
-                <time datetime="2020-06-16 00:00:00 &#43;0000 UTC" class="post-date">Tue, Jun 16, 2020 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/reader/">[]byte versus io.Reader</a>
-                </h1>
-                <time datetime="2020-05-23 14:30:40 &#43;0000 UTC" class="post-date">Sat, May 23, 2020 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/nil_and_empty/">Nil versus empty slices</a>
-                </h1>
-                <time datetime="2020-04-25 13:39:00 &#43;0000 UTC" class="post-date">Sat, Apr 25, 2020 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/json_iter/">Search for a new JSON: jsoniter</a>
-                </h1>
-                <time datetime="2020-04-12 09:00:00 &#43;0000 UTC" class="post-date">Sun, Apr 12, 2020 </time>
-                Why did nobody tell me about this?
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/examining_evil/">Examining Evil</a>
-                </h1>
-                <time datetime="2020-01-25 00:00:00 &#43;0000 UTC" class="post-date">Sat, Jan 25, 2020 </time>
-                Evil is in the eye of the beholder
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/json_own_way/">Rebel Go: Forking encoding/json</a>
-                </h1>
-                <time datetime="2019-11-17 09:00:00 &#43;0000 UTC" class="post-date">Sun, Nov 17, 2019 </time>
-                What happens when I&#39;m left alone for too long
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/json_good/">Good Go: Contributing to encoding/json</a>
-                </h1>
-                <time datetime="2019-11-15 09:00:00 &#43;0000 UTC" class="post-date">Fri, Nov 15, 2019 </time>
-                Some sequences have been shortened
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/badgo_json/">Bad Go: Adventures with JSON marshalling</a>
-                </h1>
-                <time datetime="2019-10-05 09:00:00 &#43;0000 UTC" class="post-date">Sat, Oct  5, 2019 </time>
-                Adventures for the indoors
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bad_go_guessing/">Bad Go: guessing</a>
-                </h1>
-                <time datetime="2019-09-20 09:25:00 &#43;0000 UTC" class="post-date">Fri, Sep 20, 2019 </time>
-                Just write a benchmark
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bad_go_not_sizing_arrays/">Bad Go: not sizing slices</a>
-                </h1>
-                <time datetime="2019-09-05 09:25:00 &#43;0000 UTC" class="post-date">Thu, Sep  5, 2019 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bad_go_sprintf/">Bad Go: frivolous Sprintf</a>
-                </h1>
-                <time datetime="2019-09-01 09:25:00 &#43;0000 UTC" class="post-date">Sun, Sep  1, 2019 </time>
-                Sprintf is not always fastf
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bad_go_pointer_returns/">Bad Go: pointer returns</a>
-                </h1>
-                <time datetime="2019-08-30 15:30:00 &#43;0000 UTC" class="post-date">Fri, Aug 30, 2019 </time>
-                Mmmm, pointy
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bad_go_slice_of_pointers/">Bad Go: slices of pointers</a>
-                </h1>
-                <time datetime="2019-08-30 09:25:00 &#43;0000 UTC" class="post-date">Fri, Aug 30, 2019 </time>
-                Please don&#39;t
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/k8s_ingress/">Kubernetes&#39; dirty endpoint secret and Ingress</a>
-                </h1>
-                <time datetime="2019-07-26 18:07:00 &#43;0000 UTC" class="post-date">Fri, Jul 26, 2019 </time>
-                Grace is overrated
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/interface_at_what_cost/">Go interfaces, but at what cost?</a>
-                </h1>
-                <time datetime="2019-07-06 15:31:00 &#43;0000 UTC" class="post-date">Sat, Jul  6, 2019 </time>
-                Interfaces are not without overhead
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/json_embed/">JSON and embedding</a>
-                </h1>
-                <time datetime="2019-03-10 20:49:37 &#43;0000 UTC" class="post-date">Sun, Mar 10, 2019 </time>
-                Prefer composition over inheritance, but with JSON both of them can get in the sea.
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/why_of_go_strings/">The why of Go strings</a>
-                </h1>
-                <time datetime="2019-03-10 15:10:27 &#43;0000 UTC" class="post-date">Sun, Mar 10, 2019 </time>
-                A story about strings that might even be true.
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/danger_large_heap/">Further Dangers of Large Heaps in Go</a>
-                </h1>
-                <time datetime="2018-11-15 19:57:02 &#43;0000 UTC" class="post-date">Thu, Nov 15, 2018 </time>
-                Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/bytes_buffer_revisted/">bytes.Buffer revisited</a>
-                </h1>
-                <time datetime="2018-09-02 20:15:18 &#43;0000 UTC" class="post-date">Sun, Sep  2, 2018 </time>
-                Always be benchmarking
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/go_scratch_vm/">Go in a scratch VM</a>
-                </h1>
-                <time datetime="2018-06-04 20:19:41 &#43;0000 UTC" class="post-date">Mon, Jun  4, 2018 </time>
-                distributionless linux.
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/container_60/">A container image in 60* lines of Go</a>
-                </h1>
-                <time datetime="2018-04-29 22:05:50 &#43;0000 UTC" class="post-date">Sun, Apr 29, 2018 </time>
-                *Not really 60 lines
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/memory_for/">What’s all that memory for?</a>
-                </h1>
-                <time datetime="2018-04-17 22:27:40 &#43;0000 UTC" class="post-date">Tue, Apr 17, 2018 </time>
-                
-            </article>
-            
-            <article class="post">
-                <h1 class="post-title">
-                    <a href="./post/gc_bad/">GC is bad and you should feel bad</a>
-                </h1>
-                <time datetime="2018-01-24 22:35:54 &#43;0000 UTC" class="post-date">Wed, Jan 24, 2018 </time>
-                
-            </article>
-            
-        </div>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="posts">
+<article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/functionpointers/">What is a Go function variable?</a>
+  </h1>
+  <time datetime="2023-04-16T09:00:00Z" class="post-date">Sun, Apr 16, 2023</time>
+  I was surprised - perhaps you will be too!
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/anathema/">Breaking Printf</a>
+  </h1>
+  <time datetime="2021-11-07T12:00:00Z" class="post-date">Sun, Nov 7, 2021</time>
+  
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/perf_time/">Faster time parsing</a>
+  </h1>
+  <time datetime="2021-10-01T12:00:00Z" class="post-date">Fri, Oct 1, 2021</time>
+  A story in 3 acts
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/context/">Context</a>
+  </h1>
+  <time datetime="2021-04-27T11:00:00Z" class="post-date">Tue, Apr 27, 2021</time>
+  Engineers - write more text
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/aintnecessarilyslow/">It ain&#39;t necessarily slow</a>
+  </h1>
+  <time datetime="2020-06-16T00:00:00Z" class="post-date">Tue, Jun 16, 2020</time>
+  Reflection isn&#39;t always slow
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/reader/">[]byte versus io.Reader</a>
+  </h1>
+  <time datetime="2020-05-23T14:30:40Z" class="post-date">Sat, May 23, 2020</time>
+  I&#39;m rooting for the underdog
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/nil_and_empty/">Nil versus empty slices</a>
+  </h1>
+  <time datetime="2020-04-25T13:39:00Z" class="post-date">Sat, Apr 25, 2020</time>
+  No lock was held in the creation of this empty slice
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/json_iter/">Search for a new JSON: jsoniter</a>
+  </h1>
+  <time datetime="2020-04-12T09:00:00Z" class="post-date">Sun, Apr 12, 2020</time>
+  Why did nobody tell me about this?
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/examining_evil/">Examining Evil</a>
+  </h1>
+  <time datetime="2020-01-25T00:00:00Z" class="post-date">Sat, Jan 25, 2020</time>
+  Evil is in the eye of the beholder
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/json_own_way/">Rebel Go: Forking encoding/json</a>
+  </h1>
+  <time datetime="2019-11-17T09:00:00Z" class="post-date">Sun, Nov 17, 2019</time>
+  What happens when I&#39;m left alone for too long
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/json_good/">Good Go: Contributing to encoding/json</a>
+  </h1>
+  <time datetime="2019-11-15T09:00:00Z" class="post-date">Fri, Nov 15, 2019</time>
+  Some sequences have been shortened
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/badgo_json/">Bad Go: Adventures with JSON marshalling</a>
+  </h1>
+  <time datetime="2019-10-05T09:00:00Z" class="post-date">Sat, Oct 5, 2019</time>
+  Adventures for the indoors
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bad_go_guessing/">Bad Go: guessing</a>
+  </h1>
+  <time datetime="2019-09-20T09:25:00Z" class="post-date">Fri, Sep 20, 2019</time>
+  Just write a benchmark
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bad_go_not_sizing_arrays/">Bad Go: not sizing slices</a>
+  </h1>
+  <time datetime="2019-09-05T09:25:00Z" class="post-date">Thu, Sep 5, 2019</time>
+  
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bad_go_sprintf/">Bad Go: frivolous Sprintf</a>
+  </h1>
+  <time datetime="2019-09-01T09:25:00Z" class="post-date">Sun, Sep 1, 2019</time>
+  Sprintf is not always fastf
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bad_go_pointer_returns/">Bad Go: pointer returns</a>
+  </h1>
+  <time datetime="2019-08-30T15:30:00Z" class="post-date">Fri, Aug 30, 2019</time>
+  Mmmm, pointy
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bad_go_slice_of_pointers/">Bad Go: slices of pointers</a>
+  </h1>
+  <time datetime="2019-08-30T09:25:00Z" class="post-date">Fri, Aug 30, 2019</time>
+  Please don&#39;t
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/k8s_ingress/">Kubernetes&#39; dirty endpoint secret and Ingress</a>
+  </h1>
+  <time datetime="2019-07-26T18:07:00Z" class="post-date">Fri, Jul 26, 2019</time>
+  Grace is overrated
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/interface_at_what_cost/">Go interfaces, but at what cost?</a>
+  </h1>
+  <time datetime="2019-07-06T15:31:00Z" class="post-date">Sat, Jul 6, 2019</time>
+  Interfaces are not without overhead
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/json_embed/">JSON and embedding</a>
+  </h1>
+  <time datetime="2019-03-10T20:49:37Z" class="post-date">Sun, Mar 10, 2019</time>
+  Prefer composition over inheritance, but with JSON both of them can get in the sea.
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/why_of_go_strings/">The why of Go strings</a>
+  </h1>
+  <time datetime="2019-03-10T15:10:27Z" class="post-date">Sun, Mar 10, 2019</time>
+  A story about strings that might even be true.
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/danger_large_heap/">Further Dangers of Large Heaps in Go</a>
+  </h1>
+  <time datetime="2018-11-15T19:57:02Z" class="post-date">Thu, Nov 15, 2018</time>
+  Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/bytes_buffer_revisted/">bytes.Buffer revisited</a>
+  </h1>
+  <time datetime="2018-09-02T20:15:18Z" class="post-date">Sun, Sep 2, 2018</time>
+  Always be benchmarking
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/go_scratch_vm/">Go in a scratch VM</a>
+  </h1>
+  <time datetime="2018-06-04T20:19:41Z" class="post-date">Mon, Jun 4, 2018</time>
+  distributionless linux.
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/container_60/">A container image in 60* lines of Go</a>
+  </h1>
+  <time datetime="2018-04-29T22:05:50Z" class="post-date">Sun, Apr 29, 2018</time>
+  *Not really 60 lines
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/memory_for/">What’s all that memory for?</a>
+  </h1>
+  <time datetime="2018-04-17T22:27:40Z" class="post-date">Tue, Apr 17, 2018</time>
+  Perhaps it’s for storing strings?
+</article><article class="post">
+  <h1 class="post-title">
+    <a href="https://philpearl.github.io/post/gc_bad/">GC is bad and you should feel bad</a>
+  </h1>
+  <time datetime="2018-01-24T22:35:54Z" class="post-date">Wed, Jan 24, 2018</time>
+  Don&#39;t feel bad
+</article>
+</div>
     </main>
-    <footer>
-        <p>© 2016-2023 Phil Pearl</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

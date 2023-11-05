@@ -1,0 +1,53 @@
+goos: darwin
+goarch: amd64
+pkg: github.com/philpearl/blog/content/post
+BenchmarkEncodeMarshaler/encoding/json-16         	 3664753	       329 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3581221	       327 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3557161	       337 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3590289	       336 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3570427	       341 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3554175	       426 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3562359	       358 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/encoding/json-16         	 3216619	       376 ns/op	     240 B/op	       6 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7314663	       164 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7280070	       164 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7440098	       160 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7614811	       156 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7558377	       156 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7611516	       159 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7560208	       158 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/jsoniter-16              	 7333821	       162 ns/op	     120 B/op	       2 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 5710513	       207 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 5704364	       203 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 6296588	       190 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 6136276	       193 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 5738494	       209 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 5693352	       209 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 5884770	       202 ns/op	     336 B/op	       4 allocs/op
+BenchmarkEncodeMarshaler/easyjson-16              	 6073224	       192 ns/op	     336 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2465373	       500 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2384278	       504 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2366313	       506 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2367127	       506 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2314286	       519 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2306128	       512 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2356684	       507 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/encoding/json-16         	 2354781	       504 ns/op	     512 B/op	       9 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 7483016	       165 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 7200795	       168 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 6738348	       178 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 6714436	       176 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 6773624	       177 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 6808665	       174 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 6896662	       170 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/jsoniter-16              	 7056218	       170 ns/op	       5 B/op	       1 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5114914	       234 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5162996	       226 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5245971	       226 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5281237	       225 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5310758	       224 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5267359	       226 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5321240	       225 ns/op	     229 B/op	       4 allocs/op
+BenchmarkDecodeMarshaler/easyjson-16              	 5325301	       220 ns/op	     229 B/op	       4 allocs/op
+PASS
+ok  	github.com/philpearl/blog/content/post	71.163s

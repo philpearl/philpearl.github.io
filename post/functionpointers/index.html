@@ -1,230 +1,241 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>What is a Go function variable?</title>
-  <meta name="description" content="I was surprised - perhaps you will be too!"/> 
+  <title>What is a Go function variable? &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="I was surprised - perhaps you will be too!" />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/pointer.jpg" alt="Not the pointer you were expecting. Picture by Harold Meerveld https://www.flickr.com/photos/haroldmeerveld/17810348563" />
-                <figcaption>Not the pointer you were expecting. Picture by Harold Meerveld https://www.flickr.com/photos/haroldmeerveld/17810348563</figcaption> 
-            </figure>
-            
 
-            <h1>What is a Go function variable?</h1>
-            <p class="description" >I was surprised - perhaps you will be too!</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>Me: What's the audience for this post?</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/pointer.jpg" alt="Not the pointer you were expecting. Picture by Harold Meerveld https://www.flickr.com/photos/haroldmeerveld/17810348563">
+    <figcaption>Not the pointer you were expecting. Picture by Harold Meerveld https://www.flickr.com/photos/haroldmeerveld/17810348563</figcaption>
+  </figure>
+  
+
+  <h1>What is a Go function variable?</h1>
+  
+  <p class="lead">I was surprised - perhaps you will be too!</p>
+  
+
+  <time datetime=2023-04-16T09:00:00Z class="post-date">Sun, Apr 16, 2023</time>
+
+
+  <p>Me: What&rsquo;s the audience for this post?</p>
 <p>Also Me: People who write code in Go and care what a function variable actually is.</p>
-<p>Me: ...</p>
+<p>Me: &hellip;</p>
 <p>Also Me: I mean right down to the bits and bytes</p>
-<p>Me: ...</p>
-<p>Also Me: ...</p>
-<p>What is it that got me interested in writing this blog post, given I think it's likely to have an incredibly small audience?
+<p>Me: &hellip;</p>
+<p>Also Me: &hellip;</p>
+<p>What is it that got me interested in writing this blog post, given I think it&rsquo;s likely to have an incredibly small audience?
 Well, I wrote some code recently that uses a list of function variables, and I wanted to test that every function in the list had a unit test, and that every unit tested function was included in the list.
 So I needed to be able to compare function variables.</p>
-<p>But Go said &quot;no&quot;.</p>
-<p>Well, <a href="https://go.dev/play/p/Dm44vIMztWu">actually</a> it said <code>./prog.go:10:5: invalid operation: f1 == f2 (func can only be compared to nil)</code>, but that's just a long-winded way of saying no.</p>
-<p>How could I make it say &quot;yes&quot;? And what is it about function variables that you might not want to compare them?</p>
-<h2>So what is a function variable?</h2>
+<p>But Go said &ldquo;no&rdquo;.</p>
+<p>Well, <a href="https://go.dev/play/p/Dm44vIMztWu">actually</a> it said <code>./prog.go:10:5: invalid operation: f1 == f2 (func can only be compared to nil)</code>, but that&rsquo;s just a long-winded way of saying no.</p>
+<p>How could I make it say &ldquo;yes&rdquo;? And what is it about function variables that you might not want to compare them?</p>
+<h2 id="so-what-is-a-function-variable">So what is a function variable?</h2>
 <p>Our first clue is that it can be compared to <code>nil</code>. To my mind that makes it a pointer or something like a slice or interface variable which contains a pointer.</p>
 <p>On 64 bit architectures, pointers are 8 bytes. How big is a function variable?</p>
-<pre><code class="language-go">	var f func()
-	fmt.Println(unsafe.Sizeof(f))
-</code></pre>
-<p>It turns out it is 8 bytes. So it is very likely a function variable (at least as Go is presently) is a pointer.</p>
-<p>If we add some parameters and a return value it's <a href="https://go.dev/play/p/gdt4OWpbIyK">still</a> 8 bytes.</p>
-<pre><code class="language-go">	var f func(a int, b string) error
-	fmt.Println(unsafe.Sizeof(f))
-</code></pre>
-<p>The obvious guess at this point is that a function variable is a pointer to the code in memory that implements the function. Can we prove that? Well, the runtime package allows us to <a href="https://pkg.go.dev/runtime@go1.20.3#Caller">extract information</a> about the code that calls a piece of code. We can make a function that prints it's own location in memory.</p>
-<pre><code class="language-go">func a() {
-	pc, _, _, _ := runtime.Caller(0)
-	fun := runtime.FuncForPC(pc)
-	fmt.Printf(&quot;a: entry 0x%x\n&quot;, fun.Entry())
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>()
+	fmt.<span style="color:#50fa7b">Println</span>(unsafe.<span style="color:#50fa7b">Sizeof</span>(f))
+</code></pre></div><p>It turns out it is 8 bytes. So it is very likely a function variable (at least as Go is presently) is a pointer.</p>
+<p>If we add some parameters and a return value it&rsquo;s <a href="https://go.dev/play/p/gdt4OWpbIyK">still</a> 8 bytes.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>(a <span style="color:#8be9fd">int</span>, b <span style="color:#8be9fd">string</span>) <span style="color:#8be9fd">error</span>
+	fmt.<span style="color:#50fa7b">Println</span>(unsafe.<span style="color:#50fa7b">Sizeof</span>(f))
+</code></pre></div><p>The obvious guess at this point is that a function variable is a pointer to the code in memory that implements the function. Can we prove that? Well, the runtime package allows us to <a href="https://pkg.go.dev/runtime@go1.20.3#Caller">extract information</a> about the code that calls a piece of code. We can make a function that prints it&rsquo;s own location in memory.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">a</span>() {
+	pc, _, _, _ <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">Caller</span>(<span style="color:#bd93f9">0</span>)
+	fun <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">FuncForPC</span>(pc)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;a: entry 0x%x\n&#34;</span>, fun.<span style="color:#50fa7b">Entry</span>())
 }
 
-</code></pre>
-<p><code>runtime.Caller(0)</code> returns information about the caller of <code>runtime.Caller</code>. The <code>pc</code> return value is the &quot;program counter&quot; - the location in memory of the code that called <code>runtime.Caller</code>. <code>runtime.FuncForPC</code> returns information about the function that includes a given program counter value. That information includes it's entry point: the location of the start of the function.</p>
+</code></pre></div><p><code>runtime.Caller(0)</code> returns information about the caller of <code>runtime.Caller</code>. The <code>pc</code> return value is the &ldquo;program counter&rdquo; - the location in memory of the code that called <code>runtime.Caller</code>. <code>runtime.FuncForPC</code> returns information about the function that includes a given program counter value. That information includes it&rsquo;s entry point: the location of the start of the function.</p>
 <p>We can also print the value of a function variable. So we can do the <a href="https://go.dev/play/p/Cc6cTqqfcgZ">following</a>.</p>
-<pre><code class="language-go">package main
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-import (
-	&quot;fmt&quot;
-	&quot;runtime&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
 )
 
-func main() {
-	a()
-	f := a
-	fmt.Printf(&quot;function variable: %p\n&quot;, f)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	<span style="color:#50fa7b">a</span>()
+	f <span style="color:#ff79c6">:=</span> a
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;function variable: %p\n&#34;</span>, f)
 }
 
-func a() {
-	pc, _, _, _ := runtime.Caller(0)
-	fun := runtime.FuncForPC(pc)
-	fmt.Printf(&quot;a: entry 0x%x\n&quot;, fun.Entry())
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">a</span>() {
+	pc, _, _, _ <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">Caller</span>(<span style="color:#bd93f9">0</span>)
+	fun <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">FuncForPC</span>(pc)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;a: entry 0x%x\n&#34;</span>, fun.<span style="color:#50fa7b">Entry</span>())
 }
-</code></pre>
-<p>The output is as follows</p>
-<pre><code class="language-text">a: entry 0x482a00
+</code></pre></div><p>The output is as follows</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">a: entry 0x482a00
 function variable: 0x482a00
-</code></pre>
-<h2>We have our answer</h2>
+</code></pre></div><h2 id="we-have-our-answer">We have our answer</h2>
 <p>A function variable is a pointer to the code, and we can <a href="https://go.dev/play/p/-1gWCOrs6y9">trick go</a> into allowing us to compare them.</p>
-<pre><code class="language-go">package main
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-import (
-	&quot;fmt&quot;
-	&quot;unsafe&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
 )
 
-func main() {
-	fmt.Println(sameFunction(a, b))
-	fmt.Println(sameFunction(a, a))
-	fmt.Println(sameFunction(b, b))
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#50fa7b">sameFunction</span>(a, b))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#50fa7b">sameFunction</span>(a, a))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#50fa7b">sameFunction</span>(b, b))
 }
 
-func sameFunction(f1, f2 func()) bool {
-	return *(*uintptr)((unsafe.Pointer)(&amp;f1)) == *(*uintptr)((unsafe.Pointer)(&amp;f2))
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">sameFunction</span>(f1, f2 <span style="color:#8be9fd;font-style:italic">func</span>()) <span style="color:#8be9fd">bool</span> {
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f1)) <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f2))
 }
 
-func a() {}
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">a</span>() {}
 
-func b() {}
-</code></pre>
-<h2>Errrr.. wait a minute</h2>
-<p>If it's so easy why doesn't Go let you make this comparison without all this palaver?</p>
-<p>Let's take a look at what happens when we pass a method as the function.</p>
-<pre><code class="language-go">package main
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">b</span>() {}
+</code></pre></div><h2 id="errrr-wait-a-minute">Errrr.. wait a minute</h2>
+<p>If it&rsquo;s so easy why doesn&rsquo;t Go let you make this comparison without all this palaver?</p>
+<p>Let&rsquo;s take a look at what happens when we pass a method as the function.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-import (
-	&quot;fmt&quot;
-	&quot;unsafe&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
 )
 
-func main() {
-	one := integer(1)
-	two := integer(2)
-	oneAgain := integer(1)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	one <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
+	two <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">2</span>)
+	oneAgain <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
 
-	fmt.Printf(&quot;%p %p %p\n&quot;, one.v, two.v, oneAgain.v)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;%p %p %p\n&#34;</span>, one.v, two.v, oneAgain.v)
 
-	fmt.Println(&quot;one matches two:&quot;, sameFunction(one.v, two.v))
-	fmt.Println(&quot;one matches a different one:&quot;, sameFunction(one.v, oneAgain.v))
-	fmt.Println(&quot;one matches itself:&quot;, sameFunction(one.v, one.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches two:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, two.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches a different one:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, oneAgain.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches itself:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, one.v))
 }
 
-func sameFunction(f1, f2 func() int) bool {
-	fmt.Printf(&quot;sameFunction: %p %p\n&quot;, f1, f2)
-	return *(*uintptr)((unsafe.Pointer)(&amp;f1)) == *(*uintptr)((unsafe.Pointer)(&amp;f2))
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">sameFunction</span>(f1, f2 <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">bool</span> {
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;sameFunction: %p %p\n&#34;</span>, f1, f2)
+	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f1)) <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f2))
 }
 
-type integer int
+<span style="color:#8be9fd;font-style:italic">type</span> integer <span style="color:#8be9fd">int</span>
 
-func (i integer) v() int { return int(i) }
-</code></pre>
-<p>Here's the result.
+<span style="color:#8be9fd;font-style:italic">func</span> (i integer) <span style="color:#50fa7b">v</span>() <span style="color:#8be9fd">int</span> { <span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">int</span>(i) }
+</code></pre></div><p>Here&rsquo;s the result.
 Everything about it is wrong.
 The <code>fmt.Printf(&quot;%p&quot;)</code> values all look the same, but the comparisons all fail.</p>
-<pre><code class="language-text">0x482dc0 0x482dc0 0x482dc0
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">0x482dc0 0x482dc0 0x482dc0
 sameFunction: 0x482dc0 0x482dc0
 one matches two: false
 sameFunction: 0x482dc0 0x482dc0
 one matches a different one: false
 sameFunction: 0x482dc0 0x482dc0
 one matches itself: false
-</code></pre>
-<p>Intuitively <code>one.v</code> should not be the same function as <code>two.v</code> as they always give different results.
-But they're implemented with the same code, so in another interpretation they should be the same function.</p>
+</code></pre></div><p>Intuitively <code>one.v</code> should not be the same function as <code>two.v</code> as they always give different results.
+But they&rsquo;re implemented with the same code, so in another interpretation they should be the same function.</p>
 <p>We could expect <code>one.v</code> to equal <code>oneAgain.v</code> as they always give the same value.
-But here they're different instances, so it would also be reasonable to say they are different.</p>
+But here they&rsquo;re different instances, so it would also be reasonable to say they are different.</p>
 <p>We certainly would hope that <code>one.v</code> would equal <code>one.v</code>.
 Surely?
 Apparently not.</p>
-<h2>Well, that's weird</h2>
-<p>Let's make our function print its own location again.
-And let's print the values we're actually comparing as well as the &quot;%p&quot; values now we know they are different.
-And we'll call our <code>v</code> method on each of our objects and get it to print where it thinks it is.</p>
-<pre><code class="language-go">package main
+<h2 id="well-thats-weird">Well, that&rsquo;s weird</h2>
+<p>Let&rsquo;s make our function print its own location again.
+And let&rsquo;s print the values we&rsquo;re actually comparing as well as the &ldquo;%p&rdquo; values now we know they are different.
+And we&rsquo;ll call our <code>v</code> method on each of our objects and get it to print where it thinks it is.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-import (
-	&quot;fmt&quot;
-	&quot;runtime&quot;
-	&quot;unsafe&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
+	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
 )
 
-func main() {
-	one := integer(1)
-	two := integer(2)
-	oneAgain := integer(1)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	one <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
+	two <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">2</span>)
+	oneAgain <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
 
-	fmt.Printf(&quot;%p %p %p\n&quot;, one.v, two.v, oneAgain.v)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;%p %p %p\n&#34;</span>, one.v, two.v, oneAgain.v)
 
-	fmt.Println(&quot;one matches two:&quot;, sameFunction(one.v, two.v))
-	fmt.Println(&quot;one matches a different one:&quot;, sameFunction(one.v, oneAgain.v))
-	fmt.Println(&quot;one matches itself:&quot;, sameFunction(one.v, one.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches two:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, two.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches a different one:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, oneAgain.v))
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;one matches itself:&#34;</span>, <span style="color:#50fa7b">sameFunction</span>(one.v, one.v))
 
-	one.v()
-	two.v()
-	oneAgain.v()
+	one.<span style="color:#50fa7b">v</span>()
+	two.<span style="color:#50fa7b">v</span>()
+	oneAgain.<span style="color:#50fa7b">v</span>()
 }
 
-func sameFunction(f1, f2 func() int) bool {
-    f1Val := *(*uintptr)((unsafe.Pointer)(&amp;f1))
-    f2Val := *(*uintptr)((unsafe.Pointer)(&amp;f2))
-	fmt.Printf(&quot;sameFunction: %p(0x%x) %p(0x%x)\n&quot;, f1, f1Val, f2, f2Val)
-	return f1Val == f2Val
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">sameFunction</span>(f1, f2 <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">bool</span> {
+    f1Val <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f1))
+    f2Val <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">uintptr</span>)((unsafe.Pointer)(<span style="color:#ff79c6">&amp;</span>f2))
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;sameFunction: %p(0x%x) %p(0x%x)\n&#34;</span>, f1, f1Val, f2, f2Val)
+	<span style="color:#ff79c6">return</span> f1Val <span style="color:#ff79c6">==</span> f2Val
 }
 
-type integer int
+<span style="color:#8be9fd;font-style:italic">type</span> integer <span style="color:#8be9fd">int</span>
 
-func (i integer) v() int {
-	pc, _, _, _ := runtime.Caller(0)
-	fun := runtime.FuncForPC(pc)
-	fmt.Printf(&quot;v,%d: entry 0x%x\n&quot;, i, fun.Entry())
-	return int(i)
+<span style="color:#8be9fd;font-style:italic">func</span> (i integer) <span style="color:#50fa7b">v</span>() <span style="color:#8be9fd">int</span> {
+	pc, _, _, _ <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">Caller</span>(<span style="color:#bd93f9">0</span>)
+	fun <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">FuncForPC</span>(pc)
+	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;v,%d: entry 0x%x\n&#34;</span>, i, fun.<span style="color:#50fa7b">Entry</span>())
+	<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">int</span>(i)
 }
-</code></pre>
-<p>There are a few things to notice here</p>
+</code></pre></div><p>There are a few things to notice here</p>
 <ol>
-<li>The values we're comparing are nothing like the values displayed by <code>&quot;%p&quot;</code></li>
-<li>The functions called are at slightly different locations to the <code>&quot;%p&quot;</code> of the function values we're calling.</li>
+<li>The values we&rsquo;re comparing are nothing like the values displayed by <code>&quot;%p&quot;</code></li>
+<li>The functions called are at slightly different locations to the <code>&quot;%p&quot;</code> of the function values we&rsquo;re calling.</li>
 </ol>
-<pre><code class="language-text">0x483200 0x483200 0x483200
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">0x483200 0x483200 0x483200
 sameFunction: 0x483200(0xc0000b2050) 0x483200(0xc0000b2060)
 one matches two: false
 sameFunction: 0x483200(0xc0000b2080) 0x483200(0xc0000b2090)
@@ -234,55 +245,48 @@ one matches itself: false
 v,1: entry 0x483120
 v,2: entry 0x483120
 v,1: entry 0x483120
-</code></pre>
-<h2>OK, OK, OK, let's just back up for a minute</h2>
-<p>We believe our function variables are pointers, but they don't seem to be pointing to the code to execute. Let's try looking at what happens when you call a function variable.</p>
-<pre><code class="language-go">func call(f func() int) {
-	f()
+</code></pre></div><h2 id="ok-ok-ok-lets-just-back-up-for-a-minute">OK, OK, OK, let&rsquo;s just back up for a minute</h2>
+<p>We believe our function variables are pointers, but they don&rsquo;t seem to be pointing to the code to execute. Let&rsquo;s try looking at what happens when you call a function variable.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">call</span>(f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span>) {
+	<span style="color:#50fa7b">f</span>()
 }
-</code></pre>
-<p>We can disassemble this at the wonderful <a href="https://godbolt.org/z/PP9cxrT1M">godbolt.org</a>. Below is what we find (I've assumed amd64 architecture below - I'm sure other architectures will be largely similar).</p>
-<pre><code class="language-asm">        MOVQ    (AX), CX
-        MOVQ    AX, DX
-        PCDATA  $1, $1
-        CALL    CX
-</code></pre>
-<p>Unfortunately this is a little hard to interpret. <code>MOVQ</code> means &quot;move quad-word&quot;. In this context a word is 2 bytes, so &quot;quad-word&quot; means this is about moving 4 * 2 = 8 byte values. <code>AX</code>, <code>CX</code> and <code>DX</code> are CPU registers. <code>PCDATA</code> appears to be annotation for the Go toolchain which we can ignore. <code>CALL</code> is where the function call is actioned.</p>
+</code></pre></div><p>We can disassemble this at the wonderful <a href="https://godbolt.org/z/PP9cxrT1M">godbolt.org</a>. Below is what we find (I&rsquo;ve assumed amd64 architecture below - I&rsquo;m sure other architectures will be largely similar).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm">        <span style="color:#50fa7b">MOVQ</span>    (AX), CX
+        <span style="color:#50fa7b">MOVQ</span>    AX, DX
+        <span style="color:#50fa7b">PCDATA</span>  $1, $1
+        <span style="color:#50fa7b">CALL</span>    CX
+</code></pre></div><p>Unfortunately this is a little hard to interpret. <code>MOVQ</code> means &ldquo;move quad-word&rdquo;. In this context a word is 2 bytes, so &ldquo;quad-word&rdquo; means this is about moving 4 * 2 = 8 byte values. <code>AX</code>, <code>CX</code> and <code>DX</code> are CPU registers. <code>PCDATA</code> appears to be annotation for the Go toolchain which we can ignore. <code>CALL</code> is where the function call is actioned.</p>
 <p><code>(AX)</code> means take the value of the AX register, go to that location in memory and read the value from there. If AX contains the value of the function variable, then <code>MOVQ (AX), CX</code> treats this as a pointer and puts the 8 byte value it points to in CX.</p>
 <p><code>CALL CX</code> calls that value.</p>
-<p>So the function variable doesn't point to the function code. It points to a pointer to the function code.</p>
+<p>So the function variable doesn&rsquo;t point to the function code. It points to a pointer to the function code.</p>
 <p><code>MOVQ AX, DX</code> puts the value of AX into DX, which means the function variable value will be available to the function called by <code>CALL CX</code> (it can read the DX register). This is quite clever. Our function variable could be pointing to something larger than just a code pointer. It could be followed by, say, receiver and parameter values for method calls and closures. By passing the memory pointed to by the function variable to the called function, that called function could be a wrapper around the real function that knows how to apply the receiver and/or parameter values.</p>
-<p>This does indeed appear to be how it works. If we <a href="https://godbolt.org/z/8P5d8rdfs">disassemble</a> code that puts a method in a function variable we can see this being set up. (Again, unfortunately the output is hideous to interpret - you'll have to trust that I've pulled out the interesting things below!)</p>
-<pre><code class="language-go">	one := integer(1)
+<p>This does indeed appear to be how it works. If we <a href="https://godbolt.org/z/8P5d8rdfs">disassemble</a> code that puts a method in a function variable we can see this being set up. (Again, unfortunately the output is hideous to interpret - you&rsquo;ll have to trust that I&rsquo;ve pulled out the interesting things below!)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	one <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
 
-    var f func() int = one.v
-</code></pre>
-<pre><code class="language-asm">        LEAQ    type.noalg.struct { F uintptr; R &quot;&quot;.integer }(SB), AX
-        CALL    runtime.newobject(SB)
-        MOVQ    AX, &quot;&quot;..autotmp_3+24(SP)
-        LEAQ    &quot;&quot;.integer.v-fm(SB), CX
-        MOVQ    CX, (AX)
-        MOVQ    $1, 8(AX)
-</code></pre>
-<p>The first line above gives us a huge clue what's going on. The code is essentially as follows.</p>
-<pre><code class="language-go">var f func() int = &amp;struct {
-    F uintptr
+    <span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span> = one.v
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm">        <span style="color:#50fa7b">LEAQ</span>    type.noalg.struct { F uintptr<span style="color:#6272a4">; R &#34;&#34;.integer }(SB), AX
+</span><span style="color:#6272a4"></span>        CALL    runtime.newobject(SB)
+        <span style="color:#50fa7b">MOVQ</span>    AX, &#34;&#34;..autotmp_3+<span style="color:#bd93f9">24</span>(SP)
+        <span style="color:#50fa7b">LEAQ</span>    &#34;&#34;.integer.v-fm(SB), CX
+        <span style="color:#50fa7b">MOVQ</span>    CX, (AX)
+        <span style="color:#50fa7b">MOVQ</span>    $1, <span style="color:#bd93f9">8</span>(AX)
+</code></pre></div><p>The first line above gives us a huge clue what&rsquo;s going on. The code is essentially as follows.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span> = <span style="color:#ff79c6">&amp;</span><span style="color:#8be9fd;font-style:italic">struct</span> {
+    F <span style="color:#8be9fd">uintptr</span>
     R integer
 } {
-    F: integer.v-fm,
+    F: integer.v<span style="color:#ff79c6">-</span>fm,
     R: one,
 }
-</code></pre>
-<p>Note the function used isn't <code>integer.v</code>, it is <code>integer.v-fm</code>. We can use <a href="https://godbolt.org/z/8P5d8rdfs">Godbolt</a> again to see that this is an autogenerated wrapper around <code>integer.v</code> which loads the integer receiver (<code>one</code>) from this struct and sets up a proper call to <code>one.v()</code>. I've pulled out the key part below. It pulls the receiver value from <code>8(DX)</code> (8 bytes offset from the value of the DX register which we mentioned being set up above), puts it in <code>AX</code> and calls <code>integer.v</code>. (Go now has a register calling convention, and the receiver on a method call is placed in <code>AX</code>)</p>
-<pre><code class="language-asm">        MOVQ    8(DX), AX
-        PCDATA  $1, $0
-        CALL    &quot;&quot;.integer.v(SB)
-        MOVQ    8(SP), BP
-        ADDQ    $16, SP
-        RET
-</code></pre>
-<h2>And finally</h2>
-<p>Finally we have our conclusions. In Go as it is presently...</p>
+</code></pre></div><p>Note the function used isn&rsquo;t <code>integer.v</code>, it is <code>integer.v-fm</code>. We can use <a href="https://godbolt.org/z/8P5d8rdfs">Godbolt</a> again to see that this is an autogenerated wrapper around <code>integer.v</code> which loads the integer receiver (<code>one</code>) from this struct and sets up a proper call to <code>one.v()</code>. I&rsquo;ve pulled out the key part below. It pulls the receiver value from <code>8(DX)</code> (8 bytes offset from the value of the DX register which we mentioned being set up above), puts it in <code>AX</code> and calls <code>integer.v</code>. (Go now has a register calling convention, and the receiver on a method call is placed in <code>AX</code>)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm">        <span style="color:#50fa7b">MOVQ</span>    <span style="color:#bd93f9">8</span>(DX), AX
+        <span style="color:#50fa7b">PCDATA</span>  $1, $0
+        <span style="color:#50fa7b">CALL</span>    &#34;&#34;.integer.v(SB)
+        <span style="color:#50fa7b">MOVQ</span>    <span style="color:#bd93f9">8</span>(SP), BP
+        <span style="color:#50fa7b">ADDQ</span>    $16, SP
+        <span style="color:#50fa7b">RET</span>
+</code></pre></div><h2 id="and-finally">And finally</h2>
+<p>Finally we have our conclusions. In Go as it is presently&hellip;</p>
 <ol>
 <li>Function variables are pointers</li>
 <li>They point to small structs</li>
@@ -293,13 +297,17 @@ v,1: entry 0x483120
 </ol>
 </li>
 </ol>
-<p>And why can't you compare them? I expect it was just too hard to agree to a
+<p>And why can&rsquo;t you compare them? I expect it was just too hard to agree to a
 convention about which pointers would be considered equal when there are
 closures and method calls and function wrappers around.</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>

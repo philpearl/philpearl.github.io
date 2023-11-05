@@ -1,53 +1,73 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
 <head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.81.0" />
+
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Further Dangers of Large Heaps in Go</title>
-  <meta name="description" content="Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache."/> 
+  <title>Further Dangers of Large Heaps in Go &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache." />
 
-  <style>
-  body{
-    font-family: "PT Sans", Helvetica, Arial, sans-serif;
-    font-size: 1.2em;
-    line-height: 1.5em;
-  }
-  .description {
-    font-size: 1.25em;
-    font-weight: 300;
-  }
-  img {
-    max-width: 100%;
-  }
-  main {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-  }
-  footer {
-    margin: auto;
-    width: 60%;
-    padding: 0 1em;
-    color: gray;
-    font-size: 0.8em;
-  }
-  </style>
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
 </head>
-<body>
-    <main>
-        <div class="post">
-            
-            <figure>
-                <img src="/post/garbage.jpeg" alt="3 recycling bins" />
-                <figcaption>3 recycling bins</figcaption> 
-            </figure>
-            
 
-            <h1>Further Dangers of Large Heaps in Go</h1>
-            <p class="description" >Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p> 
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
 
-            <p>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re <a href="https://ravelin.workable.com/">hiring</a>! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</p>
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2023. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/garbage.jpeg" alt="3 recycling bins">
+    <figcaption>3 recycling bins</figcaption>
+  </figure>
+  
+
+  <h1>Further Dangers of Large Heaps in Go</h1>
+  
+  <p class="lead">Over my years working with Go I stumble across more and more reasons why having a large amount of data in memory in Go is a headache.</p>
+  
+
+  <time datetime=2018-11-15T19:57:02Z class="post-date">Thu, Nov 15, 2018</time>
+
+
+  <p>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re <a href="https://ravelin.workable.com/">hiring</a>! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</p>
 <p>I spotted that the go heap profiler has a marvellous <code>-base</code> option. This allows you to compare a heap profile with a baseline heap profile taken earlier. So I just needed two heap profiles and surely this would show me the cause of the leak.</p>
 <p>Well, It showed memory growth, but none of the allocations it pointed me to looked like they could be leaking. And more worryingly the amount of heap the profile showed as allocated was much less than OS tools like <code>top</code> and <code>ps</code> were showing me.</p>
 <p>Long-time readers of my blog will be aware I’m prone to some “unsafe” Go programming practices including <a href="https://syslog.ravelin.com/gc-is-bad-and-you-should-feel-bad-e9bdd9324f0">avoiding heap allocations</a> (!) by directly allocating memory from the OS with <a href="https://syslog.ravelin.com/go-and-a-not-tiny-amount-of-memory-a7a9430d4d22">mmap syscalls</a>. So that lead to some considerable paranoia that some of my “off-heap” specials were leaking.</p>
@@ -69,93 +89,93 @@
 <p>If you don’t follow either of these practices, and you allocate 50GB that’s kept around for the lifetime of a process, then every GC cycle will scan every bit of that 50GB. And that will take some time. In addition, the GC will set it’s memory use target to 100GB, which may be more memory than you have.</p>
 <p>So, long rambling GC whinge-fest over. Let’s see just how bad this can get with some proper directed whinging. For your amusement and edification I’ve built a reproduction scenario that quickly shows the problem on my 2015 MBP with 16 GB of RAM.</p>
 <p>First it allocates an array of 1.5 billion 8-byte pointers. So about 12GB of RAM. Then it uses up all available CPU by running a bunch of workers that loop creating arrays of 1 million 8-byte pointers (about 8 MB) &amp; burning a little CPU with a factorial calculation (just for laughs). Ideally the memory in-use wouldn’t grow much: the loops would spin a few times allocating memory, then the GC would trigger and free it again, then the loops would spin &amp; allocate some more, etc. The huge 12GB allocation would just loom at one side being memory.</p>
-<pre><code class="language-go">package main
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
 
-import (
-	&quot;fmt&quot;
-	&quot;os&quot;
-	&quot;runtime&quot;
-	&quot;sync&quot;
+<span style="color:#ff79c6">import</span> (
+	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+	<span style="color:#f1fa8c">&#34;os&#34;</span>
+	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
+	<span style="color:#f1fa8c">&#34;sync&#34;</span>
 )
 
-func main() {
-	// A huge allocation to give the GC work to do
-	lotsOf := make([]*int, 15e8)
-	fmt.Println(&quot;Background GC work generated&quot;)
-	// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
-	runtime.GC()
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+	<span style="color:#6272a4">// A huge allocation to give the GC work to do
+</span><span style="color:#6272a4"></span>	lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
+	<span style="color:#6272a4">// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
+</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">GC</span>()
 
-	// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
-	var wg sync.WaitGroup
-	numWorkers := runtime.NumCPU()
-	for i := 0; i &lt; numWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			work()
+	<span style="color:#6272a4">// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
+</span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">var</span> wg sync.WaitGroup
+	numWorkers <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">NumCPU</span>()
+	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; numWorkers; i<span style="color:#ff79c6">++</span> {
+		wg.<span style="color:#50fa7b">Add</span>(<span style="color:#bd93f9">1</span>)
+		<span style="color:#ff79c6">go</span> <span style="color:#8be9fd;font-style:italic">func</span>() {
+			<span style="color:#ff79c6">defer</span> wg.<span style="color:#50fa7b">Done</span>()
+			<span style="color:#50fa7b">work</span>()
 		}()
 	}
 
-	wg.Wait()
+	wg.<span style="color:#50fa7b">Wait</span>()
 
-	// Make sure that this memory isn't optimised away
-	runtime.KeepAlive(lotsOf)
+	<span style="color:#6272a4">// Make sure that this memory isn&#39;t optimised away
+</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">KeepAlive</span>(lotsOf)
 }
 
-func work() {
-	for {
-		work := make([]*int, 1e6)
-		if f := factorial(20); f != 2432902008176640000 {
-			fmt.Println(f)
-			os.Exit(1)
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">work</span>() {
+	<span style="color:#ff79c6">for</span> {
+		work <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e6</span>)
+		<span style="color:#ff79c6">if</span> f <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">factorial</span>(<span style="color:#bd93f9">20</span>); f <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">2432902008176640000</span> {
+			fmt.<span style="color:#50fa7b">Println</span>(f)
+			os.<span style="color:#50fa7b">Exit</span>(<span style="color:#bd93f9">1</span>)
 		}
-		runtime.KeepAlive(work)
+		runtime.<span style="color:#50fa7b">KeepAlive</span>(work)
 	}
 }
 
-func factorial(n int) int {
-	if n == 1 {
-		return 1
+<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">factorial</span>(n <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">int</span> {
+	<span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">1</span> {
+		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>
 	}
-	return n * factorial(n-1)
+	<span style="color:#ff79c6">return</span> n <span style="color:#ff79c6">*</span> <span style="color:#50fa7b">factorial</span>(n<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)
 }
-</code></pre>
-<p>But that’s not what happens. Memory use grows and grows, and in not much more than a minute the process is killed by the OS when the memory runs out. Here’s what we see if we enable GC trace debug output.</p>
-<pre><code class="language-bash">GODEBUG=gctrace=1 ./gcbacklog
+</code></pre></div><p>But that’s not what happens. Memory use grows and grows, and in not much more than a minute the process is killed by the OS when the memory runs out. Here’s what we see if we enable GC trace debug output.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#8be9fd;font-style:italic">GODEBUG</span><span style="color:#ff79c6">=</span><span style="color:#8be9fd;font-style:italic">gctrace</span><span style="color:#ff79c6">=</span><span style="color:#bd93f9">1</span> ./gcbacklog
 Background GC work generated
-gc 1 @0.804s 21%: 0.012+4528+0.17 ms clock, 0.099+1.4/9054/27147+1.4 ms cpu, 
-11444-&gt;11444-&gt;11444 MB, 11445 MB goal, 8 P (forced)
+gc <span style="color:#bd93f9">1</span> @0.804s 21%: 0.012+4528+0.17 ms clock, 0.099+1.4/9054/27147+1.4 ms cpu, 
+11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">11445</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
 
-gc 2 @5.333s 23%: 0.012+6358+0.086 ms clock, 0.099+0/12716/38112+0.68 ms cpu, 
-11444-&gt;11444-&gt;11444 MB, 22888 MB goal, 8 P (forced)
+gc <span style="color:#bd93f9">2</span> @5.333s 23%: 0.012+6358+0.086 ms clock, 0.099+0/12716/38112+0.68 ms cpu, 
+11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
 
-gc 3 @11.764s 31%: 20+53853+1.4 ms clock, 167+37787/107690/0+11 ms cpu, 
-11505-&gt;728829-&gt;728783 MB, 22888 MB goal, 8 P
+gc <span style="color:#bd93f9">3</span> @11.764s 31%: 20+53853+1.4 ms clock, 167+37787/107690/0+11 ms cpu, 
+11505-&gt;728829-&gt;728783 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-gc 4 @65.676s 40%: 69+10843+0.036 ms clock, 555+61294/21670/23+0.29 ms cpu, 
-728844-&gt;752155-&gt;34785 MB, 1457567 MB goal, 8 P
+gc <span style="color:#bd93f9">4</span> @65.676s 40%: 69+10843+0.036 ms clock, 555+61294/21670/23+0.29 ms cpu, 
+728844-&gt;752155-&gt;34785 MB, <span style="color:#bd93f9">1457567</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-Killed: 9
-</code></pre>
-<p>The format of this output is described <a href="https://golang.org/pkg/runtime/#hdr-Environment_Variables">here</a>. Once the initial array is allocated the process is using 21% of the available CPU for GC, and this rises to 40% before it is killed. The GC memory size target is quickly 22 GB (twice our initial allocation), but this rises to an insane 1.4 TB as things spiral out of control.</p>
+Killed: <span style="color:#bd93f9">9</span>
+</code></pre></div><p>The format of this output is described <a href="https://golang.org/pkg/runtime/#hdr-Environment_Variables">here</a>. Once the initial array is allocated the process is using 21% of the available CPU for GC, and this rises to 40% before it is killed. The GC memory size target is quickly 22 GB (twice our initial allocation), but this rises to an insane 1.4 TB as things spiral out of control.</p>
 <p>Now, if we change that initial allocation from 1.5 billion 8-byte pointers to 1.5 billion 8-byte integers things change completely. We use just as much memory, but it doesn’t contain pointers. The GC target hits 22 GB, but the GC kicks in more frequently and uses less overall CPU, and importantly the target doesn’t grow.</p>
-<pre><code class="language-go">// Note no *! This now contains no pointers
-lotsOf := make([]int, 15e8)
-fmt.Println(&quot;Background GC work generated&quot;)
-</code></pre>
-<p>Here are the numbers after the 62nd round of GC, 95 seconds after the program starts. The target is still bobbling around 22 GB and there’s effectively zero CPU used for GC. Things are stable and it could run forever.</p>
-<pre><code class="language-bash">gc 61 @93.824s 0%: 4.0+4.5+0.075 ms clock, 32+8.9/8.6/4.0+0.60 ms cpu, 
-22412-&gt;22412-&gt;11474 MB, 22980 MB goal, 8 P
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6272a4">// Note no *! This now contains no pointers
+</span><span style="color:#6272a4"></span>lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
+</code></pre></div><p>Here are the numbers after the 62nd round of GC, 95 seconds after the program starts. The target is still bobbling around 22 GB and there’s effectively zero CPU used for GC. Things are stable and it could run forever.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gc <span style="color:#bd93f9">61</span> @93.824s 0%: 4.0+4.5+0.075 ms clock, 32+8.9/8.6/4.0+0.60 ms cpu, 
+22412-&gt;22412-&gt;11474 MB, <span style="color:#bd93f9">22980</span> MB goal, <span style="color:#bd93f9">8</span> P
 
-gc 62 @95.290s 0%: 14+4.0+0.085 ms clock, 115+4.3/0.39/0+0.68 ms cpu, 
-22382-&gt;22382-&gt;11451 MB, 22949 MB goal, 8 P
-</code></pre>
-<p>So what are the lessons to learn here? If you are using Go for data-processing then you either can’t have any long-term large heap allocations or you must ensure that they don’t contain any pointers. And this means no strings, no slices, no time.Time (it contains a pointer to a locale), no nothing with a hidden pointer in it. I hope to follow up with some blog posts about tricks I’ve used to do that.</p>
+gc <span style="color:#bd93f9">62</span> @95.290s 0%: 14+4.0+0.085 ms clock, 115+4.3/0.39/0+0.68 ms cpu, 
+22382-&gt;22382-&gt;11451 MB, <span style="color:#bd93f9">22949</span> MB goal, <span style="color:#bd93f9">8</span> P
+</code></pre></div><p>So what are the lessons to learn here? If you are using Go for data-processing then you either can’t have any long-term large heap allocations or you must ensure that they don’t contain any pointers. And this means no strings, no slices, no time.Time (it contains a pointer to a locale), no nothing with a hidden pointer in it. I hope to follow up with some blog posts about tricks I’ve used to do that.</p>
 <p>(Thanks to the fabulous people in the #performance channel on Gophers slack for some help along the way. There’s some great stuff in that channel if you can find the time to dip in)</p>
 
-        </div>
+</div>
+
+
     </main>
-    <footer>
-        <p>© 2016 - 2023 Phil Pearl. All rights reserved.</p>
-    </footer>
-</body>
+
+    
+      
+    
+  </body>
+</html>
