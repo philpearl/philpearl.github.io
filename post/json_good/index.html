@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -73,45 +73,45 @@
 <p>Now, I happen to have been to a <a href="https://golang.org/doc/contribute.html">Go contributor</a>&rsquo;s workshop, and I have made a simple contribution to Go before, so I do have the Go git repo on my laptop. So step one was to pull master, build the Go toolchain and run the encoding/json tests and benchmarks.</p>
 <p>After a bit of poking about I found there was no benchmark for marshaling a struct with a custom marshaler. Following the principle that you cannot improve what you do not measure, adding a new benchmark was step one.</p>
 <p>This is the new benchmark. It uses an Encoder as this can be reused, which reduces the noise from the test and shows the overhead due to the custom marshaler in stark relief.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkEncodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
-
-	m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">struct</span> {
-		A <span style="color:#8be9fd">int</span>
-		B RawMessage
-	}{}
-
-	b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
-		enc <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">NewEncoder</span>(ioutil.Discard)
-
-		<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
-			<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> enc.<span style="color:#50fa7b">Encode</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-				b.<span style="color:#50fa7b">Fatal</span>(<span style="color:#f1fa8c">&#34;Encode:&#34;</span>, err)
-			}
-		}
-	})
-}
-</code></pre></div><p>And here are the results running on Go 1.13-ish. As expected from my <a href="https://philpearl.github.io/post/badgo_json/">previous post</a> there are 3 allocations on every run.</p>
-<pre><code>BenchmarkEncodeMarshaler-8	 8169886	130 ns/op	100 B/op	3 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkEncodeMarshaler</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>		A <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>		B RawMessage
+</span></span><span style="display:flex;"><span>	}{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">RunParallel</span>(<span style="color:#8be9fd;font-style:italic">func</span>(pb <span style="color:#ff79c6">*</span>testing.PB) {
+</span></span><span style="display:flex;"><span>		enc <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">NewEncoder</span>(ioutil.Discard)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> pb.<span style="color:#50fa7b">Next</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> enc.<span style="color:#50fa7b">Encode</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>				b.<span style="color:#50fa7b">Fatal</span>(<span style="color:#f1fa8c">&#34;Encode:&#34;</span>, err)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>And here are the results running on Go 1.13-ish. As expected from my <a href="https://philpearl.github.io/post/badgo_json/">previous post</a> there are 3 allocations on every run.</p>
+<pre tabindex="0"><code>BenchmarkEncodeMarshaler-8	 8169886	130 ns/op	100 B/op	3 allocs/op
 </code></pre><p>Next we run a profile to see where those allocations are. We run the benchmark again with memory profiling enabled, then start the profiling tool and select the alloc_objects index. This index counts every time an object is allocated over the run, so is useful for showing us where most of the allocations occur. The <code>-run ^$</code> on the test command is to ensure we don&rsquo;t run any tests which might pollute the profiling data. <code>^$</code> is a regular expression. <code>^</code> matches the beginning of the line and <code>$</code> matches the end, so <code>-run ^$</code> won&rsquo;t match any tests, so just our benchmark will run.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go <span style="color:#8be9fd;font-style:italic">test</span> -run ^$ -bench BenchmarkEncodeMarshaler -memprofile mem.prof
-go tool pprof json.test mem.prof 
-<span style="color:#ff79c6">(</span>pprof<span style="color:#ff79c6">)</span> <span style="color:#8be9fd;font-style:italic">sample_index</span><span style="color:#ff79c6">=</span>alloc_objects
-</code></pre></div><p>Let&rsquo;s look for the functions that allocate the most objects. <code>top</code> does this for us.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ff79c6">(</span>pprof<span style="color:#ff79c6">)</span> top
-Showing nodes accounting <span style="color:#ff79c6">for</span> 21529479, 100% of <span style="color:#bd93f9">21529577</span> total
-Dropped <span style="color:#bd93f9">4</span> nodes <span style="color:#ff79c6">(</span>cum &lt;<span style="color:#ff79c6">=</span> 107647<span style="color:#ff79c6">)</span>
-Showing top <span style="color:#bd93f9">10</span> nodes out of <span style="color:#bd93f9">13</span>
-      flat  flat%   sum%        cum   cum%
-   <span style="color:#bd93f9">9437472</span> 43.83% 43.83%    <span style="color:#bd93f9">9437472</span> 43.83%  reflect.packEface
-   <span style="color:#bd93f9">9404990</span> 43.68% 87.52%    <span style="color:#bd93f9">9404990</span> 43.68%  encoding/json.compact
-   <span style="color:#bd93f9">2687017</span> 12.48%   100%    <span style="color:#bd93f9">2687017</span> 12.48%  encoding/json.RawMessage.MarshalJSON
-         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*Encoder<span style="color:#ff79c6">)</span>.Encode
-         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*encodeState<span style="color:#ff79c6">)</span>.marshal
-         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*encodeState<span style="color:#ff79c6">)</span>.reflectValue
-</code></pre></div><p>There are only 3 functions with significant allocations. One is within the <code>RawMessage.MarshalJSON</code> call and is the one we know is forced by the interface. One is in the <code>compact</code> function in the json library, and one is within the reflect package.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go <span style="color:#8be9fd;font-style:italic">test</span> -run ^$ -bench BenchmarkEncodeMarshaler -memprofile mem.prof
+</span></span><span style="display:flex;"><span>go tool pprof json.test mem.prof 
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">(</span>pprof<span style="color:#ff79c6">)</span> <span style="color:#8be9fd;font-style:italic">sample_index</span><span style="color:#ff79c6">=</span>alloc_objects
+</span></span></code></pre></div><p>Let&rsquo;s look for the functions that allocate the most objects. <code>top</code> does this for us.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#ff79c6">(</span>pprof<span style="color:#ff79c6">)</span> top
+</span></span><span style="display:flex;"><span>Showing nodes accounting <span style="color:#ff79c6">for</span> 21529479, 100% of <span style="color:#bd93f9">21529577</span> total
+</span></span><span style="display:flex;"><span>Dropped <span style="color:#bd93f9">4</span> nodes <span style="color:#ff79c6">(</span>cum &lt;<span style="color:#ff79c6">=</span> 107647<span style="color:#ff79c6">)</span>
+</span></span><span style="display:flex;"><span>Showing top <span style="color:#bd93f9">10</span> nodes out of <span style="color:#bd93f9">13</span>
+</span></span><span style="display:flex;"><span>      flat  flat%   sum%        cum   cum%
+</span></span><span style="display:flex;"><span>   <span style="color:#bd93f9">9437472</span> 43.83% 43.83%    <span style="color:#bd93f9">9437472</span> 43.83%  reflect.packEface
+</span></span><span style="display:flex;"><span>   <span style="color:#bd93f9">9404990</span> 43.68% 87.52%    <span style="color:#bd93f9">9404990</span> 43.68%  encoding/json.compact
+</span></span><span style="display:flex;"><span>   <span style="color:#bd93f9">2687017</span> 12.48%   100%    <span style="color:#bd93f9">2687017</span> 12.48%  encoding/json.RawMessage.MarshalJSON
+</span></span><span style="display:flex;"><span>         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*Encoder<span style="color:#ff79c6">)</span>.Encode
+</span></span><span style="display:flex;"><span>         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*encodeState<span style="color:#ff79c6">)</span>.marshal
+</span></span><span style="display:flex;"><span>         <span style="color:#bd93f9">0</span>     0%   100%   <span style="color:#bd93f9">21529479</span>   100%  encoding/json.<span style="color:#ff79c6">(</span>*encodeState<span style="color:#ff79c6">)</span>.reflectValue
+</span></span></code></pre></div><p>There are only 3 functions with significant allocations. One is within the <code>RawMessage.MarshalJSON</code> call and is the one we know is forced by the interface. One is in the <code>compact</code> function in the json library, and one is within the reflect package.</p>
 <p>Let&rsquo;s start with <code>compact</code>. We can look at an annotated source listing to show us where the allocations are in that function.</p>
-<pre><code>(pprof) list encoding/json.compact
+<pre tabindex="0"><code>(pprof) list encoding/json.compact
 Total: 21529577
 ROUTINE ======================== encoding/json.compact in /Users/phil/Projects/go/src/encoding/json/indent.go
    9404990    9404990 (flat, cum) 43.68% of Total
@@ -124,48 +124,47 @@ ROUTINE ======================== encoding/json.compact in /Users/phil/Projects/g
          .          .     18:	scan.reset()
          .          .     19:	start := 0
          .          .     20:	for i, c := range src {
-         .          .     21:		if escape &amp;&amp; (c == '&lt;' || c == '&gt;' || c == '&amp;') {
+         .          .     21:		if escape &amp;&amp; (c == &#39;&lt;&#39; || c == &#39;&gt;&#39; || c == &#39;&amp;&#39;) {
          .          .     22:			if start &lt; i {
-
 </code></pre><p>So all the allocations here are creating the scan variable. This must escape to the heap and hence cause an allocation. (I&rsquo;m not going to go into the details of why it escapes - suffice it to say that some shit goes down)</p>
 <p>Why are we calling compact? The code below shows it is called after each call to a <code>MarshalJSON</code> method, and the comment implies it is there because the library doesn&rsquo;t trust marshalers to produce valid, maximally compact JSON. Whatever the reasoning, the call to <code>compact</code> will happen for every field in the JSON with a custom marshaler, and each will cause an allocation - so it&rsquo;s worth addressing.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	b, err <span style="color:#ff79c6">:=</span> m.<span style="color:#50fa7b">MarshalJSON</span>()
-	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span> {
-		<span style="color:#6272a4">// copy JSON into buffer, checking validity.
-</span><span style="color:#6272a4"></span>		err = <span style="color:#50fa7b">compact</span>(<span style="color:#ff79c6">&amp;</span>e.Buffer, b, opts.escapeHTML)
-	}
-</code></pre></div><p>What can we do about this? Well, our problem is not that we get a few allocations when we marshal some JSON, it&rsquo;s that our programs do this marshaling over and over again, and the allocations occur over and over again. If we find some way to re-use these scanners from one <code>Marshal</code> call to the next then we&rsquo;ll have addressed the problem.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	b, err <span style="color:#ff79c6">:=</span> m.<span style="color:#50fa7b">MarshalJSON</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// copy JSON into buffer, checking validity.
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		err = <span style="color:#50fa7b">compact</span>(<span style="color:#ff79c6">&amp;</span>e.Buffer, b, opts.escapeHTML)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>What can we do about this? Well, our problem is not that we get a few allocations when we marshal some JSON, it&rsquo;s that our programs do this marshaling over and over again, and the allocations occur over and over again. If we find some way to re-use these scanners from one <code>Marshal</code> call to the next then we&rsquo;ll have addressed the problem.</p>
 <p>The encoding/json API doesn&rsquo;t provide a mechanism for a program to maintain any state from one marshaling call to the next, so within encoding/json we need to maintain some scanners for re-use without help from the application. <a href="https://golang.org/pkg/sync/#Pool"><code>sync.Pool</code></a> is for this precise purpose. We&rsquo;ll get scanners from the pool and return them to the pool when we&rsquo;re done. <code>sync.Pool</code> is very fast so we should make savings over allocating a new scanner each time and having it garbage collected. We do need to ensure the scanner is fully reset each time - nothing will zero its fields for us.</p>
 <p>We&rsquo;ll create a pool for scanners, and some helper functions to get and release them which will also ensure the scanner is reset.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> scannerPool = sync.Pool{
-	New: <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd;font-style:italic">interface</span>{} {
-		<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>scanner{}
-	},
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newScanner</span>() <span style="color:#ff79c6">*</span>scanner {
-	scan <span style="color:#ff79c6">:=</span> scannerPool.<span style="color:#50fa7b">Get</span>().(<span style="color:#ff79c6">*</span>scanner)
-	<span style="color:#6272a4">// scan.reset by design doesn&#39;t set bytes to zero
-</span><span style="color:#6272a4"></span>	scan.bytes = <span style="color:#bd93f9">0</span>
-	scan.<span style="color:#50fa7b">reset</span>()
-	<span style="color:#ff79c6">return</span> scan
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">freeScanner</span>(scan <span style="color:#ff79c6">*</span>scanner) {
-	<span style="color:#6272a4">// Avoid hanging on to too much memory in extreme cases.
-</span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">len</span>(scan.parseState) &gt; <span style="color:#bd93f9">1024</span> {
-		scan.parseState = <span style="color:#ff79c6">nil</span>
-	}
-	scannerPool.<span style="color:#50fa7b">Put</span>(scan)
-}
-</code></pre></div><p>We&rsquo;ll then change the compact call to use a scanner from the pool rather than declare a scanner value.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">compact</span>(dst <span style="color:#ff79c6">*</span>bytes.Buffer, src []<span style="color:#8be9fd">byte</span>, escape <span style="color:#8be9fd">bool</span>) <span style="color:#8be9fd">error</span> {
-	origLen <span style="color:#ff79c6">:=</span> dst.<span style="color:#50fa7b">Len</span>()
-	scan <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newScanner</span>()
-	<span style="color:#ff79c6">defer</span> <span style="color:#50fa7b">freeScanner</span>(scan)
-</code></pre></div><p>Note that <code>defer</code> performance will greatly improve in Go 1.14 so we can happily use it here without worrying about the overhead. (Also note that there are some other small changes involved in this PR excluded here for brevity).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> scannerPool = sync.Pool{
+</span></span><span style="display:flex;"><span>	New: <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd;font-style:italic">interface</span>{} {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>scanner{}
+</span></span><span style="display:flex;"><span>	},
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newScanner</span>() <span style="color:#ff79c6">*</span>scanner {
+</span></span><span style="display:flex;"><span>	scan <span style="color:#ff79c6">:=</span> scannerPool.<span style="color:#50fa7b">Get</span>().(<span style="color:#ff79c6">*</span>scanner)
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// scan.reset by design doesn&#39;t set bytes to zero
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	scan.bytes = <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>	scan.<span style="color:#50fa7b">reset</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> scan
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">freeScanner</span>(scan <span style="color:#ff79c6">*</span>scanner) {
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Avoid hanging on to too much memory in extreme cases.
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> <span style="color:#8be9fd;font-style:italic">len</span>(scan.parseState) &gt; <span style="color:#bd93f9">1024</span> {
+</span></span><span style="display:flex;"><span>		scan.parseState = <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	scannerPool.<span style="color:#50fa7b">Put</span>(scan)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>We&rsquo;ll then change the compact call to use a scanner from the pool rather than declare a scanner value.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">compact</span>(dst <span style="color:#ff79c6">*</span>bytes.Buffer, src []<span style="color:#8be9fd">byte</span>, escape <span style="color:#8be9fd">bool</span>) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	origLen <span style="color:#ff79c6">:=</span> dst.<span style="color:#50fa7b">Len</span>()
+</span></span><span style="display:flex;"><span>	scan <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newScanner</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">defer</span> <span style="color:#50fa7b">freeScanner</span>(scan)
+</span></span></code></pre></div><p>Note that <code>defer</code> performance will greatly improve in Go 1.14 so we can happily use it here without worrying about the overhead. (Also note that there are some other small changes involved in this PR excluded here for brevity).</p>
 <p>If we run the benchmark again at this point and run old and new results through <code>benchstat</code> this is what we get. Quite a nice speed improvement and importantly we&rsquo;ve removed the allocation.</p>
-<pre><code>name               old time/op    new time/op    delta
+<pre tabindex="0"><code>name               old time/op    new time/op    delta
 EncodeMarshaler-8     118ns ± 2%     104ns ± 1%  -12.21%  (p=0.001 n=7+7)
 
 name               old alloc/op   new alloc/op   delta
@@ -175,7 +174,7 @@ name               old allocs/op  new allocs/op  delta
 EncodeMarshaler-8      3.00 ± 0%      2.00 ± 0%  -33.33%  (p=0.000 n=8+8)
 </code></pre><p>A word of <a href="https://www.youtube.com/watch?v=AlWU6HLh8Ys">advice</a> about running benchmarks. When measuring performance shut down absolutely everything you can on your machine to stop it interfering with the running time of the benchmark. This should reduce the variation between runs. Oh, and run the benchmark multiple times (I used <code>-count 8</code>), and use <code>benchstat</code> to summarise and compare results.</p>
 <p>If we re-run our profiling <code>top</code> shows <code>compact</code> is no longer causing allocations.</p>
-<pre><code>(pprof) top
+<pre tabindex="0"><code>(pprof) top
 Showing nodes accounting for 12075339, 100% of 12075851 total
 Dropped 3 nodes (cum &lt;= 60379)
 Showing top 10 nodes out of 12
@@ -193,8 +192,5 @@ Showing top 10 nodes out of 12
 
     </main>
 
-    
-      
-    
   </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,40 +69,40 @@
 
   <p>Go can have nil slices and empty slices, and they&rsquo;re different. What&rsquo;s up with that?</p>
 <p>Regular readers of my blog (a select group if ever there was one) will know by now that a slice is syntactic sugar for a struct with a Data pointer, a Length and a Capacity. There&rsquo;s a definition of this struct in <a href="https://golang.org/pkg/reflect/#SliceHeader">reflect</a>. It looks like this.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> SliceHeader <span style="color:#8be9fd;font-style:italic">struct</span> {
-    Data <span style="color:#8be9fd">uintptr</span>
-    Len  <span style="color:#8be9fd">int</span>
-    Cap  <span style="color:#8be9fd">int</span>
-}
-</code></pre></div><p>When a slice is nil all the fields of the slice header are empty. If you create a non-nil slice with zero capacity the Data field is populated. Thus you can tell the difference between a nil slice and an empty slice. Which I guess is useful if you want to tell the difference between a slice being empty versus not present. Here&rsquo;s some code to show how you could check this. (<a href="https://play.golang.org/p/D3nl5lImdcT">playground</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#8be9fd;font-style:italic">var</span> nilSlice []<span style="color:#8be9fd">byte</span>
-    emptySlice <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">byte</span>{}
-
-    fmt.<span style="color:#50fa7b">Println</span>(nilSlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
-    fmt.<span style="color:#50fa7b">Println</span>(emptySlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
-</code></pre></div><p>Here&rsquo;s another short program that shows the content of the Slice header for various byte slices (<a href="https://play.golang.org/p/PIuDJyVI-iW">on the playground</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
-
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
-	<span style="color:#f1fa8c">&#34;reflect&#34;</span>
-	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
-)
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#ff79c6">nil</span>)
-	<span style="color:#50fa7b">printSlice</span>([]<span style="color:#8be9fd">byte</span>{})
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">7</span>, <span style="color:#bd93f9">43</span>))
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">2</span>))
-	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0</span>))	
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">printSlice</span>(s []<span style="color:#8be9fd">byte</span>) {
-	sh <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span>reflect.SliceHeader)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>s))
-	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;%#v\n&#34;</span>, sh)
-}
-</code></pre></div><p>The output is as follows.</p>
-<pre><code>reflect.SliceHeader{Data:0x0, Len:0, Cap:0}
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> SliceHeader <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>    Data <span style="color:#8be9fd">uintptr</span>
+</span></span><span style="display:flex;"><span>    Len  <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>    Cap  <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>When a slice is nil all the fields of the slice header are empty. If you create a non-nil slice with zero capacity the Data field is populated. Thus you can tell the difference between a nil slice and an empty slice. Which I guess is useful if you want to tell the difference between a slice being empty versus not present. Here&rsquo;s some code to show how you could check this. (<a href="https://play.golang.org/p/D3nl5lImdcT">playground</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">var</span> nilSlice []<span style="color:#8be9fd">byte</span>
+</span></span><span style="display:flex;"><span>    emptySlice <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">byte</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    fmt.<span style="color:#50fa7b">Println</span>(nilSlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
+</span></span><span style="display:flex;"><span>    fmt.<span style="color:#50fa7b">Println</span>(emptySlice <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">nil</span>)
+</span></span></code></pre></div><p>Here&rsquo;s another short program that shows the content of the Slice header for various byte slices (<a href="https://play.golang.org/p/PIuDJyVI-iW">on the playground</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;reflect&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;unsafe&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">printSlice</span>(<span style="color:#ff79c6">nil</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">printSlice</span>([]<span style="color:#8be9fd">byte</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">7</span>, <span style="color:#bd93f9">43</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">2</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">printSlice</span>(<span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0</span>))	
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">printSlice</span>(s []<span style="color:#8be9fd">byte</span>) {
+</span></span><span style="display:flex;"><span>	sh <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span>reflect.SliceHeader)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>s))
+</span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;%#v\n&#34;</span>, sh)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The output is as follows.</p>
+<pre tabindex="0"><code>reflect.SliceHeader{Data:0x0, Len:0, Cap:0}
 reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:0}
 reflect.SliceHeader{Data:0xc0000a2f4d, Len:7, Cap:43}
 reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:2}
@@ -116,8 +116,5 @@ reflect.SliceHeader{Data:0xc0000a2f4b, Len:0, Cap:0}
 
     </main>
 
-    
-      
-    
   </body>
 </html>

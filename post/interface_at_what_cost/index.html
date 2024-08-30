@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,83 +69,83 @@
 
   <p>There&rsquo;s a cost associated with using interfaces. What is that cost? Let&rsquo;s try and work out some of it.</p>
 <p>Let&rsquo;s start with the basic overhead of calling a method via an interface. We&rsquo;ll define a very simple interface with a single method and a very simple implementation. We&rsquo;ll also mark the method so it isn&rsquo;t <a href="https://en.wikipedia.org/wiki/Inline_expansion">inlined</a> by the compiler. We do this so that the call to <code>get</code> isn&rsquo;t completely removed in the direct case.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> getter <span style="color:#8be9fd;font-style:italic">interface</span> {
-	<span style="color:#50fa7b">get</span>() <span style="color:#8be9fd">int</span>
-}
-
-<span style="color:#8be9fd;font-style:italic">type</span> zero <span style="color:#8be9fd;font-style:italic">struct</span>{}
-
-<span style="color:#6272a4">//go:noinline
-</span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (z zero) <span style="color:#50fa7b">get</span>() <span style="color:#8be9fd">int</span> {
-	<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>
-}
-</code></pre></div><p>We make a very simple benchmark, with two subtests. One calls <code>get</code> via  a <code>getter</code> the other calls <code>get</code> on the concrete <code>zero</code> type directly.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkInterfaceCallSimple</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	<span style="color:#8be9fd;font-style:italic">var</span> z zero
-	<span style="color:#8be9fd;font-style:italic">var</span> g getter
-	g = z
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;via interface&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		total <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			total <span style="color:#ff79c6">+=</span> g.<span style="color:#50fa7b">get</span>()
-		}
-
-		<span style="color:#ff79c6">if</span> total &gt; <span style="color:#bd93f9">0</span> {
-			b.<span style="color:#50fa7b">Logf</span>(<span style="color:#f1fa8c">&#34;total is %d&#34;</span>, total)
-		}
-	})
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;direct&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		total <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			total <span style="color:#ff79c6">+=</span> z.<span style="color:#50fa7b">get</span>()
-		}
-
-		<span style="color:#ff79c6">if</span> total &gt; <span style="color:#bd93f9">0</span> {
-			b.<span style="color:#50fa7b">Logf</span>(<span style="color:#f1fa8c">&#34;total is %d&#34;</span>, total)
-		}
-	})
-}
-</code></pre></div><p>Here&rsquo;s the result.</p>
-<pre><code>BenchmarkInterfaceCallSimple/via_interface-8	4.63 ns/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> getter <span style="color:#8be9fd;font-style:italic">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">get</span>() <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> zero <span style="color:#8be9fd;font-style:italic">struct</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">//go:noinline
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (z zero) <span style="color:#50fa7b">get</span>() <span style="color:#8be9fd">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>We make a very simple benchmark, with two subtests. One calls <code>get</code> via  a <code>getter</code> the other calls <code>get</code> on the concrete <code>zero</code> type directly.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkInterfaceCallSimple</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> z zero
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> g getter
+</span></span><span style="display:flex;"><span>	g = z
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;via interface&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		total <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			total <span style="color:#ff79c6">+=</span> g.<span style="color:#50fa7b">get</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> total &gt; <span style="color:#bd93f9">0</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Logf</span>(<span style="color:#f1fa8c">&#34;total is %d&#34;</span>, total)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;direct&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		total <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			total <span style="color:#ff79c6">+=</span> z.<span style="color:#50fa7b">get</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> total &gt; <span style="color:#bd93f9">0</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Logf</span>(<span style="color:#f1fa8c">&#34;total is %d&#34;</span>, total)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the result.</p>
+<pre tabindex="0"><code>BenchmarkInterfaceCallSimple/via_interface-8	4.63 ns/op
 BenchmarkInterfaceCallSimple/direct-8       	2.44 ns/op
 </code></pre><p>So there&rsquo;s a small overhead from making a method call via an interface. So small it won&rsquo;t matter except in extreme cases. Are there any other issues?</p>
 <p>Let&rsquo;s try something a little different. We&rsquo;ll create a very simple implementation of io.Reader that fills the buffer with zeros.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> zeroReader <span style="color:#8be9fd;font-style:italic">struct</span>{}
-
-<span style="color:#8be9fd;font-style:italic">func</span> (z zeroReader) <span style="color:#50fa7b">Read</span>(p []<span style="color:#8be9fd">byte</span>) (n <span style="color:#8be9fd">int</span>, err <span style="color:#8be9fd">error</span>) {
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> p {
-		p[i] = <span style="color:#bd93f9">0</span>
-	}
-	<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">len</span>(p), <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>Our benchmark will follow a very similar structure to the previous one. We&rsquo;ll test calling our implementation via an io.Reader interface and directly.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkInterfaceAlloc</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	<span style="color:#8be9fd;font-style:italic">var</span> z zeroReader
-	<span style="color:#8be9fd;font-style:italic">var</span> r io.Reader
-	r = z
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;via interface&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		b.<span style="color:#50fa7b">ReportAllocs</span>()
-
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			<span style="color:#8be9fd;font-style:italic">var</span> buf [<span style="color:#bd93f9">7</span>]<span style="color:#8be9fd">byte</span>
-			r.<span style="color:#50fa7b">Read</span>(buf[:])
-		}
-	})
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;direct&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		b.<span style="color:#50fa7b">ReportAllocs</span>()
-
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			<span style="color:#8be9fd;font-style:italic">var</span> buf [<span style="color:#bd93f9">7</span>]<span style="color:#8be9fd">byte</span>
-			z.<span style="color:#50fa7b">Read</span>(buf[:])
-		}
-	})
-}
-</code></pre></div><p>Here&rsquo;s the results. Instead of the approximately 2ns overhead we now have closer to 20ns and 1 allocation. What&rsquo;s going on here?</p>
-<pre><code>BenchmarkInterfaceAlloc/via_interface-8   	50000000	    24.5 ns/op	    8 B/op	     1 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> zeroReader <span style="color:#8be9fd;font-style:italic">struct</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (z zeroReader) <span style="color:#50fa7b">Read</span>(p []<span style="color:#8be9fd">byte</span>) (n <span style="color:#8be9fd">int</span>, err <span style="color:#8be9fd">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> p {
+</span></span><span style="display:flex;"><span>		p[i] = <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">len</span>(p), <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Our benchmark will follow a very similar structure to the previous one. We&rsquo;ll test calling our implementation via an io.Reader interface and directly.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkInterfaceAlloc</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> z zeroReader
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> r io.Reader
+</span></span><span style="display:flex;"><span>	r = z
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;via interface&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#8be9fd;font-style:italic">var</span> buf [<span style="color:#bd93f9">7</span>]<span style="color:#8be9fd">byte</span>
+</span></span><span style="display:flex;"><span>			r.<span style="color:#50fa7b">Read</span>(buf[:])
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;direct&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#8be9fd;font-style:italic">var</span> buf [<span style="color:#bd93f9">7</span>]<span style="color:#8be9fd">byte</span>
+</span></span><span style="display:flex;"><span>			z.<span style="color:#50fa7b">Read</span>(buf[:])
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the results. Instead of the approximately 2ns overhead we now have closer to 20ns and 1 allocation. What&rsquo;s going on here?</p>
+<pre tabindex="0"><code>BenchmarkInterfaceAlloc/via_interface-8   	50000000	    24.5 ns/op	    8 B/op	     1 allocs/op
 BenchmarkInterfaceAlloc/direct-8          	300000000	    5.52 ns/op	    0 B/op	     0 allocs/op
 </code></pre><p>In both cases we allocate a 7 byte buffer before each <code>Read</code> call. In the direct call case, the compiler knows what the implementation of the <code>Read</code> call is, so it can apply <a href="https://www.ardanlabs.com/blog/2017/05/language-mechanics-on-escape-analysis.html">escape analysis</a> and can tell that the buffer does not escape the stack and therefore can be allocated on the stack.</p>
 <p>When calling via an interface the implementation is unknown at compile time, therefore the compiler must assume the buffer will escape, and therefore must allocate the buffer on the heap rather than the stack. Allocating on the heap takes longer (and in particular must grab a lock), and will cause more GC overhead.</p>
@@ -164,8 +164,5 @@ BenchmarkInterfaceAlloc/direct-8          	300000000	    5.52 ns/op	    0 B/op	 
 
     </main>
 
-    
-      
-    
   </body>
 </html>

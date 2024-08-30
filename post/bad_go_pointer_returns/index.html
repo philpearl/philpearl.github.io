@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,62 +69,62 @@
 
   <p>As an old C programmer I struggle with this one: it feels completely normal for functions to return pointers to structs. But I&rsquo;ve a feeling this is bad Go, and that we&rsquo;re normally better off returning struct values. I&rsquo;m going to see if I can prove that returning struct values is just plain better, and that returning pointers is bad Go.</p>
 <p>I&rsquo;m going to define a struct that I can vary in size easily. The contents of the struct is an array: I can change the size of the struct simply by changing the size of the array.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">const</span> bigStructSize = <span style="color:#bd93f9">10</span>
-
-<span style="color:#8be9fd;font-style:italic">type</span> bigStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
-	a [bigStructSize]<span style="color:#8be9fd">int</span>
-}
-</code></pre></div><p>Next I&rsquo;ll create a couple of routines to build a new version of this struct. One will return it as a pointer, the other as a value.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStruct</span>() bigStruct {
-   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
-   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
-       b.a[i] = i
-   }
-   <span style="color:#ff79c6">return</span> b
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStructPtr</span>() <span style="color:#ff79c6">*</span>bigStruct {
-   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
-   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
-       b.a[i] = i
-   }
-   <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>b
-}
-</code></pre></div><p>Finally I&rsquo;ll write a couple of benchmarks to measure how long it takes to get and use these structs. I&rsquo;m going to do a simple calculation on the values in the struct so the compiler doesn&rsquo;t just optimise the whole thing away.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnValue</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
-
-	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStruct</span>()
-		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
-	}
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnPointer</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
-
-	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStructPtr</span>()
-		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
-	}
-}
-</code></pre></div><p>With bigStructSize set to 10 returning by value is about twice as fast as returning the pointer. In the pointer case the memory has to be allocated on the heap, which will take about 25ns, then the data is set up (which should take about the same time in both cases), then the pointer is written to the stack to return the struct to the caller. In the value case there&rsquo;s no allocation, but the whole struct has to be copied onto the stack to return it to the caller.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">const</span> bigStructSize = <span style="color:#bd93f9">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> bigStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>	a [bigStructSize]<span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Next I&rsquo;ll create a couple of routines to build a new version of this struct. One will return it as a pointer, the other as a value.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStruct</span>() bigStruct {
+</span></span><span style="display:flex;"><span>   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
+</span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>   	b.a[i] = i
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">return</span> b
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStructPtr</span>() <span style="color:#ff79c6">*</span>bigStruct {
+</span></span><span style="display:flex;"><span>   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
+</span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>   	b.a[i] = i
+</span></span><span style="display:flex;"><span>   }
+</span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>b
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Finally I&rsquo;ll write a couple of benchmarks to measure how long it takes to get and use these structs. I&rsquo;m going to do a simple calculation on the values in the struct so the compiler doesn&rsquo;t just optimise the whole thing away.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnValue</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStruct</span>()
+</span></span><span style="display:flex;"><span>		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnPointer</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>		v <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">newBigStructPtr</span>()
+</span></span><span style="display:flex;"><span>		t <span style="color:#ff79c6">+=</span> v.a[<span style="color:#bd93f9">0</span>]
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>With bigStructSize set to 10 returning by value is about twice as fast as returning the pointer. In the pointer case the memory has to be allocated on the heap, which will take about 25ns, then the data is set up (which should take about the same time in both cases), then the pointer is written to the stack to return the struct to the caller. In the value case there&rsquo;s no allocation, but the whole struct has to be copied onto the stack to return it to the caller.</p>
 <p>At this size of struct the overhead of copying the data on the stack is less than the overhead of allocating the memory.</p>
-<pre><code>BenchmarkStructReturnValue-8  	100000000	15.4 ns/op	 0 B/op	0 allocs/op
+<pre tabindex="0"><code>BenchmarkStructReturnValue-8  	100000000	15.4 ns/op	 0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	50000000	36.5 ns/op	80 B/op	1 allocs/op
 </code></pre><p>When we chage bigStructSize to 100, so the struct now contains 100 ints, the gap in absolute terms increases - although the percentage increase for the pointer case is less.</p>
-<pre><code>BenchmarkStructReturnValue-8  	20000000	105 ns/op	  0 B/op	0 allocs/op
+<pre tabindex="0"><code>BenchmarkStructReturnValue-8  	20000000	105 ns/op	  0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	10000000	185 ns/op	896 B/op	1 allocs/op
 </code></pre><p>Surely if we try 1000 ints in the struct then returning the pointer will be faster?</p>
-<pre><code>BenchmarkStructReturnValue-8  	2000000	 830 ns/op	   0 B/op	0 allocs/op
+<pre tabindex="0"><code>BenchmarkStructReturnValue-8  	2000000	 830 ns/op	   0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	1000000	1401 ns/op	8192 B/op	1 allocs/op
 </code></pre><p>Nope, still much worse. How about 10,000?</p>
-<pre><code>BenchmarkStructReturnValue-8  	100000	13332 ns/op	    0 B/op	0 allocs/op
+<pre tabindex="0"><code>BenchmarkStructReturnValue-8  	100000	13332 ns/op	    0 B/op	0 allocs/op
 BenchmarkStructReturnPointer-8	200000	11032 ns/op	81920 B/op	1 allocs/op
 </code></pre><p>Finally, with 10,000 ints in our struct returning a pointer to the struct is faster. With some further investigation it seems like the tipping point for me on my laptop is 2700. At this point I&rsquo;ve very little idea why there&rsquo;s such a large difference at 1000 ints. Lets profile the benchmark!</p>
-<pre><code>go test -bench BenchmarkStructReturnValue -run ^$ -cpuprofile cpu2.prof
+<pre tabindex="0"><code>go test -bench BenchmarkStructReturnValue -run ^$ -cpuprofile cpu2.prof
 go tool pprof  post.test cpu2.prof 
 (pprof) top
 Showing nodes accounting for 2.25s, 100% of 2.25s total
@@ -139,7 +139,7 @@ Showing nodes accounting for 2.25s, 100% of 2.25s total
          0     0%   100%      2.23s 99.11%  testing.(*B).launch
          0     0%   100%      2.23s 99.11%  testing.(*B).runN
 </code></pre><p>In the value case nearly all the work is happening in newBigStruct. It&rsquo;s all very straightforward. What if we profile the pointer test?</p>
-<pre><code>go test -bench BenchmarkStructReturnPointer -run ^$ -cpuprofile cpu.prof
+<pre tabindex="0"><code>go test -bench BenchmarkStructReturnPointer -run ^$ -cpuprofile cpu.prof
 go tool pprof post.test cpu.prof 
 (pprof) top
 Showing nodes accounting for 2690ms, 93.08% of 2890ms total
@@ -164,8 +164,5 @@ Showing top 10 nodes out of 67
 
     </main>
 
-    
-      
-    
   </body>
 </html>

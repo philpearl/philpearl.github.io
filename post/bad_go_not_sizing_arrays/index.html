@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,44 +69,44 @@
 
   <p>This is the 4th in a series of posts about Bad Go - a clickbaity title for posts about Go code that I&rsquo;ve found frustrating because it could just be that little bit better. Better in my mind means more performant with less impact on GC, without being more complex or harder to read.</p>
 <p>In this post we&rsquo;ll look at a very common issue - not setting the size of a slice when you <em>know</em> how big it needs to be. I&rsquo;m talking about code like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBad</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
-	vals <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">string</span>{}
-	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
-	}
-	<span style="color:#ff79c6">return</span> vals
-}
-</code></pre></div><p>Why is this bad? Well, you know that the slice of strings needs to have the same capacity as the slice of ints, so why not save everyone some guesswork and make the slice have the right capacity? Here&rsquo;s a better version. We don&rsquo;t have to do anything particularly different, just set the capacity of the slice to the length of the slice of numbers.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBetter</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
-	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, <span style="color:#bd93f9">0</span>, <span style="color:#8be9fd;font-style:italic">len</span>(numbers))
-	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
-	}
-	<span style="color:#ff79c6">return</span> vals
-}
-</code></pre></div><p>Let&rsquo;s do a quick benchmark and see how bad failing to set the capacity is, and how much we can gain with a little extra care. I&rsquo;ve used <code>b.Run</code> to group these two benchmarks together this time.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSliceConversion</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	numbers <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">100</span>)
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		numbers[i] = i
-	}
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;bad&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		b.<span style="color:#50fa7b">ReportAllocs</span>()
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			<span style="color:#50fa7b">numbersToStringsBad</span>(numbers)
-		}
-	})
-
-	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;better&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-		b.<span style="color:#50fa7b">ReportAllocs</span>()
-		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-			<span style="color:#50fa7b">numbersToStringsBetter</span>(numbers)
-		}
-	})
-}
-</code></pre></div><p>I ran the benchmarks 8 times each and fed the results to benchstat. Here&rsquo;s the results.</p>
-<pre><code>name                      time/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBad</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
+</span></span><span style="display:flex;"><span>	vals <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">string</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> vals
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Why is this bad? Well, you know that the slice of strings needs to have the same capacity as the slice of ints, so why not save everyone some guesswork and make the slice have the right capacity? Here&rsquo;s a better version. We don&rsquo;t have to do anything particularly different, just set the capacity of the slice to the length of the slice of numbers.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBetter</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
+</span></span><span style="display:flex;"><span>	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, <span style="color:#bd93f9">0</span>, <span style="color:#8be9fd;font-style:italic">len</span>(numbers))
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> vals
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Let&rsquo;s do a quick benchmark and see how bad failing to set the capacity is, and how much we can gain with a little extra care. I&rsquo;ve used <code>b.Run</code> to group these two benchmarks together this time.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkSliceConversion</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	numbers <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">100</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		numbers[i] = i
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;bad&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#50fa7b">numbersToStringsBad</span>(numbers)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">Run</span>(<span style="color:#f1fa8c">&#34;better&#34;</span>, <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#50fa7b">numbersToStringsBetter</span>(numbers)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>I ran the benchmarks 8 times each and fed the results to benchstat. Here&rsquo;s the results.</p>
+<pre tabindex="0"><code>name                      time/op
 SliceConversion/bad-8     2.12µs ± 5%
 SliceConversion/better-8  1.02µs ± 4%
 
@@ -119,29 +119,29 @@ SliceConversion/bad-8       8.00 ± 0%
 SliceConversion/better-8    1.00 ± 0%
 </code></pre><p>You&rsquo;ll see the better version takes half as much time and does only 1 allocation versus the 8 allocations done by the bad version. Why does this happen? It is all to do with growing the slice to fit the data.</p>
 <p>I think we can see what&rsquo;s happening by modifying <code>numbersToStringsBad</code> to show how the capacity of the slice grows as we append more items to it. This modified code prints the capacity of the slice whenever it changes.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBadInstrumented</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
-	vals <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">string</span>{}
-	oldCapacity <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">cap</span>(vals)
-	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
-		<span style="color:#ff79c6">if</span> capacity <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">cap</span>(vals); capacity <span style="color:#ff79c6">!=</span> oldCapacity {
-			fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;len(vals)=%d, cap(vals)=%d (was %d)\n&#34;</span>, <span style="color:#8be9fd;font-style:italic">len</span>(vals), capacity, oldCapacity)
-			oldCapacity = capacity
-		}
-	}
-	<span style="color:#ff79c6">return</span> vals
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	numbers <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">100</span>)
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		numbers[i] = i
-	}
-
-	<span style="color:#50fa7b">numbersToStringsBadInstrumented</span>(numbers)
-}
-</code></pre></div><p>Here&rsquo;s the output. We can see that <code>append</code> doubles the capacity of the slice each time it fills up.</p>
-<pre><code>len(vals)=1, cap(vals)=1 (was 0)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBadInstrumented</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
+</span></span><span style="display:flex;"><span>	vals <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">string</span>{}
+</span></span><span style="display:flex;"><span>	oldCapacity <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">cap</span>(vals)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> _, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		vals = <span style="color:#8be9fd;font-style:italic">append</span>(vals, strconv.<span style="color:#50fa7b">Itoa</span>(n))
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> capacity <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">cap</span>(vals); capacity <span style="color:#ff79c6">!=</span> oldCapacity {
+</span></span><span style="display:flex;"><span>			fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;len(vals)=%d, cap(vals)=%d (was %d)\n&#34;</span>, <span style="color:#8be9fd;font-style:italic">len</span>(vals), capacity, oldCapacity)
+</span></span><span style="display:flex;"><span>			oldCapacity = capacity
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> vals
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+</span></span><span style="display:flex;"><span>	numbers <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">100</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		numbers[i] = i
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">numbersToStringsBadInstrumented</span>(numbers)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the output. We can see that <code>append</code> doubles the capacity of the slice each time it fills up.</p>
+<pre tabindex="0"><code>len(vals)=1, cap(vals)=1 (was 0)
 len(vals)=2, cap(vals)=2 (was 1)
 len(vals)=3, cap(vals)=4 (was 2)
 len(vals)=5, cap(vals)=8 (was 4)
@@ -152,15 +152,15 @@ len(vals)=65, cap(vals)=128 (was 64)
 </code></pre><p>How does the capacity of the slice increase? <code>append</code> increases the slice by allocating a new slice that&rsquo;s twice as big and copying the data over. So as well as the overhead of extra allocations we suffer the overhead of copying the data. And all the intermediate versions of the slice that are discarded will need to be garbage collected too.</p>
 <p>Now you know the consequences, you&rsquo;ll size your slices whenever you can won&rsquo;t you? But if you don&rsquo;t know what the final size will be, don&rsquo;t worry. Although the &ldquo;bad&rdquo; version is slower, it really isn&rsquo;t that bad.</p>
 <p>Since you&rsquo;ve read this far, as a bonus let&rsquo;s see if we can do a little bit better if we set the length of the slice as well as the capacity, and set each slice entry directly rather than appending.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBest</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
-	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd;font-style:italic">len</span>(numbers))
-	<span style="color:#ff79c6">for</span> i, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
-		vals[i] = strconv.<span style="color:#50fa7b">Itoa</span>(n)
-	}
-	<span style="color:#ff79c6">return</span> vals
-}
-</code></pre></div><p>benchstat gives us the following. Our final version is faster by about 10%</p>
-<pre><code>name                      time/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">numbersToStringsBest</span>(numbers []<span style="color:#8be9fd">int</span>) []<span style="color:#8be9fd">string</span> {
+</span></span><span style="display:flex;"><span>	vals <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd;font-style:italic">len</span>(numbers))
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i, n <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> numbers {
+</span></span><span style="display:flex;"><span>		vals[i] = strconv.<span style="color:#50fa7b">Itoa</span>(n)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> vals
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>benchstat gives us the following. Our final version is faster by about 10%</p>
+<pre tabindex="0"><code>name                      time/op
 SliceConversion/bad-8     2.07µs ± 2%
 SliceConversion/better-8  1.00µs ± 2%
 SliceConversion/best-8     900ns ± 2%
@@ -181,8 +181,5 @@ SliceConversion/best-8      1.00 ± 0%
 
     </main>
 
-    
-      
-    
   </body>
 </html>

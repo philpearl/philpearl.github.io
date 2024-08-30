@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.131.0">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dumb ways to die: Random Values in Pointers &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Mmmm, pointy" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="http://twitter.com/philpearl"><img>@philpearl</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/fox.jpg" alt="I just think this is a nice fox.">
+    <figcaption>I just think this is a nice fox.</figcaption>
+  </figure>
+  
+
+  <h1>Dumb ways to die: Random Values in Pointers</h1>
+  
+  <p class="lead">Mmmm, pointy</p>
+  
+
+  <time datetime=2024-08-30T10:30:00Z class="post-date">Fri, Aug 30, 2024</time>
+
+
+  <p>I seem to be writing about one blog post a year at the moment.
+I always tell myself I want to write more, but it doesn&rsquo;t happen.
+This, however, is the first post in a series.
+But I only have two ideas for posts, and one seems like a bad idea, so it could be a short series!</p>
+<p>Every now and again I visit the Go slack, in particular the #performance channel
+and the #darkarts channel.
+I almost never say anything.</p>
+<p>Recently someone brought up the question of whether they could put non-pointer values in <code>unsafe.Pointer</code> variables.
+The general response was &ldquo;no, that&rsquo;s a bad idea&rdquo;.
+I agree, it seems like a bad idea.</p>
+<p>But if we never explore bad ideas we&rsquo;ll never &hellip; er, actually if we never
+explore bad ideas we&rsquo;ll be absolutely fine.</p>
+<h1 id="so-lets-explore-this-bad-idea">So lets explore this bad idea.</h1>
+<p>So why is this a bad idea?
+The main thought is that you&rsquo;ll perhaps crash Go&rsquo;s garbage collector.
+The Go GC looks at every pointer visible to the program to see what memory is still in use and what memory can be freed.
+If it follows a pointer that&rsquo;s not pointing to a valid memory address, it could crash.</p>
+<p>So let&rsquo;s try that. We&rsquo;ll allocate a billion <code>unsafe.Pointers</code> and set them all to values that really aren&rsquo;t likely to be valid pointers.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">TestRandomUnsafePointers</span>(t <span style="color:#ff79c6">*</span>testing.T) {
+</span></span><span style="display:flex;"><span>	x <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]unsafe.Pointer, <span style="color:#bd93f9">1e9</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> x {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Possible misuse of unsafe.Pointer? Definite misuse of unsafe.Pointer!
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		x[i] = unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(i <span style="color:#ff79c6">*</span> <span style="color:#bd93f9">8</span>))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>    runtime.<span style="color:#50fa7b">KeepAlive</span>(x)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This code creates a slice of 1 billion <code>unsafe.Pointer</code>s, then forces the GC to run.
+It doesn&rsquo;t crash.</p>
+<p>We can try again with truely(ish) random values.
+And do some silly things.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">TestRandomUnsafePointers2</span>(t <span style="color:#ff79c6">*</span>testing.T) {
+</span></span><span style="display:flex;"><span>	x <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]unsafe.Pointer, <span style="color:#bd93f9">1e9</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> x {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Possible misuse of unsafe.Pointer? Definite misuse of unsafe.Pointer!
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		x[i] = unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(rand.<span style="color:#50fa7b">Int64</span>()))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> <span style="color:#bd93f9">10</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> x {
+</span></span><span style="display:flex;"><span>			<span style="color:#6272a4">// Possible misuse of unsafe.Pointer? Definite misuse of unsafe.Pointer!
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>			x[i] = unsafe.<span style="color:#50fa7b">Add</span>(x[i], <span style="color:#bd93f9">3</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>    runtime.<span style="color:#50fa7b">KeepAlive</span>(x)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>It still doesn&rsquo;t crash.</p>
+<h1 id="what-if-were-just-not-being-smart-enough">What if we&rsquo;re just not being smart enough?</h1>
+<p>Go may be looking at these values and thinking &ldquo;well, if that&rsquo;s a pointer it&rsquo;s nothing I know about&rdquo; and ignoring it.
+Go can interact with C, so it needs to be able to deal with memory that&rsquo;s allocated outside of its control.
+I&rsquo;ve also used memory allocated directly via syscalls with Go for many years without (fingers crossed) any issues.</p>
+<p>Go may find it more difficult if the value of a pointer looks like memory it should care about.
+What if we store a value that was once a valid memory address allocated by Go itself, but we know is no longer valid?</p>
+<p>Here we allocate a slice that&rsquo;s big enough to always be allocated on the heap.
+We then take the address of the array that backs the slice, and place that in a uintptr.
+We know that Go does not treat uintptrs as pointers, so holding the value in a uintptr shouldn&rsquo;t cause Go to hold onto the allocation.</p>
+<p>If we then remove references to the slice, and force a GC, the memory should be freed.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	y <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e4</span>)
+</span></span><span style="display:flex;"><span>	yptr <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(unsafe.<span style="color:#50fa7b">SliceData</span>(y)))
+</span></span><span style="display:flex;"><span>	y = <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span></code></pre></div><p>Now if we store this value in an <code>unsafe.Pointer</code> and run the GC again, we might run into trouble.
+Here&rsquo;s the full test.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">TestUnsafePointerBadNumber</span>(t <span style="color:#ff79c6">*</span>testing.T) {
+</span></span><span style="display:flex;"><span>	y <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e4</span>)
+</span></span><span style="display:flex;"><span>	yptr <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(unsafe.<span style="color:#50fa7b">SliceData</span>(y)))
+</span></span><span style="display:flex;"><span>	y = <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>	x <span style="color:#ff79c6">:=</span> unsafe.<span style="color:#50fa7b">Pointer</span>(yptr)
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	runtime.<span style="color:#50fa7b">KeepAlive</span>(x)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>And indeed, this does cause a panic.</p>
+<pre tabindex="0"><code>runtime: pointer 0xc000162000 to unallocated span span.base()=0xc000288000 span.limit=0xc000290000 span.state=0
+runtime: found in object at *(0xc00005ff58+0x0)
+object=0xc00005ff58 s.base()=0xc00005e000 s.limit=0xc000066000 s.spanclass=0 s.elemsize=2048 s.state=mSpanManual
+:
+:
+ ...
+fatal error: found bad pointer in Go heap (incorrect use of unsafe or cgo?)
+</code></pre><p>If you&rsquo;re wondering why there are multiple calls to <code>runtime.GC()</code>, so am I.
+It seems to make it crash more reliably.</p>
+<h1 id="what-does-that-mean">What does that mean?</h1>
+<p>Go&rsquo;s garbage collector is pretty robust and can handle a lot of abuse.
+You can store values in pointers that aren&rsquo;t pointers the GC knows about, or aren&rsquo;t even valid memory addresses.</p>
+<p>But if you store a memory address that the GC thinks it controls, then it will panic.
+I think it&rsquo;s panicing because if it finds a pointer to a piece of memory that it has freed, then it has perhaps not done its job properly.
+The panic is there primarily to detect and help diagnose GC bugs, and just happens to catch poor uses of <code>unsafe</code>.</p>
+<p>If you store non-pointer values in <code>unsafe.Pointer</code> you&rsquo;ll likely see no immediate problems.
+Your testing will likely not show any issues.
+But one day you&rsquo;ll be flat on your face, and you&rsquo;ll have no idea why.</p>
+<p>My conclusions are as follows.</p>
+<ol>
+<li>Don&rsquo;t use <code>unsafe.Pointer</code> unless you really have to.</li>
+<li>Don&rsquo;t keep <code>unsafe.Pointer</code> values around unless you really really have to. Most safe operations with <code>unsafe.Pointer</code> use it only as a transient value while transforming something to something else.</li>
+<li>You probably don&rsquo;t have to.</li>
+<li>Only store memory addresses in <code>unsafe.Pointer</code>.</li>
+<li>Perhaps only memory addresses allocated outside of the Go runtime (e.g. by
+direct calls to the mmap syscall).</li>
+<li>And even in that case Go&rsquo;s not guaranteed not to change underneath you.</li>
+</ol>
+
+</div>
+
+
+    </main>
+
+  </body>
+</html>

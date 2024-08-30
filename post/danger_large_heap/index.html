@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -89,84 +89,84 @@
 <p>If you don’t follow either of these practices, and you allocate 50GB that’s kept around for the lifetime of a process, then every GC cycle will scan every bit of that 50GB. And that will take some time. In addition, the GC will set it’s memory use target to 100GB, which may be more memory than you have.</p>
 <p>So, long rambling GC whinge-fest over. Let’s see just how bad this can get with some proper directed whinging. For your amusement and edification I’ve built a reproduction scenario that quickly shows the problem on my 2015 MBP with 16 GB of RAM.</p>
 <p>First it allocates an array of 1.5 billion 8-byte pointers. So about 12GB of RAM. Then it uses up all available CPU by running a bunch of workers that loop creating arrays of 1 million 8-byte pointers (about 8 MB) &amp; burning a little CPU with a factorial calculation (just for laughs). Ideally the memory in-use wouldn’t grow much: the loops would spin a few times allocating memory, then the GC would trigger and free it again, then the loops would spin &amp; allocate some more, etc. The huge 12GB allocation would just loom at one side being memory.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
-
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
-	<span style="color:#f1fa8c">&#34;os&#34;</span>
-	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
-	<span style="color:#f1fa8c">&#34;sync&#34;</span>
-)
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	<span style="color:#6272a4">// A huge allocation to give the GC work to do
-</span><span style="color:#6272a4"></span>	lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
-	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
-	<span style="color:#6272a4">// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
-</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">GC</span>()
-
-	<span style="color:#6272a4">// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
-</span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">var</span> wg sync.WaitGroup
-	numWorkers <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">NumCPU</span>()
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; numWorkers; i<span style="color:#ff79c6">++</span> {
-		wg.<span style="color:#50fa7b">Add</span>(<span style="color:#bd93f9">1</span>)
-		<span style="color:#ff79c6">go</span> <span style="color:#8be9fd;font-style:italic">func</span>() {
-			<span style="color:#ff79c6">defer</span> wg.<span style="color:#50fa7b">Done</span>()
-			<span style="color:#50fa7b">work</span>()
-		}()
-	}
-
-	wg.<span style="color:#50fa7b">Wait</span>()
-
-	<span style="color:#6272a4">// Make sure that this memory isn&#39;t optimised away
-</span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">KeepAlive</span>(lotsOf)
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">work</span>() {
-	<span style="color:#ff79c6">for</span> {
-		work <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e6</span>)
-		<span style="color:#ff79c6">if</span> f <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">factorial</span>(<span style="color:#bd93f9">20</span>); f <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">2432902008176640000</span> {
-			fmt.<span style="color:#50fa7b">Println</span>(f)
-			os.<span style="color:#50fa7b">Exit</span>(<span style="color:#bd93f9">1</span>)
-		}
-		runtime.<span style="color:#50fa7b">KeepAlive</span>(work)
-	}
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">factorial</span>(n <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">int</span> {
-	<span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">1</span> {
-		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>
-	}
-	<span style="color:#ff79c6">return</span> n <span style="color:#ff79c6">*</span> <span style="color:#50fa7b">factorial</span>(n<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)
-}
-</code></pre></div><p>But that’s not what happens. Memory use grows and grows, and in not much more than a minute the process is killed by the OS when the memory runs out. Here’s what we see if we enable GC trace debug output.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#8be9fd;font-style:italic">GODEBUG</span><span style="color:#ff79c6">=</span><span style="color:#8be9fd;font-style:italic">gctrace</span><span style="color:#ff79c6">=</span><span style="color:#bd93f9">1</span> ./gcbacklog
-Background GC work generated
-gc <span style="color:#bd93f9">1</span> @0.804s 21%: 0.012+4528+0.17 ms clock, 0.099+1.4/9054/27147+1.4 ms cpu, 
-11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">11445</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
-
-gc <span style="color:#bd93f9">2</span> @5.333s 23%: 0.012+6358+0.086 ms clock, 0.099+0/12716/38112+0.68 ms cpu, 
-11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
-
-gc <span style="color:#bd93f9">3</span> @11.764s 31%: 20+53853+1.4 ms clock, 167+37787/107690/0+11 ms cpu, 
-11505-&gt;728829-&gt;728783 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P
-
-gc <span style="color:#bd93f9">4</span> @65.676s 40%: 69+10843+0.036 ms clock, 555+61294/21670/23+0.29 ms cpu, 
-728844-&gt;752155-&gt;34785 MB, <span style="color:#bd93f9">1457567</span> MB goal, <span style="color:#bd93f9">8</span> P
-
-Killed: <span style="color:#bd93f9">9</span>
-</code></pre></div><p>The format of this output is described <a href="https://golang.org/pkg/runtime/#hdr-Environment_Variables">here</a>. Once the initial array is allocated the process is using 21% of the available CPU for GC, and this rises to 40% before it is killed. The GC memory size target is quickly 22 GB (twice our initial allocation), but this rises to an insane 1.4 TB as things spiral out of control.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;runtime&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// A huge allocation to give the GC work to do
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+</span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Force a GC to set a baseline we can see if we set GODEBUG=gctrace=1
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">GC</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Use up all the CPU doing work that causes allocations that could be cleaned up by the GC.
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">var</span> wg sync.WaitGroup
+</span></span><span style="display:flex;"><span>	numWorkers <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">NumCPU</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; numWorkers; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>		wg.<span style="color:#50fa7b">Add</span>(<span style="color:#bd93f9">1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">go</span> <span style="color:#8be9fd;font-style:italic">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">defer</span> wg.<span style="color:#50fa7b">Done</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#50fa7b">work</span>()
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	wg.<span style="color:#50fa7b">Wait</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Make sure that this memory isn&#39;t optimised away
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	runtime.<span style="color:#50fa7b">KeepAlive</span>(lotsOf)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">work</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> {
+</span></span><span style="display:flex;"><span>		work <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">1e6</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> f <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">factorial</span>(<span style="color:#bd93f9">20</span>); f <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">2432902008176640000</span> {
+</span></span><span style="display:flex;"><span>			fmt.<span style="color:#50fa7b">Println</span>(f)
+</span></span><span style="display:flex;"><span>			os.<span style="color:#50fa7b">Exit</span>(<span style="color:#bd93f9">1</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		runtime.<span style="color:#50fa7b">KeepAlive</span>(work)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">factorial</span>(n <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> n <span style="color:#ff79c6">*</span> <span style="color:#50fa7b">factorial</span>(n<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>But that’s not what happens. Memory use grows and grows, and in not much more than a minute the process is killed by the OS when the memory runs out. Here’s what we see if we enable GC trace debug output.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">GODEBUG</span><span style="color:#ff79c6">=</span><span style="color:#8be9fd;font-style:italic">gctrace</span><span style="color:#ff79c6">=</span><span style="color:#bd93f9">1</span> ./gcbacklog
+</span></span><span style="display:flex;"><span>Background GC work generated
+</span></span><span style="display:flex;"><span>gc <span style="color:#bd93f9">1</span> @0.804s 21%: 0.012+4528+0.17 ms clock, 0.099+1.4/9054/27147+1.4 ms cpu, 
+</span></span><span style="display:flex;"><span>11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">11445</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gc <span style="color:#bd93f9">2</span> @5.333s 23%: 0.012+6358+0.086 ms clock, 0.099+0/12716/38112+0.68 ms cpu, 
+</span></span><span style="display:flex;"><span>11444-&gt;11444-&gt;11444 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P <span style="color:#ff79c6">(</span>forced<span style="color:#ff79c6">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gc <span style="color:#bd93f9">3</span> @11.764s 31%: 20+53853+1.4 ms clock, 167+37787/107690/0+11 ms cpu, 
+</span></span><span style="display:flex;"><span>11505-&gt;728829-&gt;728783 MB, <span style="color:#bd93f9">22888</span> MB goal, <span style="color:#bd93f9">8</span> P
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gc <span style="color:#bd93f9">4</span> @65.676s 40%: 69+10843+0.036 ms clock, 555+61294/21670/23+0.29 ms cpu, 
+</span></span><span style="display:flex;"><span>728844-&gt;752155-&gt;34785 MB, <span style="color:#bd93f9">1457567</span> MB goal, <span style="color:#bd93f9">8</span> P
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Killed: <span style="color:#bd93f9">9</span>
+</span></span></code></pre></div><p>The format of this output is described <a href="https://golang.org/pkg/runtime/#hdr-Environment_Variables">here</a>. Once the initial array is allocated the process is using 21% of the available CPU for GC, and this rises to 40% before it is killed. The GC memory size target is quickly 22 GB (twice our initial allocation), but this rises to an insane 1.4 TB as things spiral out of control.</p>
 <p>Now, if we change that initial allocation from 1.5 billion 8-byte pointers to 1.5 billion 8-byte integers things change completely. We use just as much memory, but it doesn’t contain pointers. The GC target hits 22 GB, but the GC kicks in more frequently and uses less overall CPU, and importantly the target doesn’t grow.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6272a4">// Note no *! This now contains no pointers
-</span><span style="color:#6272a4"></span>lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
-fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
-</code></pre></div><p>Here are the numbers after the 62nd round of GC, 95 seconds after the program starts. The target is still bobbling around 22 GB and there’s effectively zero CPU used for GC. Things are stable and it could run forever.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gc <span style="color:#bd93f9">61</span> @93.824s 0%: 4.0+4.5+0.075 ms clock, 32+8.9/8.6/4.0+0.60 ms cpu, 
-22412-&gt;22412-&gt;11474 MB, <span style="color:#bd93f9">22980</span> MB goal, <span style="color:#bd93f9">8</span> P
-
-gc <span style="color:#bd93f9">62</span> @95.290s 0%: 14+4.0+0.085 ms clock, 115+4.3/0.39/0+0.68 ms cpu, 
-22382-&gt;22382-&gt;11451 MB, <span style="color:#bd93f9">22949</span> MB goal, <span style="color:#bd93f9">8</span> P
-</code></pre></div><p>So what are the lessons to learn here? If you are using Go for data-processing then you either can’t have any long-term large heap allocations or you must ensure that they don’t contain any pointers. And this means no strings, no slices, no time.Time (it contains a pointer to a locale), no nothing with a hidden pointer in it. I hope to follow up with some blog posts about tricks I’ve used to do that.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#6272a4">// Note no *! This now contains no pointers
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>lotsOf <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">int</span>, <span style="color:#bd93f9">15e8</span>)
+</span></span><span style="display:flex;"><span>fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#f1fa8c">&#34;Background GC work generated&#34;</span>)
+</span></span></code></pre></div><p>Here are the numbers after the 62nd round of GC, 95 seconds after the program starts. The target is still bobbling around 22 GB and there’s effectively zero CPU used for GC. Things are stable and it could run forever.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gc <span style="color:#bd93f9">61</span> @93.824s 0%: 4.0+4.5+0.075 ms clock, 32+8.9/8.6/4.0+0.60 ms cpu, 
+</span></span><span style="display:flex;"><span>22412-&gt;22412-&gt;11474 MB, <span style="color:#bd93f9">22980</span> MB goal, <span style="color:#bd93f9">8</span> P
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>gc <span style="color:#bd93f9">62</span> @95.290s 0%: 14+4.0+0.085 ms clock, 115+4.3/0.39/0+0.68 ms cpu, 
+</span></span><span style="display:flex;"><span>22382-&gt;22382-&gt;11451 MB, <span style="color:#bd93f9">22949</span> MB goal, <span style="color:#bd93f9">8</span> P
+</span></span></code></pre></div><p>So what are the lessons to learn here? If you are using Go for data-processing then you either can’t have any long-term large heap allocations or you must ensure that they don’t contain any pointers. And this means no strings, no slices, no time.Time (it contains a pointer to a locale), no nothing with a hidden pointer in it. I hope to follow up with some blog posts about tricks I’ve used to do that.</p>
 <p>(Thanks to the fabulous people in the #performance channel on Gophers slack for some help along the way. There’s some great stuff in that channel if you can find the time to dip in)</p>
 
 </div>
@@ -174,8 +174,5 @@ gc <span style="color:#bd93f9">62</span> @95.290s 0%: 14+4.0+0.085 ms clock, 115
 
     </main>
 
-    
-      
-    
   </body>
 </html>

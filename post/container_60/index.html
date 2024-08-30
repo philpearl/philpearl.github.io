@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -90,39 +90,39 @@
 <li>Build the manifest JSON. This references the layer &amp; image config via their digests.</li>
 <li>Upload the manifest to the repo. The URL for the manifest includes the image name and tag. If you want multiple tags just upload the manifest again with a different URL.</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;architecture&#34;</span>: <span style="color:#f1fa8c">&#34;amd64&#34;</span>,
-  <span style="color:#ff79c6">&#34;os&#34;</span>: <span style="color:#f1fa8c">&#34;linux&#34;</span>,
-  <span style="color:#ff79c6">&#34;config&#34;</span>: {
-    <span style="color:#ff79c6">&#34;Entrypoint&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;/app&#34;</span>
-    ]
-  },
-  <span style="color:#ff79c6">&#34;rootfs&#34;</span>: {
-    <span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;layers&#34;</span>,
-    <span style="color:#ff79c6">&#34;diff_ids&#34;</span>: [
-      <span style="color:#f1fa8c">&#34;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&#34;</span>
-    ]
-  }
-}
-</code></pre></div><p>A very simple image config</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;schemaVersion&#34;</span>: <span style="color:#bd93f9">2</span>,
-  <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.distribution.manifest.v2+json&#34;</span>,
-  <span style="color:#ff79c6">&#34;config&#34;</span>: {
-    <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.container.image.v1+json&#34;</span>,
-    <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">184</span>,
-    <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:51f7917e0550525eda6b4656a3bdf8ddbd084664edb1dc372dd63f55ed52c565&#34;</span>
-  },
-  <span style="color:#ff79c6">&#34;layers&#34;</span>: [
-    {
-      <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.image.rootfs.diff.tar.gzip&#34;</span>,
-      <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">729097</span>,
-      <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:08c20a47894d73e1f4f672b56ef19ae3f836b799a582732bf995439adf492167&#34;</span>
-    }
-  ]
-}
-</code></pre></div><p>A very simple manifest</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;architecture&#34;</span>: <span style="color:#f1fa8c">&#34;amd64&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;os&#34;</span>: <span style="color:#f1fa8c">&#34;linux&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;config&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;Entrypoint&#34;</span>: [
+</span></span><span style="display:flex;"><span>      <span style="color:#f1fa8c">&#34;/app&#34;</span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;rootfs&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;type&#34;</span>: <span style="color:#f1fa8c">&#34;layers&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;diff_ids&#34;</span>: [
+</span></span><span style="display:flex;"><span>      <span style="color:#f1fa8c">&#34;sha256:d950580d13e7b6fcbffbbe90129536e1acbf4be04badb50dcc4307c10b4672c7&#34;</span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>A very simple image config</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;schemaVersion&#34;</span>: <span style="color:#bd93f9">2</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.distribution.manifest.v2+json&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;config&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.container.image.v1+json&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">184</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:51f7917e0550525eda6b4656a3bdf8ddbd084664edb1dc372dd63f55ed52c565&#34;</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;layers&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#ff79c6">&#34;mediaType&#34;</span>: <span style="color:#f1fa8c">&#34;application/vnd.docker.image.rootfs.diff.tar.gzip&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#ff79c6">&#34;size&#34;</span>: <span style="color:#bd93f9">729097</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#ff79c6">&#34;digest&#34;</span>: <span style="color:#f1fa8c">&#34;sha256:08c20a47894d73e1f4f672b56ef19ae3f836b799a582732bf995439adf492167&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>A very simple manifest</p>
 <h2 id="how-do-you-upload-a-blob">How do you upload a blob?</h2>
 <p>A blob on Docker Hub has a URL like <code>https://index.docker.io/v2/&lt;image name&gt;/blobs/&lt;digest&gt;</code>. So before you upload a blob you can check whether it’s already present by sending a HEAD request for this URL. If you get a 200 OK, the blob is already uploaded.</p>
 <p>If you do need to upload the blob, you first create a new upload with a POST to <code>https://index.docker.io/v2/&lt;image name&gt;/blobs/uploads</code>. This will return a <code>202 ACCEPTED</code> response with a <code>Location</code> header containing the URL to upload the blob to.</p>
@@ -132,13 +132,13 @@
 <p>The JSON-encoded manifest should be PUT to <code>https://index.docker.io/v2/&lt;image name&gt;/manifests/&lt;tag&gt;</code>. This time the <code>Content-Type</code> should be <code>application/vnd.docker.distribution.manifest.v2+json</code></p>
 <h2 id="what-about-auth">What about auth?</h2>
 <p>Any of these requests could return a 401 Unauthorised response with a Www-Authenticate header that, for the Docker registry, looks something like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">Bearer realm=”https://auth.docker.io/token&#34;,service=&#34;registry.docker.io&#34;,scope=&#34;repository:philpearl/test:pull,push&#34;
-</code></pre></div><p>This is telling you that you can get a Bearer token by sending a GET to <code>https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:philpearl/test:pull,push</code>. In the case of Docker you need to send your Docker Hub username and password using Basic Auth.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>Bearer realm=”https://auth.docker.io/token&#34;,service=&#34;registry.docker.io&#34;,scope=&#34;repository:philpearl/test:pull,push&#34;
+</span></span></code></pre></div><p>This is telling you that you can get a Bearer token by sending a GET to <code>https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:philpearl/test:pull,push</code>. In the case of Docker you need to send your Docker Hub username and password using Basic Auth.</p>
 <p>The response looks something like the following. I’ve edited the tokens in this response.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">{&#34;token&#34;:&#34;eyJ..snip..&#34;,&#34;access_token&#34;:&#34;eyJ..snap...&#34;,&#34;expires_in&#34;:300,&#34;issued_at&#34;:&#34;2018-04-29T14:50:42.311414998Z&#34;}
-</code></pre></div><p>The token field is a Bearer token that can then be used to authorise your requests by adding a header like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http">Authorization: Bearer eyJ..snip..
-</code></pre></div><p>If you don’t want to wait for the challenge, you can start by sending a GET to <code>https://index.docker.io/v2/</code>. This will return the <code>WWW-Authenticate</code> header, so you can get a token before attempting any uploads.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>{&#34;token&#34;:&#34;eyJ..snip..&#34;,&#34;access_token&#34;:&#34;eyJ..snap...&#34;,&#34;expires_in&#34;:300,&#34;issued_at&#34;:&#34;2018-04-29T14:50:42.311414998Z&#34;}
+</span></span></code></pre></div><p>The token field is a Bearer token that can then be used to authorise your requests by adding a header like the following.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>Authorization: Bearer eyJ..snip..
+</span></span></code></pre></div><p>If you don’t want to wait for the challenge, you can start by sending a GET to <code>https://index.docker.io/v2/</code>. This will return the <code>WWW-Authenticate</code> header, so you can get a token before attempting any uploads.</p>
 <h2 id="so-wheres-that-60-lines-of-go">So where’s that 60 lines of Go?</h2>
 <p>Ah, well, it’s more like 540 lines, and they’re <a href="https://github.com/philpearl/scratchbuild">here</a>.</p>
 <h2 id="prior-art">Prior Art</h2>
@@ -156,8 +156,5 @@
 
     </main>
 
-    
-      
-    
   </body>
 </html>

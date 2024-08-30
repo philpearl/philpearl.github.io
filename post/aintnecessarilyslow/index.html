@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -75,53 +75,53 @@ look at how you can use it to populate structs if you were ever foolish enough t
 try to write a new version of something like json.Unmarshal.</p>
 <p>We&rsquo;ll deal with a simple case. We&rsquo;ll have a struct with two integer fields
 called A and B.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> SimpleStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
-    A <span style="color:#8be9fd">int</span>
-    B <span style="color:#8be9fd">int</span>
-}
-</code></pre></div><p>Imagine we&rsquo;ve received some JSON <code>{&quot;B&quot;:42}</code>, we&rsquo;ve parsed it and we know we want
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> SimpleStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>    A <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>    B <span style="color:#8be9fd">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Imagine we&rsquo;ve received some JSON <code>{&quot;B&quot;:42}</code>, we&rsquo;ve parsed it and we know we want
 to set field B to 42. We&rsquo;re going to write some functions that do just that.
 They will all just set B to 42.</p>
 <p>If our code only works on SimpleStruct this is totally trivial.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStruct</span>(in <span style="color:#ff79c6">*</span>SimpleStruct) {
-    in.B = <span style="color:#bd93f9">42</span>
-}
-</code></pre></div><p>But if we&rsquo;re writing a JSON parser we don&rsquo;t know the struct type in advance. Our
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStruct</span>(in <span style="color:#ff79c6">*</span>SimpleStruct) {
+</span></span><span style="display:flex;"><span>    in.B = <span style="color:#bd93f9">42</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>But if we&rsquo;re writing a JSON parser we don&rsquo;t know the struct type in advance. Our
 parser code needs to accept any type. In Go, that usually means taking an
 <code>interface{}</code> parameter.</p>
 <p>We can then use the reflect package to inspect the value passed in via that
 interface{} parameter, check that it is a pointer to a struct, find the field B
 and populate it with our value. Our code will look something like the following.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructReflect</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
-	val <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">ValueOf</span>(in)
-	<span style="color:#ff79c6">if</span> val.<span style="color:#50fa7b">Type</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
-		<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
-	}
-	elmv <span style="color:#ff79c6">:=</span> val.<span style="color:#50fa7b">Elem</span>()
-	<span style="color:#ff79c6">if</span> elmv.<span style="color:#50fa7b">Type</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
-		<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
-	}
-
-	fval <span style="color:#ff79c6">:=</span> elmv.<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
-	fval.<span style="color:#50fa7b">SetInt</span>(<span style="color:#bd93f9">42</span>)
-
-	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>Let&rsquo;s see how fast that is. A quick benchmark.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkPopulateReflect</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
-	<span style="color:#8be9fd;font-style:italic">var</span> m SimpleStruct
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">populateStructReflect</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-			b.<span style="color:#50fa7b">Fatal</span>(err)
-		}
-		<span style="color:#ff79c6">if</span> m.B <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">42</span> {
-			b.<span style="color:#50fa7b">Fatalf</span>(<span style="color:#f1fa8c">&#34;unexpected value %d for B&#34;</span>, m.B)
-		}
-	}
-}
-</code></pre></div><p>We get the following results</p>
-<pre><code>BenchmarkPopulateReflect-16   15941916	   68.3 ns/op	 8 B/op	    1 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructReflect</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	val <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">ValueOf</span>(in)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> val.<span style="color:#50fa7b">Type</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	elmv <span style="color:#ff79c6">:=</span> val.<span style="color:#50fa7b">Elem</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> elmv.<span style="color:#50fa7b">Type</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	fval <span style="color:#ff79c6">:=</span> elmv.<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
+</span></span><span style="display:flex;"><span>	fval.<span style="color:#50fa7b">SetInt</span>(<span style="color:#bd93f9">42</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Let&rsquo;s see how fast that is. A quick benchmark.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkPopulateReflect</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> m SimpleStruct
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">populateStructReflect</span>(<span style="color:#ff79c6">&amp;</span>m); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Fatal</span>(err)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> m.B <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">42</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Fatalf</span>(<span style="color:#f1fa8c">&#34;unexpected value %d for B&#34;</span>, m.B)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>We get the following results</p>
+<pre tabindex="0"><code>BenchmarkPopulateReflect-16   15941916	   68.3 ns/op	 8 B/op	    1 allocs/op
 </code></pre><p>Is that good or bad? Well, allocations are never good. And you might wonder why
 you need to allocate memory on the heap to set a struct field to 42
 (<a href="https://github.com/golang/go/issues/2320">this issue</a> is at the heart of it).
@@ -140,37 +140,37 @@ call <code>FieldByName</code> on the type and cache something to get the value&r
 It turns out if we cache <code>Field.Index</code> we can use that to get the field value
 without an allocation.</p>
 <p>Here&rsquo;s our new version.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> cache = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[reflect.Type][]<span style="color:#8be9fd">int</span>)
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructReflectCache</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
-	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
-
-	index, ok <span style="color:#ff79c6">:=</span> cache[typ]
-	<span style="color:#ff79c6">if</span> !ok {
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
-		}
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
-		}
-		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
-		<span style="color:#ff79c6">if</span> !ok {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
-		}
-		index = f.Index
-		cache[typ] = index
-	}
-
-	val <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">ValueOf</span>(in)
-	elmv <span style="color:#ff79c6">:=</span> val.<span style="color:#50fa7b">Elem</span>()
-
-	fval <span style="color:#ff79c6">:=</span> elmv.<span style="color:#50fa7b">FieldByIndex</span>(index)
-	fval.<span style="color:#50fa7b">SetInt</span>(<span style="color:#bd93f9">42</span>)
-
-	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>The new benchmark is faster and we don&rsquo;t have any allocations.</p>
-<pre><code>BenchmarkPopulateReflectCache-16  35881779	   30.9 ns/op   0 B/op   0 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> cache = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[reflect.Type][]<span style="color:#8be9fd">int</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructReflectCache</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	index, ok <span style="color:#ff79c6">:=</span> cache[typ]
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		index = f.Index
+</span></span><span style="display:flex;"><span>		cache[typ] = index
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	val <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">ValueOf</span>(in)
+</span></span><span style="display:flex;"><span>	elmv <span style="color:#ff79c6">:=</span> val.<span style="color:#50fa7b">Elem</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	fval <span style="color:#ff79c6">:=</span> elmv.<span style="color:#50fa7b">FieldByIndex</span>(index)
+</span></span><span style="display:flex;"><span>	fval.<span style="color:#50fa7b">SetInt</span>(<span style="color:#bd93f9">42</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The new benchmark is faster and we don&rsquo;t have any allocations.</p>
+<pre tabindex="0"><code>BenchmarkPopulateReflectCache-16  35881779	   30.9 ns/op   0 B/op   0 allocs/op
 </code></pre><p>Can we do any better? Well, if we know the offset of field B in the struct and
 we know its an int we can just write to the memory directly. We can recover the
 pointer to the struct from the interface as <a href="https://syslog.ravelin.com/what-is-an-interface-ee67b3cc9e97">we
@@ -180,42 +180,42 @@ information about the type and the second points to the value. Getting this
 pointer gives us the start of the struct. We can then use the offset of field B
 in the struct to address field B in this value directly.</p>
 <p>Here&rsquo;s our new code.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> unsafeCache = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[reflect.Type]<span style="color:#8be9fd">uintptr</span>)
-
-<span style="color:#8be9fd;font-style:italic">type</span> intface <span style="color:#8be9fd;font-style:italic">struct</span> {
-	typ   unsafe.Pointer
-	value unsafe.Pointer
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
-	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
-
-	offset, ok <span style="color:#ff79c6">:=</span> unsafeCache[typ]
-	<span style="color:#ff79c6">if</span> !ok {
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
-		}
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
-		}
-		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
-		<span style="color:#ff79c6">if</span> !ok {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
-		}
-		<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
-		}
-		offset = f.Offset
-		unsafeCache[typ] = offset
-	}
-
-	structPtr <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in)).value
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(structPtr) <span style="color:#ff79c6">+</span> offset)) = <span style="color:#bd93f9">42</span>
-
-	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>The new benchmark shows this is quite a bit quicker.</p>
-<pre><code>BenchmarkPopulateUnsafe-16 	62726018    19.5 ns/op     0 B/op     0 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> unsafeCache = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[reflect.Type]<span style="color:#8be9fd">uintptr</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> intface <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>	typ   unsafe.Pointer
+</span></span><span style="display:flex;"><span>	value unsafe.Pointer
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	offset, ok <span style="color:#ff79c6">:=</span> unsafeCache[typ]
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		offset = f.Offset
+</span></span><span style="display:flex;"><span>		unsafeCache[typ] = offset
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	structPtr <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in)).value
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(structPtr) <span style="color:#ff79c6">+</span> offset)) = <span style="color:#bd93f9">42</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The new benchmark shows this is quite a bit quicker.</p>
+<pre tabindex="0"><code>BenchmarkPopulateUnsafe-16 	62726018    19.5 ns/op     0 B/op     0 allocs/op
 </code></pre><p>Can we go even quicker? If we run a CPU profile we see most of the time is taken
 accessing the map. It also shows the map access is calling
 <a href="https://golang.org/pkg/runtime/?m=all#interhash">runtime.interhash</a> and
@@ -223,37 +223,37 @@ accessing the map. It also shows the map access is calling
 are functions for hashing interfaces and checking if they are equal. Perhaps
 using a simpler key will speed things up? We could use the address of the type
 information from the interface rather than the <code>reflect.Type</code> itself.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">var</span> unsafeCache2 = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">uintptr</span>]<span style="color:#8be9fd">uintptr</span>)
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe2</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
-	inf <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in))
-
-	offset, ok <span style="color:#ff79c6">:=</span> unsafeCache2[<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.typ)]
-	<span style="color:#ff79c6">if</span> !ok {
-		typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
-		}
-		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
-		}
-		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
-		<span style="color:#ff79c6">if</span> !ok {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
-		}
-		<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
-			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
-		}
-		offset = f.Offset
-		unsafeCache2[<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.typ)] = offset
-	}
-
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.value) <span style="color:#ff79c6">+</span> offset)) = <span style="color:#bd93f9">42</span>
-
-	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>Here&rsquo;s the benchmark result for our new version. It&rsquo;s quite a bit faster.</p>
-<pre><code>BenchmarkPopulateUnsafe2-16  230836136    5.16 ns/op    0 B/op     0 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> unsafeCache2 = <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">uintptr</span>]<span style="color:#8be9fd">uintptr</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe2</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	inf <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	offset, ok <span style="color:#ff79c6">:=</span> unsafeCache2[<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.typ)]
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>		typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		offset = f.Offset
+</span></span><span style="display:flex;"><span>		unsafeCache2[<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.typ)] = offset
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(inf.value) <span style="color:#ff79c6">+</span> offset)) = <span style="color:#bd93f9">42</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the benchmark result for our new version. It&rsquo;s quite a bit faster.</p>
+<pre tabindex="0"><code>BenchmarkPopulateUnsafe2-16  230836136    5.16 ns/op    0 B/op     0 allocs/op
 </code></pre><p>Can we go even faster still? Well, we could change the interface to our
 function. Often if you&rsquo;re unmarshaling into a struct it&rsquo;s always the same
 struct. We could split our function in two. We could have one function that
@@ -262,57 +262,57 @@ then use that descriptor on future populate calls.</p>
 <p>Here&rsquo;s our new version. Our caller should call <code>describeType</code> on initialisation to
 obtain a <code>typeDescriptor</code> for later calls to <code>populateStructUnsafe3</code>. In this very
 simple case our <code>typeDescriptor</code> is just the offset of the B field in the struct.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> typeDescriptor <span style="color:#8be9fd">uintptr</span>
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">describeType</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) (typeDescriptor, <span style="color:#8be9fd">error</span>) {
-	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
-	<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
-		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
-	}
-	<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
-		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
-	}
-	f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
-	<span style="color:#ff79c6">if</span> !ok {
-		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
-	}
-	<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
-		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
-	}
-	<span style="color:#ff79c6">return</span> <span style="color:#50fa7b">typeDescriptor</span>(f.Offset), <span style="color:#ff79c6">nil</span>
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe3</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}, ti typeDescriptor) <span style="color:#8be9fd">error</span> {
-	structPtr <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in)).value
-	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(structPtr) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">uintptr</span>(ti))) = <span style="color:#bd93f9">42</span>
-	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>Here&rsquo;s the new benchmark showing how the <code>describeType</code> call is used.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkPopulateUnsafe3</span>(b <span style="color:#ff79c6">*</span>testing.B) {
-	b.<span style="color:#50fa7b">ReportAllocs</span>()
-	<span style="color:#8be9fd;font-style:italic">var</span> m SimpleStruct
-
-	descriptor, err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">describeType</span>((<span style="color:#ff79c6">*</span>SimpleStruct)(<span style="color:#ff79c6">nil</span>))
-	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-		b.<span style="color:#50fa7b">Fatal</span>(err)
-	}
-
-	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
-		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">populateStructUnsafe3</span>(<span style="color:#ff79c6">&amp;</span>m, descriptor); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-			b.<span style="color:#50fa7b">Fatal</span>(err)
-		}
-		<span style="color:#ff79c6">if</span> m.B <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">42</span> {
-			b.<span style="color:#50fa7b">Fatalf</span>(<span style="color:#f1fa8c">&#34;unexpected value %d for B&#34;</span>, m.B)
-		}
-	}
-}
-</code></pre></div><p>Here&rsquo;s the benchmark results. It&rsquo;s getting quite quick now.</p>
-<pre><code>BenchmarkPopulateUnsafe3-16  1000000000     0.359 ns/op    0 B/op   0 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> typeDescriptor <span style="color:#8be9fd">uintptr</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">describeType</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}) (typeDescriptor, <span style="color:#8be9fd">error</span>) {
+</span></span><span style="display:flex;"><span>	typ <span style="color:#ff79c6">:=</span> reflect.<span style="color:#50fa7b">TypeOf</span>(in)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Ptr {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Struct {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;you must pass in a pointer to a struct&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	f, ok <span style="color:#ff79c6">:=</span> typ.<span style="color:#50fa7b">Elem</span>().<span style="color:#50fa7b">FieldByName</span>(<span style="color:#f1fa8c">&#34;B&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> !ok {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;struct does not have field B&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> f.Type.<span style="color:#50fa7b">Kind</span>() <span style="color:#ff79c6">!=</span> reflect.Int {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;field B should be an int&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#50fa7b">typeDescriptor</span>(f.Offset), <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">populateStructUnsafe3</span>(in <span style="color:#8be9fd;font-style:italic">interface</span>{}, ti typeDescriptor) <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span>	structPtr <span style="color:#ff79c6">:=</span> (<span style="color:#ff79c6">*</span>intface)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>in)).value
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">int</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#8be9fd;font-style:italic">uintptr</span>(structPtr) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">uintptr</span>(ti))) = <span style="color:#bd93f9">42</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the new benchmark showing how the <code>describeType</code> call is used.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkPopulateUnsafe3</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> m SimpleStruct
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	descriptor, err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">describeType</span>((<span style="color:#ff79c6">*</span>SimpleStruct)(<span style="color:#ff79c6">nil</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">Fatal</span>(err)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">populateStructUnsafe3</span>(<span style="color:#ff79c6">&amp;</span>m, descriptor); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Fatal</span>(err)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> m.B <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">42</span> {
+</span></span><span style="display:flex;"><span>			b.<span style="color:#50fa7b">Fatalf</span>(<span style="color:#f1fa8c">&#34;unexpected value %d for B&#34;</span>, m.B)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the benchmark results. It&rsquo;s getting quite quick now.</p>
+<pre tabindex="0"><code>BenchmarkPopulateUnsafe3-16  1000000000     0.359 ns/op    0 B/op   0 allocs/op
 </code></pre><p>Just how good is this? We can see how fast we can populate this struct without
 using reflection if we write a benchmark for our original <code>populateStruct</code>
 function from the start of this article. Unsurprisingly this is a little faster
 than even our best reflection-based version, but there&rsquo;s not much in it.</p>
-<pre><code>BenchmarkPopulate-16       	1000000000      0.234 ns/op    0 B/op   0 allocs/op
+<pre tabindex="0"><code>BenchmarkPopulate-16       	1000000000      0.234 ns/op    0 B/op   0 allocs/op
 </code></pre><p>So, reflection isn&rsquo;t necessarily slow at all. But you have to go to quite some
 effort and liberally sprinkle your code with unsafe and knowledge of Go
 internals to make it really quick.</p>
@@ -328,8 +328,5 @@ structs to describe messages instead of proto files.</p>
 
     </main>
 
-    
-      
-    
   </body>
 </html>

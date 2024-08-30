@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -68,79 +68,76 @@
 
 
   <p>Did everyone else already know this? Why didn&rsquo;t you tell me? I got very confused the other day with some apparently simple JSON encoding. Here&rsquo;s a simplified version, showing marshalling a struct with an <a href="https://golang.org/doc/effective_go.html#embedding">embedded struct</a> inside it.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#ff79c6">package</span> main
-
-<span style="color:#ff79c6">import</span> (
-	<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>
-	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
-)
-
-<span style="color:#8be9fd;font-style:italic">type</span> Inner <span style="color:#8be9fd;font-style:italic">struct</span> {
-	InnerField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;inner_field&#34;`</span>
-}
-
-<span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
-	Inner
-	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
-}
-
-<span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
-	val <span style="color:#ff79c6">:=</span> Outer{
-		Inner: Inner {
-			InnerField: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-		},
-		OuterField: <span style="color:#f1fa8c">&#34;outer&#34;</span>,
-	}
-	data, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">MarshalIndent</span>(val, <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#f1fa8c">&#34;  &#34;</span>)
-	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-		fmt.<span style="color:#50fa7b">Println</span>(err)
-		<span style="color:#ff79c6">return</span>
-	}
-	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#8be9fd;font-style:italic">string</span>(data))
-}
-</code></pre></div><p>Output is as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
-}
-</code></pre></div><p>Now, let&rsquo;s say we want to implement a custom marshaller for Inner. This is a silly example - in the real world I was trying out <a href="https://github.com/mailru/easyjson">easyjson</a> looking for some performance gains.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">func</span> (i Inner) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
-	<span style="color:#ff79c6">return</span> []<span style="color:#8be9fd;font-style:italic">byte</span>(fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">`{&#34;innnnnnerrFeild&#34;: %q}`</span>, i.InnerField)), <span style="color:#ff79c6">nil</span>
-}
-</code></pre></div><p>What would you expect the output to be? I know I hoped it would be as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
-}
-</code></pre></div><p>But it turns out the output is as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>
-}
-</code></pre></div><p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>&rsquo;s <code>MarshalJSON</code>. Entirely what you&rsquo;d expect when you think about it, but completely surprising for me at least in this situation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> Inner <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>	InnerField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;inner_field&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>	Inner
+</span></span><span style="display:flex;"><span>	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">main</span>() {
+</span></span><span style="display:flex;"><span>	val <span style="color:#ff79c6">:=</span> Outer{
+</span></span><span style="display:flex;"><span>		Inner: Inner {
+</span></span><span style="display:flex;"><span>			InnerField: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		OuterField: <span style="color:#f1fa8c">&#34;outer&#34;</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	data, err <span style="color:#ff79c6">:=</span> json.<span style="color:#50fa7b">MarshalIndent</span>(val, <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#f1fa8c">&#34;  &#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		fmt.<span style="color:#50fa7b">Println</span>(err)
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Println</span>(<span style="color:#8be9fd;font-style:italic">string</span>(data))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Output is as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now, let&rsquo;s say we want to implement a custom marshaller for Inner. This is a silly example - in the real world I was trying out <a href="https://github.com/mailru/easyjson">easyjson</a> looking for some performance gains.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (i Inner) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> []<span style="color:#8be9fd;font-style:italic">byte</span>(fmt.<span style="color:#50fa7b">Sprintf</span>(<span style="color:#f1fa8c">`{&#34;innnnnnerrFeild&#34;: %q}`</span>, i.InnerField)), <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>What would you expect the output to be? I know I hoped it would be as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>But it turns out the output is as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;innnnnnerrFeild&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Why is that? Well, <code>Inner</code> implements <code>json.Marshaller</code>, and because of embedding, so does <code>Outer</code>. So when marshalling <code>Outer</code>, the json library just calls the <code>Inner</code> marshaller. So the entire JSON for <code>Outer</code> is determined by <code>Inner</code>&rsquo;s <code>MarshalJSON</code>. Entirely what you&rsquo;d expect when you think about it, but completely surprising for me at least in this situation.</p>
 <p>So, be extremely careful about using struct embedding with structs that are marshalled or unmarshalled.</p>
 <p>How can we fix this? Well, if we add another field to <code>Outer</code> that implements <code>json.Marshaller</code>, then <code>Outer</code> will no-longer implement <code>json.Marshaller</code> as the implementation will be ambiguous. We can use <code>struct{}</code> for this and it will take no room!</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#8be9fd;font-style:italic">type</span> marshalblock <span style="color:#8be9fd;font-style:italic">struct</span>{}
-<span style="color:#8be9fd;font-style:italic">func</span> (marshalblock) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) { <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, <span style="color:#ff79c6">nil</span> }
-
-<span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
-	marshalblock
-	Inner
-	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
-}
-</code></pre></div><p>Here&rsquo;s the output after this modification.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
-  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
-}
-</code></pre></div><p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug - but perhaps just another hint that embedding and JSON don&rsquo;t mix.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> marshalblock <span style="color:#8be9fd;font-style:italic">struct</span>{}
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (marshalblock) <span style="color:#50fa7b">MarshalJSON</span>() ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) { <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, <span style="color:#ff79c6">nil</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> Outer <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>	marshalblock
+</span></span><span style="display:flex;"><span>	Inner
+</span></span><span style="display:flex;"><span>	OuterField <span style="color:#8be9fd">string</span> <span style="color:#f1fa8c">`json:&#34;outer_field&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here&rsquo;s the output after this modification.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;inner_field&#34;</span>: <span style="color:#f1fa8c">&#34;inner&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#ff79c6">&#34;outer_field&#34;</span>: <span style="color:#f1fa8c">&#34;outer&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Unfortunately this also stops json from using the marshaller on <code>Inner</code>. Which I think is a bug - but perhaps just another hint that embedding and JSON don&rsquo;t mix.</p>
 
 </div>
 
 
     </main>
 
-    
-      
-    
   </body>
 </html>

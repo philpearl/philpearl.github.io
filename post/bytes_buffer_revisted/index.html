@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.81.0" />
+  <meta name="generator" content="Hugo 0.131.0">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2023. All rights reserved.</p>
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,7 +69,7 @@
 
   <p>Two years ago I wrote a <a href="https://syslog.ravelin.com/bytes-buffer-i-thought-you-were-my-friend-4148fd001229">post about building up strings with bytes.Buffer</a>. I wondered what’s changed over the past two years?</p>
 <p>Here are the benchmarks taken from the original post.</p>
-<pre><code>BenchmarkCopyKey-8            114 ns/op     31 B/op      1 allocs/op
+<pre tabindex="0"><code>BenchmarkCopyKey-8            114 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleKey-8          141 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleMultilineKey-8 256 ns/op     63 B/op      4 allocs/op
 BenchmarkSprintfKey-8         392 ns/op     79 B/op      4 allocs/op
@@ -77,7 +77,7 @@ BenchmarkJoinKey-8            156 ns/op     63 B/op      2 allocs/op
 BenchmarkBufferKey-8          268 ns/op    175 B/op      3 allocs/op
 BenchmarkSimpleBufferKey-8    265 ns/op    143 B/op      2 allocs/op
 </code></pre><p>If we run the same benchmarks with the latest version of Go — 1.11</p>
-<pre><code>BenchmarkCopyKey-8           64.4 ns/op     31 B/op      1 allocs/op
+<pre tabindex="0"><code>BenchmarkCopyKey-8           64.4 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleKey-8         85.3 ns/op     31 B/op      1 allocs/op
 BenchmarkSimpleMultilineKey-8 190 ns/op     63 B/op      4 allocs/op
 BenchmarkSprintfKey-8         280 ns/op     79 B/op      4 allocs/op
@@ -86,16 +86,16 @@ BenchmarkBufferKey-8          194 ns/op    175 B/op      3 allocs/op
 BenchmarkSimpleBufferKey-8    164 ns/op    143 B/op      2 allocs/op
 </code></pre><p>Every option is considerably faster than before! The <code>strings.Join</code> version has one less allocation. Presumably the compiler has improved and one of the allocations has been optimised away or is now kept on the stack.</p>
 <p>There is now a new option for building strings — <code>strings.Builder</code>. This appears to be aimed precisely at this use-case. We can build our key as follows.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">w <span style="color:#ff79c6">:=</span> strings.Builder{}
-w.<span style="color:#50fa7b">Grow</span>(<span style="color:#8be9fd;font-style:italic">len</span>(itemType) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(clientId) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(id) <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>)
-w.<span style="color:#50fa7b">WriteString</span>(itemType)
-w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
-w.<span style="color:#50fa7b">WriteString</span>(clientId)
-w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
-w.<span style="color:#50fa7b">WriteString</span>(id)
-key <span style="color:#ff79c6">:=</span> w.<span style="color:#50fa7b">String</span>()
-</code></pre></div><p>This turns out to be as fast as our fastest option.</p>
-<pre><code>BenchmarkStringBuilderKey-8  69.6 ns/op     31 B/op      1 allocs/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>w <span style="color:#ff79c6">:=</span> strings.Builder{}
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">Grow</span>(<span style="color:#8be9fd;font-style:italic">len</span>(itemType) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(clientId) <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">len</span>(id) <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>)
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">WriteString</span>(itemType)
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">WriteString</span>(clientId)
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">WriteRune</span>(<span style="color:#f1fa8c">&#39;:&#39;</span>)
+</span></span><span style="display:flex;"><span>w.<span style="color:#50fa7b">WriteString</span>(id)
+</span></span><span style="display:flex;"><span>key <span style="color:#ff79c6">:=</span> w.<span style="color:#50fa7b">String</span>()
+</span></span></code></pre></div><p>This turns out to be as fast as our fastest option.</p>
+<pre tabindex="0"><code>BenchmarkStringBuilderKey-8  69.6 ns/op     31 B/op      1 allocs/op
 </code></pre><p>So, <code>bytes.Buffer</code> still isn’t your friend for this use-case. Just use + in simple cases, and reach for <code>strings.Builder</code> in more complex cases.</p>
 
 </div>
@@ -103,8 +103,5 @@ key <span style="color:#ff79c6">:=</span> w.<span style="color:#50fa7b">String</
 
     </main>
 
-    
-      
-    
   </body>
 </html>
