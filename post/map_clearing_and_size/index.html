@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.131.0">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>I stan clearing maps, no cap &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="A better story than that tortuous title suggests!" />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="https://bsky.app/profile/philpearl.bsky.social"><img>@philpearl.bsky.social</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2024. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/littleandlarge.jpg" alt="Stan Laurel and Oliver Hardy are different sizes. From https://www.flickr.com/photos/tom-margie/">
+    <figcaption>Stan Laurel and Oliver Hardy are different sizes. From https://www.flickr.com/photos/tom-margie/</figcaption>
+  </figure>
+  
+
+  <h1>I stan clearing maps, no cap</h1>
+  
+  <p class="lead">A better story than that tortuous title suggests!</p>
+  
+
+  <time datetime=2024-11-29T11:00:00Z class="post-date">Fri, Nov 29, 2024</time>
+
+
+  <p>Recently at work I ran into an interesting performance problem.
+We have a data processing job that is basically a series of count-distinct operations.
+It uses a map to help work out the distinct sets of values.</p>
+<p>In the past we&rsquo;ve done some performance work on this, and we&rsquo;ve arranged things
+so that we re-use the map between operations.</p>
+<p>Re-using the map was great! Calling <code>clear</code> on the map and re-using it was much
+faster than creating a new map each time.</p>
+<h1 id="so-whats-the-problem">So what&rsquo;s the problem?</h1>
+<p>Over time the job has taken longer and longer to complete.
+This is expected because the data it runs over just keeps getting bigger.
+But it had gotten to the point where it was becoming a problem.
+40 hours of a problem.</p>
+<p>Looking at some metrics, the job was pegged at 100% CPU, but throughput dropped
+significantly at a couple of points over the runs. It didn&rsquo;t gradually slow down,
+it was two distinct sharp steps down.</p>
+<h1 id="what-was-happening">What was happening?</h1>
+<p>I was able to pull a CPU profile, captured after one of the steps down.
+It showed a very large amount of time spent clearing maps.
+Why would that have become slow?
+Re-using and clearing the maps was previously a performance improvement.
+Perhaps there&rsquo;s something about the data that&rsquo;s causing a problem?</p>
+<p>I did some analysis on the data, and eventually decided to work out how many
+distinct items there would be per operation. It turned out mostly the numbers
+were as expected, but on a couple of occasions we had hundreds of thousands of
+distinct items. The distribution of items had some very distinct outliers.</p>
+<h1 id="why-is-that-a-problem">Why is that a problem?</h1>
+<p>Is clearing a map with hundreds of thousands of items slow? We can test that out!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearing</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>    m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">string</span>]<span style="color:#8be9fd;font-style:italic">struct</span>{}, <span style="color:#bd93f9">100_000</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> b.N {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd;font-style:italic">clear</span>(m)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>It turns out that&rsquo;s very fast.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearing-16	         2.743 ns/op
+</span></span></code></pre></div><p>Ah, but what if we use the map just a little bit? And let&rsquo;s try some different sizes.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearingWithItems</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> _, size <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> []<span style="color:#8be9fd">int</span>{<span style="color:#bd93f9">100</span>, <span style="color:#bd93f9">1_000</span>, <span style="color:#bd93f9">10_000</span>, <span style="color:#bd93f9">100_000</span>} {
+</span></span><span style="display:flex;"><span>        m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">string</span>]<span style="color:#8be9fd;font-style:italic">struct</span>{}, size)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        b.<span style="color:#50fa7b">Run</span>(strconv.<span style="color:#50fa7b">Itoa</span>(size), <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> b.N {
+</span></span><span style="display:flex;"><span>                m[<span style="color:#f1fa8c">&#34;hat&#34;</span>] = <span style="color:#8be9fd;font-style:italic">struct</span>{}{}
+</span></span><span style="display:flex;"><span>                <span style="color:#8be9fd;font-style:italic">clear</span>(m)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearingWithItems/100        	      144.1 ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/1000               <span style="color:#bd93f9">1336</span> ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/10000     	    <span style="color:#bd93f9">11159</span> ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/100000    	   <span style="color:#bd93f9">103741</span> ns/op
+</span></span></code></pre></div><p>Oh.</p>
+<p>It&rsquo;s kind of obvious when you think about it. If the map is empty, there&rsquo;s nothing to clear. Clear can be fast.</p>
+<p>If the map isn&rsquo;t empty, even if there&rsquo;s just one item, then it has to iterate
+over all the cells in the map and empty them. It might not take long in the
+greater scheme of things, but it does take more time in line with the capacity
+of the map.</p>
+<p>Is clearing a map of each size still faster than allocating a new map each time?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapAllocation</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> _, size <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> []<span style="color:#8be9fd">int</span>{<span style="color:#bd93f9">100</span>, <span style="color:#bd93f9">1_000</span>, <span style="color:#bd93f9">10_000</span>, <span style="color:#bd93f9">100_000</span>} {
+</span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">Run</span>(strconv.<span style="color:#50fa7b">Itoa</span>(size), <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+</span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> b.N {
+</span></span><span style="display:flex;"><span>				m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">string</span>]<span style="color:#8be9fd;font-style:italic">struct</span>{}, size)
+</span></span><span style="display:flex;"><span>				_ = m
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapAllocation/100-16                  512.0 ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapAllocation/1000-16        	      <span style="color:#bd93f9">5305</span> ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapAllocation/10000-16       	     <span style="color:#bd93f9">36463</span> ns/op
+</span></span><span style="display:flex;"><span>BenchmarkMapAllocation/100000-16      	    <span style="color:#bd93f9">237231</span> ns/op
+</span></span></code></pre></div><p>Yes, it&rsquo;s still twice as fast or more to clear the map than to allocate a new one.
+And that&rsquo;s true at any size I tested.
+But it&rsquo;s much slower to clear a map that can hold 100,000 items than
+it is to allocate a map for 1000 items.</p>
+<p>Our problem is that we have different data distributions that one job needs to cope with.</p>
+<h1 id="lets-restate-that-again">Let&rsquo;s restate that again</h1>
+<p>Now we understand what&rsquo;s happening.
+To begin with, our job processes tasks that have our &ldquo;normal&rdquo; distribution of items.
+Perhaps 1000 items per task.</p>
+<p>The map capacity is about 1000. We use about 1000 slots in the map each time and
+it takes about 1.3µs to clear the map.</p>
+<p>Then we get a task that has 50,000 items. The map capacity increases to 50,000.
+We use about 50,000 slots for this one task and it takes about 50µs to clear
+the map.</p>
+<p>Now we continue with our normal tasks. The map capacity stays at 50,000. We use
+about 1000 slots in the map each time, but it still takes about 50µs to clear the
+map.</p>
+<p>It <em>still</em> takes about 50µs to clear the map. Every time. Up from 1.3µs!</p>
+<p>That&rsquo;s an extra 49µs per task from this point forward, so our throughput
+for the same CPU usage drops significantly.</p>
+<p>Then we get a task with 100,000 items, the map capacity increases to 100,000, it
+starts taking 100µs to clear the map, and throughput steps down again.</p>
+<h1 id="so-what-do-we-do">So what do we do?</h1>
+<p>We&rsquo;re fortunate enough that at the start of each task we know how many items
+we&rsquo;re going to feed into our count-distinct operation. And normally the distinct
+number is not that much lower.</p>
+<p>So the obvious solution is to check the capacity of the map before we clear it
+for the new task, and if it&rsquo;s way too big we allocate a new map instead.</p>
+<p><img src="/post/nocap.png" alt="no cap"></p>
+<p>Ah, maps have <a href="https://www.dictionary.com/e/slang/no-cap/">no <code>cap</code></a>. <a href="https://pkg.go.dev/builtin#cap">https://pkg.go.dev/builtin#cap</a>.</p>
+<p>If you&rsquo;re wondering why, there&rsquo;s a rejected proposal to add <code>cap</code> for maps <a href="https://github.com/golang/go/issues/52157">here</a>.</p>
+<h1 id="the-boring-ending">The boring ending</h1>
+<p>In the end I just switched things to use two maps - one tasks with a smaller
+number of items to process, and one for tasks with a larger number of items to
+process. Worked fine. If I was feeling more sophisticated I might have used a
+sequence of sizes, so that each order of magnitude of items has an appropriately
+sized map.</p>
+
+</div>
+
+
+    </main>
+
+  </body>
+</html>

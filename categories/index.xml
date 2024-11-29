@@ -6,27 +6,27 @@
     <description>Recent content in Categories on Phil Pearl&#39;s Blog</description>
     <generator>Hugo</generator>
     <language>en-gb</language>
-    <lastBuildDate>Fri, 30 Aug 2024 10:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 29 Nov 2024 11:00:00 +0000</lastBuildDate>
     <atom:link href="https://philpearl.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Darkarts</title>
-      <link>https://philpearl.github.io/categories/darkarts/</link>
-      <pubDate>Fri, 30 Aug 2024 10:30:00 +0000</pubDate>
-      <guid>https://philpearl.github.io/categories/darkarts/</guid>
-      <description></description>
-    </item>
     <item>
       <title>Go</title>
       <link>https://philpearl.github.io/categories/go/</link>
-      <pubDate>Fri, 30 Aug 2024 10:30:00 +0000</pubDate>
+      <pubDate>Fri, 29 Nov 2024 11:00:00 +0000</pubDate>
       <guid>https://philpearl.github.io/categories/go/</guid>
       <description></description>
     </item>
     <item>
       <title>Programming</title>
       <link>https://philpearl.github.io/categories/programming/</link>
-      <pubDate>Fri, 30 Aug 2024 10:30:00 +0000</pubDate>
+      <pubDate>Fri, 29 Nov 2024 11:00:00 +0000</pubDate>
       <guid>https://philpearl.github.io/categories/programming/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Darkarts</title>
+      <link>https://philpearl.github.io/categories/darkarts/</link>
+      <pubDate>Fri, 30 Aug 2024 10:30:00 +0000</pubDate>
+      <guid>https://philpearl.github.io/categories/darkarts/</guid>
       <description></description>
     </item>
     <item>
