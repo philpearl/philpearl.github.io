@@ -90,8 +90,9 @@ Re-using and clearing the maps was previously a performance improvement.
 Perhaps there&rsquo;s something about the data that&rsquo;s causing a problem?</p>
 <p>I did some analysis on the data, and eventually decided to work out how many
 distinct items there would be per operation. It turned out mostly the numbers
-were as expected, but on a couple of occasions we had hundreds of thousands of
-distinct items. The distribution of items had some very distinct outliers.</p>
+were as expected - with up to a thousand or so items per task.</p>
+<p>But on a couple of occasions we had hundreds of thousands of
+distinct items for one task. The distribution of items had some very distinct outliers.</p>
 <h1 id="why-is-that-a-problem">Why is that a problem?</h1>
 <p>Is clearing a map with hundreds of thousands of items slow? We can test that out!</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearing</span>(b <span style="color:#ff79c6">*</span>testing.B) {
