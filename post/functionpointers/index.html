@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -82,21 +82,21 @@ So I needed to be able to compare function variables.</p>
 <h2 id="so-what-is-a-function-variable">So what is a function variable?</h2>
 <p>Our first clue is that it can be compared to <code>nil</code>. To my mind that makes it a pointer or something like a slice or interface variable which contains a pointer.</p>
 <p>On 64 bit architectures, pointers are 8 bytes. How big is a function variable?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>()
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>()
 </span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Println</span>(unsafe.<span style="color:#50fa7b">Sizeof</span>(f))
 </span></span></code></pre></div><p>It turns out it is 8 bytes. So it is very likely a function variable (at least as Go is presently) is a pointer.</p>
 <p>If we add some parameters and a return value it&rsquo;s <a href="https://go.dev/play/p/gdt4OWpbIyK">still</a> 8 bytes.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>(a <span style="color:#8be9fd">int</span>, b <span style="color:#8be9fd">string</span>) <span style="color:#8be9fd">error</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>(a <span style="color:#8be9fd">int</span>, b <span style="color:#8be9fd">string</span>) <span style="color:#8be9fd">error</span>
 </span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Println</span>(unsafe.<span style="color:#50fa7b">Sizeof</span>(f))
 </span></span></code></pre></div><p>The obvious guess at this point is that a function variable is a pointer to the code in memory that implements the function. Can we prove that? Well, the runtime package allows us to <a href="https://pkg.go.dev/runtime@go1.20.3#Caller">extract information</a> about the code that calls a piece of code. We can make a function that prints it&rsquo;s own location in memory.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">a</span>() {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">a</span>() {
 </span></span><span style="display:flex;"><span>	pc, _, _, _ <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">Caller</span>(<span style="color:#bd93f9">0</span>)
 </span></span><span style="display:flex;"><span>	fun <span style="color:#ff79c6">:=</span> runtime.<span style="color:#50fa7b">FuncForPC</span>(pc)
 </span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;a: entry 0x%x\n&#34;</span>, fun.<span style="color:#50fa7b">Entry</span>())
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p><code>runtime.Caller(0)</code> returns information about the caller of <code>runtime.Caller</code>. The <code>pc</code> return value is the &ldquo;program counter&rdquo; - the location in memory of the code that called <code>runtime.Caller</code>. <code>runtime.FuncForPC</code> returns information about the function that includes a given program counter value. That information includes it&rsquo;s entry point: the location of the start of the function.</p>
 <p>We can also print the value of a function variable. So we can do the <a href="https://go.dev/play/p/Cc6cTqqfcgZ">following</a>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
@@ -115,11 +115,11 @@ So I needed to be able to compare function variables.</p>
 </span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;a: entry 0x%x\n&#34;</span>, fun.<span style="color:#50fa7b">Entry</span>())
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>The output is as follows</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>a: entry 0x482a00
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>a: entry 0x482a00
 </span></span><span style="display:flex;"><span>function variable: 0x482a00
 </span></span></code></pre></div><h2 id="we-have-our-answer">We have our answer</h2>
 <p>A function variable is a pointer to the code, and we can <a href="https://go.dev/play/p/-1gWCOrs6y9">trick go</a> into allowing us to compare them.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
@@ -142,7 +142,7 @@ So I needed to be able to compare function variables.</p>
 </span></span></code></pre></div><h2 id="errrr-wait-a-minute">Errrr.. wait a minute</h2>
 <p>If it&rsquo;s so easy why doesn&rsquo;t Go let you make this comparison without all this palaver?</p>
 <p>Let&rsquo;s take a look at what happens when we pass a method as the function.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
@@ -172,7 +172,7 @@ So I needed to be able to compare function variables.</p>
 </span></span></code></pre></div><p>Here&rsquo;s the result.
 Everything about it is wrong.
 The <code>fmt.Printf(&quot;%p&quot;)</code> values all look the same, but the comparisons all fail.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x482dc0 0x482dc0 0x482dc0
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x482dc0 0x482dc0 0x482dc0
 </span></span><span style="display:flex;"><span>sameFunction: 0x482dc0 0x482dc0
 </span></span><span style="display:flex;"><span>one matches two: false
 </span></span><span style="display:flex;"><span>sameFunction: 0x482dc0 0x482dc0
@@ -190,7 +190,7 @@ Apparently not.</p>
 <p>Let&rsquo;s make our function print its own location again.
 And let&rsquo;s print the values we&rsquo;re actually comparing as well as the &ldquo;%p&rdquo; values now we know they are different.
 And we&rsquo;ll call our <code>v</code> method on each of our objects and get it to print where it thinks it is.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
@@ -234,7 +234,7 @@ And we&rsquo;ll call our <code>v</code> method on each of our objects and get it
 <li>The values we&rsquo;re comparing are nothing like the values displayed by <code>&quot;%p&quot;</code></li>
 <li>The functions called are at slightly different locations to the <code>&quot;%p&quot;</code> of the function values we&rsquo;re calling.</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x483200 0x483200 0x483200
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x483200 0x483200 0x483200
 </span></span><span style="display:flex;"><span>sameFunction: 0x483200(0xc0000b2050) 0x483200(0xc0000b2060)
 </span></span><span style="display:flex;"><span>one matches two: false
 </span></span><span style="display:flex;"><span>sameFunction: 0x483200(0xc0000b2080) 0x483200(0xc0000b2090)
@@ -246,11 +246,11 @@ And we&rsquo;ll call our <code>v</code> method on each of our objects and get it
 </span></span><span style="display:flex;"><span>v,1: entry 0x483120
 </span></span></code></pre></div><h2 id="ok-ok-ok-lets-just-back-up-for-a-minute">OK, OK, OK, let&rsquo;s just back up for a minute</h2>
 <p>We believe our function variables are pointers, but they don&rsquo;t seem to be pointing to the code to execute. Let&rsquo;s try looking at what happens when you call a function variable.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">call</span>(f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">call</span>(f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span>) {
 </span></span><span style="display:flex;"><span>	<span style="color:#50fa7b">f</span>()
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>We can disassemble this at the wonderful <a href="https://godbolt.org/z/PP9cxrT1M">godbolt.org</a>. Below is what we find (I&rsquo;ve assumed amd64 architecture below - I&rsquo;m sure other architectures will be largely similar).</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    (AX), CX
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    (AX), CX
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    AX, DX
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">PCDATA</span>  $1, $1
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">CALL</span>    CX
@@ -260,17 +260,17 @@ And we&rsquo;ll call our <code>v</code> method on each of our objects and get it
 <p>So the function variable doesn&rsquo;t point to the function code. It points to a pointer to the function code.</p>
 <p><code>MOVQ AX, DX</code> puts the value of AX into DX, which means the function variable value will be available to the function called by <code>CALL CX</code> (it can read the DX register). This is quite clever. Our function variable could be pointing to something larger than just a code pointer. It could be followed by, say, receiver and parameter values for method calls and closures. By passing the memory pointed to by the function variable to the called function, that called function could be a wrapper around the real function that knows how to apply the receiver and/or parameter values.</p>
 <p>This does indeed appear to be how it works. If we <a href="https://godbolt.org/z/8P5d8rdfs">disassemble</a> code that puts a method in a function variable we can see this being set up. (Again, unfortunately the output is hideous to interpret - you&rsquo;ll have to trust that I&rsquo;ve pulled out the interesting things below!)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	one <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	one <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">integer</span>(<span style="color:#bd93f9">1</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span> = one.v
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">LEAQ</span>    type.noalg.struct { F uintptr<span style="color:#6272a4">; R &#34;&#34;.integer }(SB), AX
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>        <span style="color:#50fa7b">CALL</span>    runtime.newobject(SB)
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">LEAQ</span>    type.noalg.struct { F uintptr<span style="color:#6272a4">; R &#34;&#34;.integer }(SB), AX
+</span></span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">CALL</span>    runtime.newobject(SB)
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    AX, &#34;&#34;..autotmp_3+<span style="color:#bd93f9">24</span>(SP)
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">LEAQ</span>    &#34;&#34;.integer.v-fm(SB), CX
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    CX, (AX)
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    $1, <span style="color:#bd93f9">8</span>(AX)
 </span></span></code></pre></div><p>The first line above gives us a huge clue what&rsquo;s going on. The code is essentially as follows.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span> = <span style="color:#ff79c6">&amp;</span><span style="color:#8be9fd;font-style:italic">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> f <span style="color:#8be9fd;font-style:italic">func</span>() <span style="color:#8be9fd">int</span> = <span style="color:#ff79c6">&amp;</span><span style="color:#8be9fd;font-style:italic">struct</span> {
 </span></span><span style="display:flex;"><span>    F <span style="color:#8be9fd">uintptr</span>
 </span></span><span style="display:flex;"><span>    R integer
 </span></span><span style="display:flex;"><span>} {
@@ -278,7 +278,7 @@ And we&rsquo;ll call our <code>v</code> method on each of our objects and get it
 </span></span><span style="display:flex;"><span>    R: one,
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Note the function used isn&rsquo;t <code>integer.v</code>, it is <code>integer.v-fm</code>. We can use <a href="https://godbolt.org/z/8P5d8rdfs">Godbolt</a> again to see that this is an autogenerated wrapper around <code>integer.v</code> which loads the integer receiver (<code>one</code>) from this struct and sets up a proper call to <code>one.v()</code>. I&rsquo;ve pulled out the key part below. It pulls the receiver value from <code>8(DX)</code> (8 bytes offset from the value of the DX register which we mentioned being set up above), puts it in <code>AX</code> and calls <code>integer.v</code>. (Go now has a register calling convention, and the receiver on a method call is placed in <code>AX</code>)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    <span style="color:#bd93f9">8</span>(DX), AX
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    <span style="color:#bd93f9">8</span>(DX), AX
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">PCDATA</span>  $1, $0
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">CALL</span>    &#34;&#34;.integer.v(SB)
 </span></span><span style="display:flex;"><span>        <span style="color:#50fa7b">MOVQ</span>    <span style="color:#bd93f9">8</span>(SP), BP
@@ -301,8 +301,6 @@ convention about which pointers would be considered equal when there are
 closures and method calls and function wrappers around.</p>
 
 </div>
-
-
     </main>
 
   </body>

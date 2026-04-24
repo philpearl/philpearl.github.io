@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb">
+<head>
+  <link href="https://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="generator" content="Hugo 0.160.1">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Swissing a table &middot; Phil Pearl&#39;s Blog</title>
+  <meta name="description" content="Moving step by step from a simple hash table to a “swiss table” — the design behind Go’s new map implementation." />
+
+  
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/print.css" media="print">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/poole.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/syntax.css">
+  <link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/hyde.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abril+Fatface|PT+Sans:400,400i,700">
+
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  
+<link type="text/css" rel="stylesheet" href="https://philpearl.github.io/css/phil.css">
+</head>
+
+  <body class=" layout-reverse">
+  <aside class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <a href="https://philpearl.github.io/">
+        <h1>Phil Pearl&#39;s Blog</h1>
+      </a>
+      <p class="lead">
+        <a href="https://bsky.app/profile/philpearl.bsky.social"><img>@philpearl.bsky.social</a>
+      </p>
+    </div>
+
+    <nav>
+      <ul class="sidebar-nav">
+        <li><a href="https://philpearl.github.io/">Home</a> </li>
+        
+      </ul>
+    </nav>
+
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
+  </div>
+</aside>
+    <main class="content container">
+    <div class="post">
+  
+  <figure class="post-figure">
+    <img src="https://philpearl.github.io/post/swissphil.webp" alt="This is me sitting at a table in Switzerland. Photo by author’s wife, who is fabulous">
+    <figcaption>This is me sitting at a table in Switzerland. Photo by author’s wife, who is fabulous</figcaption>
+  </figure>
+  
+
+  <h1>Swissing a table</h1>
+  
+  <p class="lead">Moving step by step from a simple hash table to a “swiss table” — the design behind Go’s new map implementation.</p>
+  
+
+  <time datetime=2026-04-24T13:37:42Z class="post-date">Fri, Apr 24, 2026</time>
+
+
+  <p>We have an annual hackathon at Ravelin in the lead up to Christmas each year. This year I chose to investigate “Swiss tables”, the new hash table idea behind recent improvements to Go’s maps.</p>
+<p>Why am I interested in this? I’ve written a number of specialist hash tables, and I wondered if these approaches would lead to any performance improvements. In particular, I’m responsible for a proprietary graph database we have at Ravelin, and the time it takes to add roughly 1 billion entries to one of these hash tables is crucial for the restart time for this database. I’d like to make the database restart faster if possible.</p>
+<p>This blog post explains what Swiss tables are by working in stages from a very simple hash table to a full blown, but simplified, “Swiss” table. I’ve done some simple benchmarks at each point to illustrate somewhat what the impact of each step is.</p>
+<p>You can find the code supporting this blog at <a href="https://github.com/philpearl/hashblog">https://github.com/philpearl/hashblog</a>. I’ve taken code and ideas from both the Go source code and the Cockroach DB Swiss table implementation at <a href="https://github.com/cockroachdb/swiss">https://github.com/cockroachdb/swiss</a>.</p>
+<h2 id="the-starting-point">The starting point</h2>
+<p>We’ll start with a basic generic hash table using a fixed sized table and a simple <a href="https://en.wikipedia.org/wiki/Open_addressing">open addressing</a> scheme.</p>
+<p>The table is just an array of (key, value) pairs. I’ve chosen 32768 (2 the power 15) as the size of the array.</p>
+<p>To put something in this table, we take the key and pass it to a hash function. The hash function generates an integer, which we call “the hash”, for the key using a mathematical process. The hash is always the same for a given key, and very likely different for different keys.</p>
+<p>We use this hash as an index into our array. Or rather, since the table is only 32768 entries long and our hash is potentially much bigger than that, we use the remainder after dividing the integer by 32768.</p>
+<p>If that slot in the table is empty, that’s the slot we use. If not, we move forward in the table slot-by-slot until we find an empty slot. We use the first empty slot we find.</p>
+<p>When finding something in the table we do the same thing. We use the hash of the key as the initial index. If the slot is in use we check the key matches. If not, we check the next slot. And carry on until we find a match or an empty slot. If we hit an empty slot then the key is not present in the table.</p>
+<p>Both the <code>Get</code> and <code>Set</code> operations on this table are supported by the following <code>find</code> method, which finds an appropriate table entry to get or set. Note this is a very simple hash table indeed, and doesn’t support entries where the key is the zero value!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (st <span style="color:#ff79c6">*</span>SimpleTable[K, V]) <span style="color:#50fa7b">find</span>(key K) (<span style="color:#ff79c6">*</span>entry[K, V], <span style="color:#8be9fd">bool</span>) {
+</span></span><span style="display:flex;"><span>    index <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">hash</span>(key) <span style="color:#ff79c6">%</span> simpleTableSize
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">var</span> zero K
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> {
+</span></span><span style="display:flex;"><span>        e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>st.entries[index]
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> key {
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// Found our entry</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">true</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> zero {
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// Empty slot - this means the key is not</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// present in the table</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">false</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        index = (index <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">%</span> simpleTableSize
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>That’s a very basic hash table. We can try ideas from Go’s new map one by one and see if they improve things.</p>
+<h2 id="a-better-probe-sequence">A better probe sequence</h2>
+<p>If our initial target slot is not available, we can do something more sophisticated than just moving to the next slot. We can take larger steps. As long as we come up with a sequence of steps that is repeatable and hits every possible spot exactly once, we can step forward however we like.</p>
+<p>The sequence of steps were use to find the next free slot is called the “probe sequence”. In our initial hash table the probe sequence is very simple: we just move on to the next slot in the table. This is called “linear probing”.</p>
+<p>Why try a more complicated probe sequence? The thought is that just moving forward one slot at a time is more likely to run into a larger sequence of used slots, and to tend to make large sequences of used slots ever-larger. And that could lead us to waste a lot of time checking keys. But as far as I can tell it’s just practical experience that says this is the case, and there is no mathematical proof as yet that it’s always better.</p>
+<p>The probe sequence used in modern Go maps is as follows.</p>
+<ul>
+<li>We start looking at the slot determined by the hash, call this h.</li>
+<li>If that slot is full, and not a match, we move on to h+1 (1 step forward)</li>
+<li>If that’s full &amp; not a match we look at h+3 (2 steps forward)</li>
+<li>.. then h+6 (3 steps forward)</li>
+<li>.. then h+10 (4 steps forward)</li>
+<li>etc.</li>
+</ul>
+<p>All of these are modulo the table length (that is, as before, we look at the remainder after dividing by 32768).</p>
+<p>The code for the probe sequence is as follows. Note it’s the <code>offset</code> in the <code>probeSeq</code> struct that we use to index into the hash table.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> probeSeq <span style="color:#8be9fd;font-style:italic">struct</span> {
+</span></span><span style="display:flex;"><span>    mask   hashValue
+</span></span><span style="display:flex;"><span>    offset hashValue
+</span></span><span style="display:flex;"><span>    index  hashValue
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">makeProbeSeq</span>(hash, mask hashValue) probeSeq {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> probeSeq{
+</span></span><span style="display:flex;"><span>        mask:   mask,
+</span></span><span style="display:flex;"><span>        offset: hash <span style="color:#ff79c6">&amp;</span> mask,
+</span></span><span style="display:flex;"><span>        index:  <span style="color:#bd93f9">0</span>,
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// next advances the probe sequence to the next offset.</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">//
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// Steps increase by 1 each time, so the sequence is:</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">//
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// h, h+1, h+3, h+6, h+10, ..., all modulo the table size.</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (s probeSeq) <span style="color:#50fa7b">next</span>() probeSeq {
+</span></span><span style="display:flex;"><span>    s.index<span style="color:#ff79c6">++</span>
+</span></span><span style="display:flex;"><span>    s.offset = (s.offset <span style="color:#ff79c6">+</span> s.index) <span style="color:#ff79c6">&amp;</span> s.mask
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> s
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>And the <code>find</code> method now becomes the following. The difference is that we set up and increment the probe sequence in the <code>for</code> loop and use <code>seq.offset</code> as the index into the hash table.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (st <span style="color:#ff79c6">*</span>SimpleTableProbe[K, V]) <span style="color:#50fa7b">find</span>(key K) (<span style="color:#ff79c6">*</span>entry[K, V], <span style="color:#8be9fd">bool</span>) {
+</span></span><span style="display:flex;"><span>    h <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">hash</span>(key)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">var</span> zero K
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> seq <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">makeProbeSeq</span>(h, <span style="color:#50fa7b">hashValue</span>(simpleTableSize<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)); ; seq = seq.<span style="color:#50fa7b">next</span>() {
+</span></span><span style="display:flex;"><span>        e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>st.entries[seq.offset]
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> key {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">true</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> zero {
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// Empty slot - this means the key is not </span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// present in the table</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">false</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="does-that-improve-things">Does that improve things?</h2>
+<p>I’ve written a simple benchmark that creates a hash table where the keys are strings and the values are ints. It then inserts n entries, with n varying between 10 and 32768.</p>
+<p>32768 is the number of entries in the table, so when we approach having that number of keys in the table we’d expect it to run very slowly as there will be a lot of cases where a lot of probing is needed to find an empty slot. Hash tables aren’t usually allowed to be more than one half to three-quarters full!</p>
+<p>Below are the results of the benchmark. SimpleTable and SimpleTableProbe (the one with the new probing sequence) take about the same amount of time per insert until we get a bit pathological and completely fill the table. At that point SimpleTableProbe is a lot faster.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Size</th>
+          <th>SimpleTable (sec/op)</th>
+          <th>SimpleTableProbe (sec/op)</th>
+          <th>vs base</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>10</td>
+          <td>6.215n ± 2%</td>
+          <td>6.262n ± 1%</td>
+          <td>+0.75%</td>
+      </tr>
+      <tr>
+          <td>100</td>
+          <td>6.335n ± 2%</td>
+          <td>6.155n ± 0%</td>
+          <td>-2.85%</td>
+      </tr>
+      <tr>
+          <td>1000</td>
+          <td>6.363n ± 0%</td>
+          <td>6.248n ± 1%</td>
+          <td>-1.80%</td>
+      </tr>
+      <tr>
+          <td>2000</td>
+          <td>7.098n ± 1%</td>
+          <td>6.861n ± 0%</td>
+          <td>-3.33%</td>
+      </tr>
+      <tr>
+          <td>4000</td>
+          <td>7.483n ± 0%</td>
+          <td>7.399n ± 0%</td>
+          <td>-1.11%</td>
+      </tr>
+      <tr>
+          <td>8000</td>
+          <td>8.966n ± 0%</td>
+          <td>9.014n ± 4%</td>
+          <td>~</td>
+      </tr>
+      <tr>
+          <td>16000</td>
+          <td>11.46n ± 0%</td>
+          <td>11.26n ± 0%</td>
+          <td>-1.75%</td>
+      </tr>
+      <tr>
+          <td>24000</td>
+          <td>14.76n ± 1%</td>
+          <td>15.24n ± 0%</td>
+          <td>+3.25%</td>
+      </tr>
+      <tr>
+          <td>32768</td>
+          <td>229.75n ± 0%</td>
+          <td>58.70n ± 0%</td>
+          <td>-74.45%</td>
+      </tr>
+      <tr>
+          <td><strong>geomean</strong></td>
+          <td><strong>11.86n</strong></td>
+          <td><strong>10.12n</strong></td>
+          <td><strong>-14.69%</strong></td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="groups">Groups</h2>
+<p>Each slot in our hash table can hold a single key and value. What happens if instead we put a group of eight keys and values in each slot?</p>
+<p>I’m going to guess this inevitably makes things slower, but it’s a step towards Swissing our table.</p>
+<p>We define a group to be 8 entries as follows. We’ll also make the table smaller so it contains 32768/8 = 4096 groups, so that this table has the same number of entries and same memory footprint as the previous tables.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">const</span> groupSize = <span style="color:#bd93f9">8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> group[K comparable, V <span style="color:#8be9fd">any</span>] [groupSize]entry[K, V]
+</span></span></code></pre></div><p>And our <code>find</code> method now becomes the following. The table becomes a table of 4096 groups rather than 32768 entries. The probe sequence is used to select a group rather than an individual entry. We search the current group for the key or an empty slot before moving on to the next group in the probe sequence.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (m <span style="color:#ff79c6">*</span>GroupTable[K, V]) <span style="color:#50fa7b">find</span>(key K) (<span style="color:#ff79c6">*</span>entry[K, V], <span style="color:#8be9fd">bool</span>) {
+</span></span><span style="display:flex;"><span>    h <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">hash</span>(key)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">var</span> zero K
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> seq <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">makeProbeSeq</span>(h, <span style="color:#50fa7b">hashValue</span>(groupTableSize<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)); ; seq = seq.<span style="color:#50fa7b">next</span>() {
+</span></span><span style="display:flex;"><span>        g <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>m.groups[seq.offset]
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// Is the key in this group?</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> g {
+</span></span><span style="display:flex;"><span>            e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>g[i]
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> key {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">true</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> e.key <span style="color:#ff79c6">==</span> zero {
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">// Empty slot - this means the key is not </span>
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">// present in the table</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span> e, <span style="color:#ff79c6">false</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Could this be faster than the non-grouped table? Perhaps the groups will provide us with some cache-locality? Let’s see what happens.</p>
+<h2 id="the-tale-of-the-tape">The tale of the tape</h2>
+<p>The GroupTable is slower than SimpleTableProbe at all points in our test. This grouping doesn’t seem like a good idea! But next we’re going to layer on some additional ideas that should improve things.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Size</th>
+          <th>SimpleTableProbe (sec/op)</th>
+          <th>GroupTable (sec/op)</th>
+          <th>vs base</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>10</td>
+          <td>6.262n ± 1%</td>
+          <td>6.558n ± 1%</td>
+          <td>+4.74%</td>
+      </tr>
+      <tr>
+          <td>100</td>
+          <td>6.155n ± 0%</td>
+          <td>6.506n ± 1%</td>
+          <td>+5.72%</td>
+      </tr>
+      <tr>
+          <td>1000</td>
+          <td>6.248n ± 1%</td>
+          <td>7.734n ± 0%</td>
+          <td>+23.77%</td>
+      </tr>
+      <tr>
+          <td>2000</td>
+          <td>6.861n ± 0%</td>
+          <td>9.341n ± 0%</td>
+          <td>+36.15%</td>
+      </tr>
+      <tr>
+          <td>4000</td>
+          <td>7.399n ± 0%</td>
+          <td>11.680n ± 0%</td>
+          <td>+57.85%</td>
+      </tr>
+      <tr>
+          <td>8000</td>
+          <td>9.014n ± 4%</td>
+          <td>15.770n ± 0%</td>
+          <td>+74.95%</td>
+      </tr>
+      <tr>
+          <td>16000</td>
+          <td>11.26n ± 0%</td>
+          <td>19.54n ± 1%</td>
+          <td>+73.58%</td>
+      </tr>
+      <tr>
+          <td>24000</td>
+          <td>15.24n ± 0%</td>
+          <td>25.72n ± 0%</td>
+          <td>+68.77%</td>
+      </tr>
+      <tr>
+          <td>32768</td>
+          <td>58.70n ± 0%</td>
+          <td>69.50n ± 0%</td>
+          <td>+18.41%</td>
+      </tr>
+      <tr>
+          <td><strong>geomean</strong></td>
+          <td><strong>10.12n</strong></td>
+          <td><strong>13.94n</strong></td>
+          <td><strong>+37.76%</strong></td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="group-control-bytes">Group control bytes</h2>
+<p>Perhaps we can speed up the groups if we add a mechanism to more quickly identify potential matches and empty entries?</p>
+<p>We add eight control bytes to each group of eight keys and values. Each control byte represents one entry in the group. The top bit of the control byte is 1 if the slot is empty and 0 if it is full. The bottom 7 bits are the bottom 7 bits of the hash for the entry.</p>
+<p>We use these bytes as a (hopefully) fast way to find candidate matches or empty entries.</p>
+<p>With this implementation we need to set the control bytes as well as the entries, and I’ve decided to abandon having a common <code>find</code> method for <code>Get</code> and <code>Set</code> . That may have not been necessary, but the <code>find</code> method looked a little clunky, and I thought a little duplication of code between the <code>Get</code> and <code>Set</code> methods was perhaps a better compromise. So, instead of looking at the <code>find</code> methods, here’s the implementation of the <code>Set</code> method.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (m <span style="color:#ff79c6">*</span>GroupTableCtrl[K, V]) <span style="color:#50fa7b">Set</span>(key K, value V) {
+</span></span><span style="display:flex;"><span>    h <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">hash</span>(key)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// h1 is the control byte value (bottom 7 bits of hash, top bit</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// clear to  indicate the slot in the group is in use).</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">//
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">    // h2 is used for probing at the group level. We don&#39;t use the </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// bottom 7 bits of the hash so that entries with the same h1 </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// are more likely to be in different groups.</span>
+</span></span><span style="display:flex;"><span>    h1 <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">byte</span>(h <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0x7F</span>)
+</span></span><span style="display:flex;"><span>    h2 <span style="color:#ff79c6">:=</span> (h <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">7</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> seq <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">makeProbeSeq</span>(h2, <span style="color:#50fa7b">hashValue</span>(groupTableSize<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)); ; seq = seq.<span style="color:#50fa7b">next</span>() {
+</span></span><span style="display:flex;"><span>        g <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>m.groups[seq.offset]
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// Is the key in this group?</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">for</span> i, ctrl <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> g.ctrl {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">switch</span> ctrl {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">case</span> h1:
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>g.entries[i]; e.key <span style="color:#ff79c6">==</span> key {
+</span></span><span style="display:flex;"><span>                    e.value = value
+</span></span><span style="display:flex;"><span>                    <span style="color:#ff79c6">return</span>
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">case</span> <span style="color:#bd93f9">0x80</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">// Empty slot - this means the key is not </span>
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">// present in the table</span>
+</span></span><span style="display:flex;"><span>                g.ctrl[i] = h1
+</span></span><span style="display:flex;"><span>                g.entries[i] = entry[K, V]{key: key, value: value}
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="the-scores-on-the-doors">The scores on the doors</h2>
+<p>GroupTableCtrl is better than GroupTable at all levels. It is slower than SimpleTableProbe in most cases, but is handily faster in our pathological full table case.</p>
+<p>So this is beginning to look promising. If we can optimise things a bit further perhaps we can make some improvements over our simple table?</p>
+<table>
+  <thead>
+      <tr>
+          <th>Size</th>
+          <th>SimpleTableProbe (sec/op)</th>
+          <th>GroupTable (sec/op)</th>
+          <th>vs base</th>
+          <th>GroupTableCtrl (sec/op)</th>
+          <th>vs base</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>10</td>
+          <td>6.262n ± 1%</td>
+          <td>6.558n ± 1%</td>
+          <td>+4.74%</td>
+          <td>5.933n ± 0%</td>
+          <td>-5.25%</td>
+      </tr>
+      <tr>
+          <td>100</td>
+          <td>6.155n ± 0%</td>
+          <td>6.506n ± 1%</td>
+          <td>+5.72%</td>
+          <td>6.002n ± 0%</td>
+          <td>-2.48%</td>
+      </tr>
+      <tr>
+          <td>1000</td>
+          <td>6.248n ± 1%</td>
+          <td>7.734n ± 0%</td>
+          <td>+23.77%</td>
+          <td>7.064n ± 0%</td>
+          <td>+13.06%</td>
+      </tr>
+      <tr>
+          <td>2000</td>
+          <td>6.861n ± 0%</td>
+          <td>9.341n ± 0%</td>
+          <td>+36.15%</td>
+          <td>9.047n ± 0%</td>
+          <td>+31.86%</td>
+      </tr>
+      <tr>
+          <td>4000</td>
+          <td>7.399n ± 0%</td>
+          <td>11.680n ± 0%</td>
+          <td>+57.85%</td>
+          <td>12.115n ± 0%</td>
+          <td>+63.73%</td>
+      </tr>
+      <tr>
+          <td>8000</td>
+          <td>9.014n ± 4%</td>
+          <td>15.770n ± 0%</td>
+          <td>+74.95%</td>
+          <td>13.770n ± 1%</td>
+          <td>+52.76%</td>
+      </tr>
+      <tr>
+          <td>16000</td>
+          <td>11.26n ± 0%</td>
+          <td>19.54n ± 1%</td>
+          <td>+73.58%</td>
+          <td>16.25n ± 1%</td>
+          <td>+44.32%</td>
+      </tr>
+      <tr>
+          <td>24000</td>
+          <td>15.24n ± 0%</td>
+          <td>25.72n ± 0%</td>
+          <td>+68.77%</td>
+          <td>18.83n ± 0%</td>
+          <td>+23.56%</td>
+      </tr>
+      <tr>
+          <td>32768</td>
+          <td>58.70n ± 0%</td>
+          <td>69.50n ± 0%</td>
+          <td>+18.41%</td>
+          <td>33.18n ± 0%</td>
+          <td>-43.48%</td>
+      </tr>
+      <tr>
+          <td><strong>geomean</strong></td>
+          <td><strong>10.12n</strong></td>
+          <td><strong>13.94n</strong></td>
+          <td><strong>+37.76%</strong></td>
+          <td><strong>11.62n</strong></td>
+          <td><strong>+14.83%</strong></td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="clever-bit-tricks">Clever bit tricks</h2>
+<p>This is, I believe, what finally makes the table “Swiss”. There are some clever tricks we can do to check the control bytes in fewer operations.</p>
+<p>We have 8 control bytes. A uint64 is 8 bytes long. What if we treat our 8 control bytes as a single uint64?</p>
+<p><code>h1</code> is the bottom 7 bits of our hash value. If you remember, any group entry who’s control byte matches this h1 is a candidate match. Can we quickly create a uint64 that has <code>h1</code> in every byte, then do comparisons with that?</p>
+<p>If we multiply our <code>h1</code> by 0x0101_0101_0101_0101, that’s what we end up with, a uint64 with <code>h1</code> in every byte.</p>
+<p>If we XOR this with the 8 control bytes (also converted to a uint64) then the resulting bytes will be zero if they match <code>h1</code> — let’s call this <code>matchesAreZero</code>.</p>
+<p>We can then subtract 0x0101_0101_0101_0101 from that. Any byte that was zero will now have its high bit set. Some other bytes may also have the high bit set. If we AND NOT that with <code>matchesAreZero</code> then we’ll clear some bits, but none from the bytes that were all zero. So that will reduce false-positives.</p>
+<p>We AND that with 0x8080_8080_8080_8080 to end up with candidate bytes with the high bit set.</p>
+<p>Let’s try a worked example. Imagine our control bytes for a group are 0x3838_5676_3723_1280 and our hash is 0xABCD_EF01_0203_0756.</p>
+<p><code>h1</code> is the bottom 7 bits of 0xABCD_EF01_0203_0756, or 0x56. We can see that in byte 5 (counting from the low-order) of the control.</p>
+<ul>
+<li>We multiply 0x56 by 0x0101_0101_0101_0101 to get 0x5656_5656_5656_5656.</li>
+<li>We XOR this with the control bytes. 0x3838_5676_3723_1280 XOR 0x5656_5656_5656_5656 is 0x6E6E_0020_6175_44D6. We call this value <code>matchesAreZero</code>. Note byte 5 is 00.</li>
+<li>We subtract 0x0101_0101_0101_0101 from <code>matchesAreZero</code>, with the aim of setting the top bit in any byte that is zero. The result is 0x6D6C_FF1F_6074_43D5. Note byte 5 is FF. But note also that the top bit of byte 0 is set.</li>
+<li>To reduce false positives with AND this with the inverse of <code>matchesAreZero</code>. This clears some bits from any byte that is not 0. The result is 0x0100_FF1F_0000_0301.</li>
+<li>We AND with 0x8080_8080_8080_8080 so that just the top bits of each byte remain set. The result is 0x0000_8000_0000_0000.</li>
+<li>We use <a href="https://pkg.go.dev/math/bits#TrailingZeros64">bits.TrailingZeros64</a> / 8 to find the first candidate slot in the group. This yields 5.</li>
+</ul>
+<p>Phew! That’s a complex process for a human to understand, but it’s fast to execute for a computer.</p>
+<p>The algorithm gives some false positives as shown, but not too many, and we go on to check the keys so they’re not important.</p>
+<p>The code for our <code>Set</code> method is now as follows.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (m <span style="color:#ff79c6">*</span>SwissTable[K, V]) <span style="color:#50fa7b">Set</span>(key K, value V) {
+</span></span><span style="display:flex;"><span>    h <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">hash</span>(key)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    h1 <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">byte</span>(h <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0x7F</span>)
+</span></span><span style="display:flex;"><span>    h2 <span style="color:#ff79c6">:=</span> (h <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">7</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// Expand h1 to a 64-bit value where each byte is h1. This allows</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// us to compare against all control bytes in a group </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// simultaneously.</span>
+</span></span><span style="display:flex;"><span>    h1Expanded <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">uint64</span>(h1) <span style="color:#ff79c6">*</span> <span style="color:#bd93f9">0x0101010101010101</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> seq <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">makeProbeSeq</span>(h2, <span style="color:#50fa7b">hashValue</span>(groupTableSize<span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>)); ; seq = seq.<span style="color:#50fa7b">next</span>() {
+</span></span><span style="display:flex;"><span>        g <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>m.groups[seq.offset]
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// Find possible matches for this entry in the group. </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// findMatches returns a bitmask where each byte with a </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// matching control byte has its high bit set.</span>
+</span></span><span style="display:flex;"><span>        matches <span style="color:#ff79c6">:=</span> g.ctrl.<span style="color:#50fa7b">findMatches</span>(h1Expanded)
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">for</span> matches <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span> {
+</span></span><span style="display:flex;"><span>            i <span style="color:#ff79c6">:=</span> bits.<span style="color:#50fa7b">TrailingZeros64</span>(matches) <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">8</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> e <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">&amp;</span>g.entries[i]; e.key <span style="color:#ff79c6">==</span> key {
+</span></span><span style="display:flex;"><span>                e.value = value
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// Clear the lowest set bit and continue</span>
+</span></span><span style="display:flex;"><span>            matches <span style="color:#ff79c6">&amp;=</span> matches <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// Check for empty slot in group. This returns a bitmask where</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// each byte that is empty has its high bit set.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> empties <span style="color:#ff79c6">:=</span> g.ctrl.<span style="color:#50fa7b">findEmpty</span>(); empties <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span> {
+</span></span><span style="display:flex;"><span>            i <span style="color:#ff79c6">:=</span> bits.<span style="color:#50fa7b">TrailingZeros64</span>(empties) <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">8</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// Empty slot - this means the key is not present in the </span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// table</span>
+</span></span><span style="display:flex;"><span>            g.entries[i] = entry[K, V]{key: key, value: value}
+</span></span><span style="display:flex;"><span>            g.ctrl[i] = h1
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="my-god-its-full-of-toblerone">My God, it’s full of Toblerone!</h2>
+<p>Our current champion SimpleTableProbe beats the Swiss table until it gets about 1/4 full, then the Swiss table begins to pull ahead. The Swiss table even does reasonably well when fully populated, indicating that it could be used with fuller tables than the previous implementations, potentially saving quite a bit of memory despite needing additional control bytes.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Size</th>
+          <th>SimpleTableProbe (sec/op)</th>
+          <th>Swiss (sec/op)</th>
+          <th>vs base</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>10</td>
+          <td>6.262n ± 1%</td>
+          <td>7.477n ± 1%</td>
+          <td>+19.40%</td>
+      </tr>
+      <tr>
+          <td>100</td>
+          <td>6.155n ± 0%</td>
+          <td>7.359n ± 0%</td>
+          <td>+19.56%</td>
+      </tr>
+      <tr>
+          <td>1000</td>
+          <td>6.248n ± 1%</td>
+          <td>8.524n ± 0%</td>
+          <td>+36.42%</td>
+      </tr>
+      <tr>
+          <td>2000</td>
+          <td>6.861n ± 0%</td>
+          <td>8.851n ± 0%</td>
+          <td>+29.00%</td>
+      </tr>
+      <tr>
+          <td>4000</td>
+          <td>7.399n ± 0%</td>
+          <td>8.854n ± 0%</td>
+          <td>+19.65%</td>
+      </tr>
+      <tr>
+          <td>8000</td>
+          <td>9.014n ± 4%</td>
+          <td>8.848n ± 0%</td>
+          <td>-1.85%</td>
+      </tr>
+      <tr>
+          <td>16000</td>
+          <td>11.260n ± 0%</td>
+          <td>9.167n ± 0%</td>
+          <td>-18.59%</td>
+      </tr>
+      <tr>
+          <td>24000</td>
+          <td>15.24n ± 0%</td>
+          <td>10.11n ± 0%</td>
+          <td>-33.66%</td>
+      </tr>
+      <tr>
+          <td>32768</td>
+          <td>58.70n ± 0%</td>
+          <td>16.64n ± 0%</td>
+          <td>-71.65%</td>
+      </tr>
+      <tr>
+          <td><strong>geomean</strong></td>
+          <td><strong>10.12n</strong></td>
+          <td><strong>9.262n</strong></td>
+          <td><strong>-8.45%</strong></td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="simd">SIMD</h2>
+<p>SIMD stands for Single Instruction, Multiple Data. Its a feature of CPUs. The idea is that you can use a single CPU instruction to perform an operation on multiple bits of data at once.</p>
+<p>Our control bytes are 8 pieces of data. We’d like to check them all against our <code>h1</code> value all at once. So SIMD seems like it might apply.</p>
+<p>The Go map implementation uses SIMD instructions to speed up the GOOS=amd64 (Intel) version. It does not yet use SIMD with ARM chips, so it’s not involved on my modern Apple laptop. As of Go 1.25 it’s not possible for mere mortals to use SIMD instructions efficiently without writing vast swathes of Assembly.</p>
+<p>Go 1.26 introduces a library package of SIMD compiler intrinsics for Intel chips, which means you can efficiently use them with normal Go code. Unfortunately it doesn’t allow access to all the instructions used in the map implementation. I think I can build an Intel Swiss map implementation using intrinsics, but only on CPUs that support AVX512 instructions. And the machines I have easy access to do not.</p>
+<p>So I think I’m going to save my SIMD investigations for later.</p>
+<p>But the SIMD approach does sound interesting. Intel SIMD supports acting on 16 bytes at once, so it may make sense to increase the group size to 16 with a SIMD implementation. It will be interesting to see what effect that has.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The approaches behind Swiss tables are definitely interesting, but at least with my amateurish efforts, very simple hash tables, and only looking at insertion times, the benefits are not that enormous.</p>
+<p>The biggest benefit appears to be that you can run with a fuller hash table with very little penalty. That would make it an opportunity to save memory rather than an enormous speed boost.</p>
+<p>If I maintain enthusiasm I intend to follow up this post with 2 further efforts: one trying to use SIMD and another looking at approaches to growing a hash table.</p>
+
+</div>
+    </main>
+
+  </body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -77,7 +77,7 @@
 <p>So it looks very much like we can just drop in jsoniter and we&rsquo;ll get better performance. Does it really offer the performance and convenience I&rsquo;m after? I&rsquo;ll write some benchmarks using the kind of structs we use at <a href="https://www.ravelin.com/careers">Ravelin</a>. And compare encoding/json (from Go 1.14) with jsoniter.</p>
 <h2 id="benchmark">Benchmark</h2>
 <p>Here are the benchmarks. Apologies for the length. We&rsquo;ll test with a struct that contains fields that have custom Marshalers and Unmarshalers. These are the types of fields that we&rsquo;ve had performance issues with using encoding/json.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> badgo
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> badgo
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;encoding/json&#34;</span>
@@ -183,7 +183,7 @@ go tool pprof -http :6060 post.test mem.prof
 <p><img src="/post/pprof1.png" alt="profile"></p>
 <p>If you stare at the documentation extremely hard you&rsquo;ll eventually spot that jsoniter has a very powerful mechanism for writing Encoders and Decoders for any type. These codecs don&rsquo;t have to be methods of the types being encoded/decoded, which means you can create custom marshallers for types that are parts of other packages. So you can directly create custom marshallers and unmarshallers for time.Time for example. This is a complete game-changer. It allows total flexibility.</p>
 <p>Here&rsquo;s a codec for time.Time that implements both jsoniter.ValEncoder and jsoniter.ValDecoder interfaces.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> timeCodec <span style="color:#8be9fd;font-style:italic">struct</span>{}
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> timeCodec <span style="color:#8be9fd;font-style:italic">struct</span>{}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (timeCodec) <span style="color:#50fa7b">IsEmpty</span>(ptr unsafe.Pointer) <span style="color:#8be9fd">bool</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> (<span style="color:#ff79c6">*</span>time.Time)(ptr).<span style="color:#50fa7b">IsZero</span>()
@@ -218,7 +218,7 @@ go tool pprof -http :6060 post.test mem.prof
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>You register the codec with jsoniter as follows. The name you register with is the <a href="https://github.com/modern-go/reflect2">reflect2</a> type name - <code>reflect2.TypeOf(time.Time{}).String()</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>jsoniter.<span style="color:#50fa7b">RegisterTypeEncoder</span>(<span style="color:#f1fa8c">&#34;time.Time&#34;</span>, timeCodec{})
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>jsoniter.<span style="color:#50fa7b">RegisterTypeEncoder</span>(<span style="color:#f1fa8c">&#34;time.Time&#34;</span>, timeCodec{})
 </span></span><span style="display:flex;"><span>jsoniter.<span style="color:#50fa7b">RegisterTypeDecoder</span>(<span style="color:#f1fa8c">&#34;time.Time&#34;</span>, timeCodec{})
 </span></span></code></pre></div><p>Being able to create encoders and decoders for third-party types is a huge improvement over the json.Marshaler and json.Unmarshaler in the standard encoding/json. It gives you much more flexibility. You can improve on the marshalling of standard library types like time.Time without needing to make changes to the library.</p>
 <p>Anyway, back to performance. Once I&rsquo;ve created codecs for time.Time, null.String and null.Int the benchmarks improve considerably. Now jsoniter looks much more attractive than encoding/json.</p>
@@ -236,8 +236,6 @@ DecodeMarshaler/jsoniter-16        1.00 ± 0%
 </code></pre><p>jsoniter&rsquo;s documentation is incomplete and it has a confusing name, but if you fight your way through that you&rsquo;ll find a high-performance, high-quality JSON library that&rsquo;s a drop-in replacement for encoding/json without needing any code generation. So if I spend any more energy on JSON in Go I think I&rsquo;ll try contributing documentation to jsoniter.</p>
 
 </div>
-
-
     </main>
 
   </body>

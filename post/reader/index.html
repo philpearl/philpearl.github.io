@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -71,7 +71,7 @@
 <h2 id="lets-set-ourselves-a-task">Let&rsquo;s set ourselves a task.</h2>
 <p>Suppose we want to read a bunch of strings. The strings are encoded as a <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">Varint</a> length followed by that number of bytes. (Varint is an efficient encoding of integers where smaller numbers take up less space). We&rsquo;ll start by using an <code>io.Reader</code> to access our encoded strings. We&rsquo;ll define our function as <code>func readString(r io.Reader) (string, error)</code>. It turns out there&rsquo;s a <a href="https://golang.org/pkg/encoding/binary/#ReadVarint"><code>ReadVarint</code></a> function in encoding/binary. Fabulous, we can use that to read our Varint. Except it takes an <code>io.ByteReader</code>, not an <code>io.Reader</code>.</p>
 <p>No matter. We can use interface composition to create an interface that combines <code>io.ByteReader</code> and <code>io.Reader</code>. We can then write our <code>readString</code> function. Here&rsquo;s our initial <code>readString</code> below. We&rsquo;ll use a <a href="https://golang.org/pkg/strings/#Builder"><code>strings.Builder</code></a> to build the string that we return to our caller.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>    <span style="color:#f1fa8c">&#34;encoding/binary&#34;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f1fa8c">&#34;io&#34;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f1fa8c">&#34;strings&#34;</span>
@@ -93,7 +93,7 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> b.<span style="color:#50fa7b">String</span>(), err
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Great, we can read a string! Let&rsquo;s see how that performs. We&rsquo;ll write a benchmark that reads a string.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	data <span style="color:#ff79c6">:=</span> []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}
 </span></span><span style="display:flex;"><span>	buf <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
 </span></span><span style="display:flex;"><span>
@@ -121,7 +121,7 @@ go tool pprof -http :6060 blog.test mem.prof
 <p>The 4th allocation is the one we expect. We need an allocation for the string itself. This is the call to <code>Grow</code> on the <code>StringBuilder</code>. This is a necessary as we&rsquo;re returning the string to our caller. We&rsquo;re not aiming to get rid of this.</p>
 <h2 id="second-attempt">Second attempt</h2>
 <p>Our first attempt was not so great. I picked <code>strings.Builder</code> as it&rsquo;s intended as a way to build a string without causing an additional allocation converting the <code>[]byte</code> you build it in to a string. Before it existed I&rsquo;d nearly always do a trick with unsafe to avoid that allocation. What if we go back to that older way of operating? Then we can build our string directly in a <code>[]byte</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	l, err <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">ReadVarint</span>(r)
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
@@ -139,7 +139,7 @@ go tool pprof -http :6060 blah.test cpu.prof
 <p>What&rsquo;s this <code>runtime.convI2I</code> thing? There&rsquo;s a wonderful blog post <a href="https://savo.la/sneaky-go-interface-conversion.html">here</a> that explains it. It converts one interface to another. I&rsquo;ve defined my own <code>Reader</code> interface, and I need to convert that to an <code>io.ByteReader</code> to call <code>binary.ReadVarint</code> and to an <code>io.Reader</code> to call <code>io.ReadFull</code> and both of those operations take time.</p>
 <h2 id="third-attempt">Third attempt</h2>
 <p>Say I think I&rsquo;m always going to be reading these strings from a file. Practically I&rsquo;d always wrap the file in a <code>bufio.Reader</code>. What happens if I change my function to take this concrete type instead?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r <span style="color:#ff79c6">*</span>bufio.Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(r <span style="color:#ff79c6">*</span>bufio.Reader) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	l, err <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">ReadVarint</span>(r)
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
@@ -149,7 +149,7 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">*</span><span style="color:#8be9fd">string</span>)(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>b)), err
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Well, the call to runtime.convI2I goes away, but overall it is no faster, probably because I&rsquo;ve added quite a bit of complexity with layers of readers. If I change the benchmark around a bit to reduce the overhead of resetting the readers things improve.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	data <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">Repeat</span>([]<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}, <span style="color:#bd93f9">1000</span>)
 </span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
 </span></span><span style="display:flex;"><span>	r <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
@@ -167,7 +167,7 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span></code></pre></div><pre tabindex="0"><code>BenchmarkReadString-16 	31674597	   33.9 ns/op	     8 B/op	    1 allocs/op
 </code></pre><h2 id="4th-attempt">4th attempt</h2>
 <p>So what if we go back to basics and accept our data just as a <code>[]byte</code>? We don&rsquo;t need to make any function calls to access the data. But we do need to change our function signature to let the caller know how much data we&rsquo;ve used. And we need to check there&rsquo;s enough data to read.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(data []<span style="color:#8be9fd">byte</span>) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(data []<span style="color:#8be9fd">byte</span>) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>    l, n <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">Varint</span>(data)
 </span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#bd93f9">0</span>, io.ErrUnexpectedEOF
@@ -179,9 +179,9 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, <span style="color:#bd93f9">0</span>, io.ErrUnexpectedEOF
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Casting []byte to string causes an allocation, but we want that here as 
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// we don&#39;t want to hold onto the data []byte
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">string</span>(data[n : n<span style="color:#ff79c6">+</span><span style="color:#8be9fd;font-style:italic">int</span>(l)]), n <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">int</span>(l), <span style="color:#ff79c6">nil</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Casting []byte to string causes an allocation, but we want that here as </span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// we don&#39;t want to hold onto the data []byte</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> <span style="color:#8be9fd;font-style:italic">string</span>(data[n : n<span style="color:#ff79c6">+</span><span style="color:#8be9fd;font-style:italic">int</span>(l)]), n <span style="color:#ff79c6">+</span> <span style="color:#8be9fd;font-style:italic">int</span>(l), <span style="color:#ff79c6">nil</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Here&rsquo;s the benchmark result.</p>
 <pre tabindex="0"><code>BenchmarkReadStringC-16   41971776	   24.2 ns/op	     8 B/op	    1 allocs/op
@@ -191,7 +191,7 @@ go tool pprof -http :6060 blah.test cpu.prof
 <p>OK, OK, this post is really over already, but we kind of cheated above. If our data is very large and isn&rsquo;t framed in some way then perhaps we can&rsquo;t load complete records into a <code>[]byte</code> to process. In those cases we&rsquo;d need to implement some kind of buffering. But from the lessons above we would want to implement our buffer as a concrete type and have it provide direct access to it&rsquo;s internal <code>[]byte</code>.</p>
 <p>The <code>Next()</code> method on <a href="https://golang.org/pkg/bytes/#Buffer"><code>bytes.Buffer</code></a> is a great model here. It lets you see the next n bytes from the buffer directly with no copying, but also allows you to advance the read point. <code>bufio.Reader</code> has <a href="https://golang.org/pkg/bufio/#Reader.Peek"><code>Peek()</code></a> and <code>Discard()</code>, which allows almost the same access but is quite awkward.</p>
 <p>I&rsquo;ve knocked together the following implementation to prove the point. The primary interface to this is <code>Next()</code> which just returns the next l bytes of the internal buffer. It attempts to refill from the underlying reader if not enough bytes are available. Despite dissing on <code>Peek</code> ad <code>Discard</code> I&rsquo;ve also implemented similar functions here too, as well as a <code>Refill</code> to manually trigger a refill of the buffer from the reader.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">NewBuffer</span>() <span style="color:#ff79c6">*</span>Buffer {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">NewBuffer</span>() <span style="color:#ff79c6">*</span>Buffer {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>Buffer{
 </span></span><span style="display:flex;"><span>		data: <span style="color:#8be9fd;font-style:italic">make</span>([]<span style="color:#8be9fd">byte</span>, <span style="color:#bd93f9">1000</span>),
 </span></span><span style="display:flex;"><span>	}
@@ -213,8 +213,8 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Next</span>(l <span style="color:#8be9fd">int</span>) ([]<span style="color:#8be9fd">byte</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> b.i<span style="color:#ff79c6">+</span>l &gt; <span style="color:#8be9fd;font-style:italic">len</span>(b.data) {
-</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Asking for more data than we have. refill
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">refill</span>(l); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Asking for more data than we have. refill</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">refill</span>(l); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>, err
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>	}
@@ -223,31 +223,31 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> b.data[b.i<span style="color:#ff79c6">-</span>l : b.i], <span style="color:#ff79c6">nil</span>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Peek allows direct access to the current remaining buffer
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Peek</span>() []<span style="color:#8be9fd">byte</span> {
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Peek allows direct access to the current remaining buffer</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Peek</span>() []<span style="color:#8be9fd">byte</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> b.data[b.i:]
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Dicard consumes data in the current buffer
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Discard</span>(n <span style="color:#8be9fd">int</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Dicard consumes data in the current buffer</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Discard</span>(n <span style="color:#8be9fd">int</span>) {
 </span></span><span style="display:flex;"><span>	b.i <span style="color:#ff79c6">+=</span> n
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Refill forces the buffer to try to put at least one more byte into its buffer
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Refill</span>() <span style="color:#8be9fd">error</span> {
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// Refill forces the buffer to try to put at least one more byte into its buffer</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">Refill</span>() <span style="color:#8be9fd">error</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> b.<span style="color:#50fa7b">refill</span>(<span style="color:#bd93f9">1</span>)
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> (b <span style="color:#ff79c6">*</span>Buffer) <span style="color:#50fa7b">refill</span>(l <span style="color:#8be9fd">int</span>) <span style="color:#8be9fd">error</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> b.err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// We already know we can&#39;t get more data
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">return</span> b.err
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// We already know we can&#39;t get more data</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> b.err
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// fill the rest of the buffer from the reader
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> b.r <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// shift existing data down over the read portion of the buffer
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		n <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">copy</span>(b.data[:<span style="color:#8be9fd;font-style:italic">cap</span>(b.data)], b.data[b.i:])
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// fill the rest of the buffer from the reader</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> b.r <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// shift existing data down over the read portion of the buffer</span>
+</span></span><span style="display:flex;"><span>		n <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">copy</span>(b.data[:<span style="color:#8be9fd;font-style:italic">cap</span>(b.data)], b.data[b.i:])
 </span></span><span style="display:flex;"><span>		b.i = <span style="color:#bd93f9">0</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>		read, err <span style="color:#ff79c6">:=</span> io.<span style="color:#50fa7b">ReadFull</span>(b.r, b.data[n:<span style="color:#8be9fd;font-style:italic">cap</span>(b.data)])
@@ -260,18 +260,18 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> b.i<span style="color:#ff79c6">+</span>l &gt; <span style="color:#8be9fd;font-style:italic">len</span>(b.data) {
-</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Still not enough data
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">return</span> io.ErrUnexpectedEOF
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Still not enough data</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> io.ErrUnexpectedEOF
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>The readString function now looks like the following</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(b <span style="color:#ff79c6">*</span>Buffer) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">readString</span>(b <span style="color:#ff79c6">*</span>Buffer) (<span style="color:#8be9fd">string</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	l, n <span style="color:#ff79c6">:=</span> binary.<span style="color:#50fa7b">Varint</span>(b.<span style="color:#50fa7b">Peek</span>())
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> n <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Not enough data to read the varint. Can we get more?
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">Refill</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// Not enough data to read the varint. Can we get more?</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> b.<span style="color:#50fa7b">Refill</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">&#34;&#34;</span>, err
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>		l, n = binary.<span style="color:#50fa7b">Varint</span>(b.<span style="color:#50fa7b">Peek</span>())
@@ -290,7 +290,7 @@ go tool pprof -http :6060 blah.test cpu.prof
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>I&rsquo;ve also altered the benchmark so the cost of periodically resetting the buffer
 is spread out, and to force the buffer to read from the reader.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkReadString</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	data <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">Repeat</span>([]<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">16</span>, <span style="color:#f1fa8c">&#39;c&#39;</span>, <span style="color:#f1fa8c">&#39;h&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;s&#39;</span>, <span style="color:#f1fa8c">&#39;e&#39;</span>, <span style="color:#f1fa8c">&#39;i&#39;</span>, <span style="color:#f1fa8c">&#39;t&#39;</span>}, <span style="color:#bd93f9">1000</span>)
 </span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
 </span></span><span style="display:flex;"><span>	r <span style="color:#ff79c6">:=</span> bytes.<span style="color:#50fa7b">NewReader</span>(<span style="color:#ff79c6">nil</span>)
@@ -309,8 +309,6 @@ is spread out, and to force the buffer to read from the reader.</p>
 <pre tabindex="0"><code>BenchmarkReadString-16   44789697	     27.2 ns/op	     8 B/op	    1 allocs/op
 </code></pre>
 </div>
-
-
     </main>
 
   </body>

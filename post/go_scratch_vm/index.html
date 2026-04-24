@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -86,7 +86,7 @@ end
 <p>Once I start experimenting with this I expect lots of things will stop working, so I won’t be able to look at logs written to file or connect to the VM over a network. My debugging is likely to depend on getting access to the VM console. So I use VirtualBox to run my VM, as I know that will show me the console via the VirtualBox app.</p>
 <h2 id="attempt-1-hello-world">Attempt 1: Hello World</h2>
 <p>This is our first attempt at a new world of distribution-less linux. A simple “hello world” program that I’ll build as a statically-linked binary. The program repeatedly sleeps rather than exiting, as the kernel will panic if process 1 exits.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#ff79c6">package</span> main
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#ff79c6">import</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#f1fa8c">&#34;fmt&#34;</span>
@@ -118,7 +118,7 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p>So, what would happen if I tried to just assign 10.0.2.15 to eth0 and set the UP and RUNNING flags from my code? Some digging turned up the <a href="https://linux.die.net/man/7/netdevice">linux netdevice interface</a> was what I needed to do this.</p>
 <p>This netdevice interface is extremely weird. To use it you open any old internet socket, then commands to the kernel using the <code>SYS_IOCTL</code> syscall referencing the socket (IOCTL stands for input/output control).</p>
 <p>Luckily there’s support for making the syscalls and for some of the structures I needed in <code>golang.org/x/sys/unix</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> socketAddrRequest <span style="color:#8be9fd;font-style:italic">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> socketAddrRequest <span style="color:#8be9fd;font-style:italic">struct</span> {
 </span></span><span style="display:flex;"><span>	name [unix.IFNAMSIZ]<span style="color:#8be9fd">byte</span>
 </span></span><span style="display:flex;"><span>	addr unix.RawSockaddrInet4
 </span></span><span style="display:flex;"><span>}
@@ -137,27 +137,27 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">defer</span> unix.<span style="color:#50fa7b">Close</span>(fd)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// We want to associate an IP address with eth0, then set flags to
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#6272a4">// activate it
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// We want to associate an IP address with eth0, then set flags to</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// activate it</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	sa <span style="color:#ff79c6">:=</span> socketAddrRequest{}
 </span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.name[:], <span style="color:#f1fa8c">&#34;eth0&#34;</span>)
 </span></span><span style="display:flex;"><span>	sa.addr.Family = unix.AF_INET
 </span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.addr.Addr[:], []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">10</span>, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">2</span>, <span style="color:#bd93f9">15</span>})
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Set address
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFADDR, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sa))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Set address</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFADDR, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sa))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed setting address for eth0&#34;</span>)
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Set netmask
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.addr.Addr[:], []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">0</span>})
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Set netmask</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#8be9fd;font-style:italic">copy</span>(sa.addr.Addr[:], []<span style="color:#8be9fd">byte</span>{<span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">255</span>, <span style="color:#bd93f9">0</span>})
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCSIFNETMASK, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sa))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed setting netmask for eth0&#34;</span>)
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Get flags
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	sf <span style="color:#ff79c6">:=</span> socketFlagsRequest{}
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Get flags</span>
+</span></span><span style="display:flex;"><span>	sf <span style="color:#ff79c6">:=</span> socketFlagsRequest{}
 </span></span><span style="display:flex;"><span>	sf.name = sa.name
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">ioctl</span>(fd, unix.SIOCGIFFLAGS, <span style="color:#8be9fd;font-style:italic">uintptr</span>(unsafe.<span style="color:#50fa7b">Pointer</span>(<span style="color:#ff79c6">&amp;</span>sf))); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed getting flags for eth0&#34;</span>)
@@ -185,8 +185,8 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p>So what does <code>/sbin/init</code> do when the machine boots? Well, one thing it does is run “init scripts”. These are arcane scripts that have been handed down by the ancient ones to make machines start. The scripts usually live in <code>/etc</code> but the exact details vary between unixes. Using ancient wisdom, I go looking in <code>/etc</code> for files and directories related to “init”, to “rc” and to “run levels”.</p>
 <p><img src="/post/scratch3.png" alt="/etc/runlevels has boot and sysinit subdirectories"></p>
 <p>And it turns out <code>/etc/runlevels</code> exists and has subdirectories <code>sysinit</code> and <code>boot</code>, each with a bunch of scripts that get run to start the system. I try deleting scripts and rebooting to see what’s crucial for setting up ethernet. Cutting a long story short, the interesting file is <code>/etc/runlevels/sysinit/hwdrivers</code>. This is a quite short script that boils down to the following.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>find /sys -name modalias -type f -print0 | xargs -0 sort -u <span style="color:#f1fa8c">\
-</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>| xargs modprobe -b -a
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>find /sys -name modalias -type f -print0 | xargs -0 sort -u <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span>| xargs modprobe -b -a
 </span></span></code></pre></div><p>This is looking for files under <code>/sys</code> and passing them to <code>modprobe</code>. <code>man modprobe</code> tells us</p>
 <blockquote>
 <p>modprobe — program to add and remove modules from the Linux Kernel</p>
@@ -196,11 +196,11 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 <p>So how do we load the driver? I don’t want <code>bash</code>, <code>find</code> or <code>modprobe</code> in my final system, so I need to load the driver directly from my Go code.</p>
 <p>Looking for clues, I found some source code for <code>modprobe</code> <a href="https://github.com/vadmium/module-init-tools/blob/master/modprobe.c">here</a>. This shows <code>modprobe</code> reading the bytes of a driver binary, then calling <code>init_module</code>, which turns out to be another <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">syscall</a>. The <a href="http://man7.org/linux/man-pages/man2/init_module.2.html">man page</a> says there’s a newer version called <code>finit_module</code>. So, obviously, I go with the f’ing one.</p>
 <p>The <code>modprobe</code> code also contains another hint. It looks for modules under <code>/lib/modules</code>. A quick <code>find /lib/modules -print | grep e1000</code> shows us the driver we want is <code>/lib/modules/4.9.73–0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko</code>. This is the driver I want to load. All I need to do is open this file and pass the file descriptor to the <code>finit_module</code> syscall.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> fakeString [<span style="color:#bd93f9">3</span>]<span style="color:#8be9fd">byte</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> fakeString [<span style="color:#bd93f9">3</span>]<span style="color:#8be9fd">byte</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">addDriverModule</span>() <span style="color:#8be9fd">error</span> {
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// We need a file descriptor for our file
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	driverPath <span style="color:#ff79c6">:=</span> <span style="color:#f1fa8c">&#34;/lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// We need a file descriptor for our file</span>
+</span></span><span style="display:flex;"><span>	driverPath <span style="color:#ff79c6">:=</span> <span style="color:#f1fa8c">&#34;/lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko&#34;</span>
 </span></span><span style="display:flex;"><span>	f, err <span style="color:#ff79c6">:=</span> os.<span style="color:#50fa7b">Open</span>(driverPath)
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;open of driver file failed&#34;</span>)
@@ -217,11 +217,11 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h2 id="putting-it-all-together">Putting it all together</h2>
 <p>Ever optimistic, I add some code to start an HTTP server after the code to load the ethernet driver and configure the interface. This is what the code looks like now:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">run</span>() <span style="color:#8be9fd">error</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">run</span>() <span style="color:#8be9fd">error</span> {
 </span></span><span style="display:flex;"><span>	fmt.<span style="color:#50fa7b">Printf</span>(<span style="color:#f1fa8c">&#34;Hello World!\n&#34;</span>)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Before we can configure ethernet we need to load hardware drivers
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">addDriverModule</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#6272a4">// Before we can configure ethernet we need to load hardware drivers</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> err <span style="color:#ff79c6">:=</span> <span style="color:#50fa7b">addDriverModule</span>(); err <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">nil</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> errors.<span style="color:#50fa7b">Wrap</span>(err, <span style="color:#f1fa8c">&#34;failed to add driver&#34;</span>)
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
@@ -238,7 +238,7 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">return</span> <span style="color:#ff79c6">nil</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>I rebuild, copy the binary over <code>/sbin/init</code> and reboot. And wait a minute. And then…</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ curl localhost:8080
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ curl localhost:8080
 </span></span><span style="display:flex;"><span>Hello from Scratch Machine!
 </span></span></code></pre></div><p>It works!</p>
 <h2 id="attempt-3-cutting-it-down">Attempt 3: Cutting it down</h2>
@@ -265,7 +265,7 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </ul>
 <h2 id="building-the-initramfs">Building the initramfs</h2>
 <p>The “initial RAM file system” is just a gzipped cpio archive with the files I need. I can build it as follows. All these commands are run inside the alpine virtual machine.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#6272a4"># build our initial RAM file system</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#6272a4"># build our initial RAM file system</span>
 </span></span><span style="display:flex;"><span>mkdir -p ramfs
 </span></span><span style="display:flex;"><span>cp /vagrant/scratchmachine ramfs/init
 </span></span><span style="display:flex;"><span>cp /lib/modules/4.9.73-0-virthardened/kernel/drivers/net/ethernet/intel/e1000/e1000.ko ramfs/e1000.ko
@@ -278,7 +278,7 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">popd</span>
 </span></span></code></pre></div><h2 id="building-the-iso">Building the ISO</h2>
 <p>To build the ISO I again just need to build a directory containing the files I need in my alpine VM and run a command.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir cdroot
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir cdroot
 </span></span><span style="display:flex;"><span>mkdir cdroot/dev
 </span></span><span style="display:flex;"><span>mkdir cdroot/kernel
 </span></span><span style="display:flex;"><span><span style="color:#6272a4"># Copy the kernel from alpine</span>
@@ -300,11 +300,11 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">APPEND root=/dev/ram0 ro console=tty0 console=ttyS0,115200
 </span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c">EOF</span>
 </span></span></code></pre></div><p>Finally we can build the iso.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkisofs -o /vagrant/output.iso <span style="color:#f1fa8c">\
-</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>  -cache-inodes -J -l <span style="color:#f1fa8c">\
-</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>  -b isolinux/isolinux.bin -c isolinux/boot.cat <span style="color:#f1fa8c">\
-</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>  -no-emul-boot -boot-load-size <span style="color:#bd93f9">4</span> -boot-info-table <span style="color:#f1fa8c">\
-</span></span></span><span style="display:flex;"><span><span style="color:#f1fa8c"></span>  cdroot/
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkisofs -o /vagrant/output.iso <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span>  -cache-inodes -J -l <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span>  -b isolinux/isolinux.bin -c isolinux/boot.cat <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span>  -no-emul-boot -boot-load-size <span style="color:#bd93f9">4</span> -boot-info-table <span style="color:#f1fa8c">\
+</span></span></span><span style="display:flex;"><span>  cdroot/
 </span></span></code></pre></div><h2 id="results">Results</h2>
 <p>My Go program is 6,749,734 bytes. My ISO boot image is 7,114,752 bytes, which compares well with the ~38 MB for the alpine VM iso. It takes about 24s to boot under VirtualBox on my laptop (which I think is far too slow!). I suspect it is not vulnerable to many known linux security issues as it contains zero standard user-space components.</p>
 <p>On the down side it isn’t very configurable (hardwired IP address!) or debuggable.</p>
@@ -319,8 +319,6 @@ UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 </ul>
 
 </div>
-
-
     </main>
 
   </body>

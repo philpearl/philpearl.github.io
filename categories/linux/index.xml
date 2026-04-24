@@ -13,7 +13,7 @@
       <link>https://philpearl.github.io/post/go_scratch_vm/</link>
       <pubDate>Mon, 04 Jun 2018 20:19:41 +0000</pubDate>
       <guid>https://philpearl.github.io/post/go_scratch_vm/</guid>
-      <description>Many of us know that you can run Go binaries in “scratch” containers. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.&#xA;But what about VMs? Normally you start from Ubuntu, or Alpine or whatever and then you install your stuff on top.</description>
+      <description>&lt;p&gt;Many of us know that you can run &lt;a href=&#34;https://syslog.ravelin.com/a-container-image-in-60-lines-of-go-336533395c09&#34;&gt;Go binaries in “scratch” containers&lt;/a&gt;. Your container doesn’t need to be based on Alpine or Ubuntu. It can be based on nothing and contain just the binary you built from Go source. This is largely because Go code can be statically linked, and so requires no installed libraries.&lt;/p&gt;&#xA;&lt;p&gt;But what about VMs? Normally you start from Ubuntu, or Alpine or whatever and then you install your stuff on top. What would happen if you didn’t? Could you have a VM that’s just a linux kernel and your Go binary?&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

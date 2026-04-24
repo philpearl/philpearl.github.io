@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -95,7 +95,7 @@ were as expected - with up to a thousand or so items per task.</p>
 distinct items for one task. The distribution of items had some very distinct outliers.</p>
 <h1 id="why-is-that-a-problem">Why is that a problem?</h1>
 <p>Is clearing a map with hundreds of thousands of items slow? We can test that out!</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearing</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearing</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>    m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">string</span>]<span style="color:#8be9fd;font-style:italic">struct</span>{}, <span style="color:#bd93f9">100_000</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> b.N {
@@ -103,9 +103,9 @@ distinct items for one task. The distribution of items had some very distinct ou
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>It turns out that&rsquo;s very fast.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearing-16	         2.743 ns/op
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearing-16	         2.743 ns/op
 </span></span></code></pre></div><p>Ah, but what if we use the map just a little bit? And let&rsquo;s try some different sizes.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearingWithItems</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapClearingWithItems</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> _, size <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> []<span style="color:#8be9fd">int</span>{<span style="color:#bd93f9">100</span>, <span style="color:#bd93f9">1_000</span>, <span style="color:#bd93f9">10_000</span>, <span style="color:#bd93f9">100_000</span>} {
 </span></span><span style="display:flex;"><span>        m <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">make</span>(<span style="color:#8be9fd;font-style:italic">map</span>[<span style="color:#8be9fd">string</span>]<span style="color:#8be9fd;font-style:italic">struct</span>{}, size)
 </span></span><span style="display:flex;"><span>
@@ -117,7 +117,7 @@ distinct items for one task. The distribution of items had some very distinct ou
 </span></span><span style="display:flex;"><span>        })
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearingWithItems/100        	      144.1 ns/op
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapClearingWithItems/100        	      144.1 ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/1000               <span style="color:#bd93f9">1336</span> ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/10000     	    <span style="color:#bd93f9">11159</span> ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapClearingWithItems/100000    	   <span style="color:#bd93f9">103741</span> ns/op
@@ -128,7 +128,7 @@ over all the cells in the map and empty them. It might not take long in the
 greater scheme of things, but it does take more time in line with the capacity
 of the map.</p>
 <p>Is clearing a map of each size still faster than allocating a new map each time?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapAllocation</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkMapAllocation</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> _, size <span style="color:#ff79c6">:=</span> <span style="color:#ff79c6">range</span> []<span style="color:#8be9fd">int</span>{<span style="color:#bd93f9">100</span>, <span style="color:#bd93f9">1_000</span>, <span style="color:#bd93f9">10_000</span>, <span style="color:#bd93f9">100_000</span>} {
 </span></span><span style="display:flex;"><span>		b.<span style="color:#50fa7b">Run</span>(strconv.<span style="color:#50fa7b">Itoa</span>(size), <span style="color:#8be9fd;font-style:italic">func</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>			<span style="color:#ff79c6">for</span> <span style="color:#ff79c6">range</span> b.N {
@@ -138,7 +138,7 @@ of the map.</p>
 </span></span><span style="display:flex;"><span>		})
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapAllocation/100-16                  512.0 ns/op
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>BenchmarkMapAllocation/100-16                  512.0 ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapAllocation/1000-16        	      <span style="color:#bd93f9">5305</span> ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapAllocation/10000-16       	     <span style="color:#bd93f9">36463</span> ns/op
 </span></span><span style="display:flex;"><span>BenchmarkMapAllocation/100000-16      	    <span style="color:#bd93f9">237231</span> ns/op
@@ -181,8 +181,6 @@ sequence of sizes, so that each order of magnitude of items has an appropriately
 sized map.</p>
 
 </div>
-
-
     </main>
 
   </body>

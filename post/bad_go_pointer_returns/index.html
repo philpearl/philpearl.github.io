@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -69,13 +69,13 @@
 
   <p>As an old C programmer I struggle with this one: it feels completely normal for functions to return pointers to structs. But I&rsquo;ve a feeling this is bad Go, and that we&rsquo;re normally better off returning struct values. I&rsquo;m going to see if I can prove that returning struct values is just plain better, and that returning pointers is bad Go.</p>
 <p>I&rsquo;m going to define a struct that I can vary in size easily. The contents of the struct is an array: I can change the size of the struct simply by changing the size of the array.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">const</span> bigStructSize = <span style="color:#bd93f9">10</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">const</span> bigStructSize = <span style="color:#bd93f9">10</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">type</span> bigStruct <span style="color:#8be9fd;font-style:italic">struct</span> {
 </span></span><span style="display:flex;"><span>	a [bigStructSize]<span style="color:#8be9fd">int</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Next I&rsquo;ll create a couple of routines to build a new version of this struct. One will return it as a pointer, the other as a value.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStruct</span>() bigStruct {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">newBigStruct</span>() bigStruct {
 </span></span><span style="display:flex;"><span>   <span style="color:#8be9fd;font-style:italic">var</span> b bigStruct
 </span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; bigStructSize; i<span style="color:#ff79c6">++</span> {
 </span></span><span style="display:flex;"><span>   	b.a[i] = i
@@ -91,7 +91,7 @@
 </span></span><span style="display:flex;"><span>   <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>b
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Finally I&rsquo;ll write a couple of benchmarks to measure how long it takes to get and use these structs. I&rsquo;m going to do a simple calculation on the values in the struct so the compiler doesn&rsquo;t just optimise the whole thing away.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnValue</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkStructReturnValue</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	b.<span style="color:#50fa7b">ReportAllocs</span>()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	t <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>
@@ -160,8 +160,6 @@ Showing top 10 nodes out of 67
 <p>Now this scenario is very simplistic. The data is created and then immediately thrown away, so there will be a huge burden on the garbage collector. If the lifetime of the returned data was longer the results could be very different. But perhaps this is an indication that returning pointers to structs that have a short lifetime is bad Go.</p>
 
 </div>
-
-
     </main>
 
   </body>

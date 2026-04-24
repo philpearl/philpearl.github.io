@@ -3,7 +3,7 @@
 <head>
   <link href="https://gmpg.org/xfn/11" rel="profile">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
-  <meta name="generator" content="Hugo 0.131.0">
+  <meta name="generator" content="Hugo 0.160.1">
 
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
       </ul>
     </nav>
 
-    <p>&copy; 2016 - 2024. All rights reserved.</p>
+    <p>&copy; 2016 - 2026. All rights reserved.</p>
   </div>
 </aside>
     <main class="content container">
@@ -84,7 +84,7 @@ The format parameter describes how the data should be parsed.
 <code>time.Parse</code> not only parses the time, but has to parse, understand and implement a description of how to parse the time.
 If we write a dedicated parsing routine that just parses RFC3339 it should be faster than that.</p>
 <p>But before we start, let&rsquo;s just write a quick benchmark to see how fast <code>time.Parse</code> is.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkParseRFC3339</span>(b <span style="color:#ff79c6">*</span>testing.B) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">BenchmarkParseRFC3339</span>(b <span style="color:#ff79c6">*</span>testing.B) {
 </span></span><span style="display:flex;"><span>	now <span style="color:#ff79c6">:=</span> time.<span style="color:#50fa7b">Now</span>().<span style="color:#50fa7b">UTC</span>().<span style="color:#50fa7b">Format</span>(time.RFC3339Nano)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">:=</span> <span style="color:#bd93f9">0</span>; i &lt; b.N; i<span style="color:#ff79c6">++</span> {
@@ -125,7 +125,7 @@ That&rsquo;s a fundamental part of the Go standard library, so it&rsquo;s bound 
 Surely we can&rsquo;t improve on that?</p>
 <p>Well, most of our numbers are exactly 2 bytes long or exactly 4 bytes long.
 We can write number parsing functions that take advantage of these facts and don&rsquo;t have any of those nasty slow for-loop things.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;can&#39;t parse number %q&#34;</span>, in)
@@ -154,9 +154,9 @@ Isn&rsquo;t there a <a href="https://go101.org/article/bounds-check-elimination.
 <p><img src="/post/lencheck.png" alt="Two calls to panicIndex are slice length checks"></p>
 <p>Here&rsquo;s the code updated with the trick.
 <code>_ = in[1]</code> at the start of the function gives the compiler enough of a hint that it doesn&rsquo;t check the string is long enough each time we reference it later on.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
-</span></span><span style="display:flex;"><span>	_ = in[<span style="color:#bd93f9">1</span>] <span style="color:#6272a4">// This helps the compiler reduce the number of times it checks `in` is long enough
-</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
+</span></span><span style="display:flex;"><span>	_ = in[<span style="color:#bd93f9">1</span>] <span style="color:#6272a4">// This helps the compiler reduce the number of times it checks `in` is long enough</span>
+</span></span><span style="display:flex;"><span>	a, b <span style="color:#ff79c6">:=</span> <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">0</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>), <span style="color:#8be9fd;font-style:italic">int</span>(in[<span style="color:#bd93f9">1</span>]<span style="color:#ff79c6">-</span><span style="color:#f1fa8c">&#39;0&#39;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#ff79c6">if</span> a &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> a &gt; <span style="color:#bd93f9">9</span> <span style="color:#ff79c6">||</span> b &lt; <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">||</span> b &gt; <span style="color:#bd93f9">9</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>, fmt.<span style="color:#50fa7b">Errorf</span>(<span style="color:#f1fa8c">&#34;can&#39;t parse number %q&#34;</span>, in)
 </span></span><span style="display:flex;"><span>	}
@@ -171,7 +171,7 @@ Perhaps if we simplify the error it will be?
 If we remove the call to <code>fmt.Errorf</code> and replace it with a simple error that
 reduces the complexity of our atoi functions.
 This might be enough to allow the Go compiler to decide to implement these functions not as separate code blocks but directly within the calling function.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> errNotNumber = errors.<span style="color:#50fa7b">New</span>(<span style="color:#f1fa8c">&#34;not a valid number&#34;</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">var</span> errNotNumber = errors.<span style="color:#50fa7b">New</span>(<span style="color:#f1fa8c">&#34;not a valid number&#34;</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">func</span> <span style="color:#50fa7b">atoi2</span>(in <span style="color:#8be9fd">string</span>) (<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">error</span>) {
 </span></span><span style="display:flex;"><span>	_ = in[<span style="color:#bd93f9">1</span>]
@@ -190,8 +190,6 @@ But nanoseconds add up, and these improvements reduce the running time of some o
 As I said, we do have <em>a lot</em> of data and <em>a lot</em> of timestamps!</p>
 
 </div>
-
-
     </main>
 
   </body>

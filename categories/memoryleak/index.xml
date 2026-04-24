@@ -13,7 +13,7 @@
       <link>https://philpearl.github.io/post/danger_large_heap/</link>
       <pubDate>Thu, 15 Nov 2018 19:57:02 +0000</pubDate>
       <guid>https://philpearl.github.io/post/danger_large_heap/</guid>
-      <description>The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re hiring! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.</description>
+      <description>&lt;p&gt;The latest issue is a problem with the bulk feature extraction process we use at Ravelin (yes, we’re &lt;a href=&#34;https://ravelin.workable.com/&#34;&gt;hiring&lt;/a&gt;! So if you like Go and you’re anywhere near London drop us a line). For our larger clients we’ve found this process just uses more and more memory, so we keep having to run it on more and more expensive boxes. I presumed it was a memory leak of some kind, so I decided to investigate.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
